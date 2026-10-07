@@ -4,10 +4,6 @@ import { VEHICLES } from './vehicles.js';
 import { CONFIG } from './config.js';
 import { $ } from './utils.js';
 
-const jeepBodySprite=new Image();
-jeepBodySprite.decoding='async';
-jeepBodySprite.src=new URL('./assets/vehicles/jeep-body.svg',import.meta.url).href;
-
 export function createRender({ moments, effects, state, terrain, economy, physics, input, ui }) {
 
   function environment(){
@@ -302,15 +298,8 @@ else{
     g.translate(x,y);
     g.rotate(angle);
     const color=VEHICLES[v.id].color;
-    // The Jeep body is a visual-only sprite. Wheels, anchors, suspension springs,
-    // chassis angle and all collision/physics data still come from the live simulation.
-    const jeepSpriteReady=v.id==='base'&&jeepBodySprite.complete&&jeepBodySprite.naturalWidth>0;
 
-    if(jeepSpriteReady){
-      // Wheel wells in the sprite are aligned to the Jeep's existing +/-44 px wheel anchors.
-      // The transparent lower openings intentionally expose the animated suspension beneath.
-      g.drawImage(jeepBodySprite,-82,-63,164,82);
-    }else if(v.visualType==='monowheel'){
+    if(v.visualType==='monowheel'){
 
       shape([[-22,4],[-17,-10],[17,-10],[22,4]],color);
       shape([[-19,-5],[-24,-30],[18,-32],[24,-7]],null,'#d4e1d5',4);
@@ -594,7 +583,7 @@ else {
       }
     }
 
-    if(v.visualType!=='tank'&&!jeepSpriteReady){
+    if(v.visualType!=='tank'){
       const h=v.head;
       shape([[h.x,h.y+12],[h.x+10,-12],[h.x+22,-22]],null,'#244752',6);
       disk(h.x,h.y,12,'#f2c594');
