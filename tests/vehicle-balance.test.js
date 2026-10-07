@@ -54,6 +54,14 @@ test('Snowmobile ground drive-pitch response is reduced by 20 percent',()=>{
   close(vehicleBase('snowmobile').drivePitch/BASE_VEHICLE_TRAITS.drivePitch,0.8,'Snowmobile drive pitch');
 });
 
+test('Dune Buggy and Hovercraft power tuning matches requested balance pass',()=>{
+  close(VEHICLE_STAT_TABLE.buggy.motorTorque,2.04,'Dune Buggy torque');
+  close(VEHICLE_STAT_TABLE.buggy.enginePower,2.635,'Dune Buggy power');
+  close(VEHICLE_STAT_TABLE.buggy.pitchSupport,1.265,'Dune Buggy ground stability');
+  close(VEHICLE_STAT_TABLE.hovercraft.motorTorque,1.36,'Hovercraft torque');
+  close(VEHICLE_STAT_TABLE.hovercraft.enginePower,2.0825,'Hovercraft power');
+});
+
 test('Jeep remains the exact 1.0 tuning reference',()=>{
   const row=VEHICLE_STAT_TABLE.base;
   for(const key of [
