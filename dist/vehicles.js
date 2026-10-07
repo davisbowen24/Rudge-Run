@@ -1708,8 +1708,8 @@ const VEHICLE_STAT_TABLE={
     "accelerationLimit": 1.35,
     "wheelSpeedLimit": 1.1,
     "tireGrip": 1.35,
-    "airControl": 3.75,
-    "maxRotation": 1.45,
+    "airControl": 2.6,
+    "maxRotation": 1.8,
     "inertia": 1.4,
     "suspension": 0.85,
     "suspensionDamping": 0.9,
@@ -1769,8 +1769,8 @@ const VEHICLE_STAT_TABLE={
     "accelerationLimit": 1.45,
     "wheelSpeedLimit": 1.25,
     "tireGrip": 1.45,
-    "airControl": 3,
-    "maxRotation": 1.4,
+    "airControl": 2.25,
+    "maxRotation": 1.65,
     "inertia": 1.35,
     "suspension": 0.9,
     "suspensionDamping": 1,
@@ -2157,7 +2157,7 @@ const UPGRADE_CURVES={downforce:[0,.3,.7,1.35,2.4,4.5],airControl:[1,1.2,1.5,1.9
 
 const UPGRADE_PROFILES={
  base:{power:1.3,torque:1.35,spring:1.1,damping:1.3,grip:1.25,tank:1.2,burn:.9,focus:'Balanced power, traction and control'},
- bike:{power:1.55,torque:1.25,airControl:1.5,grip:1.2,tank:1.15,burn:.9,focus:'High speed and independent aerial control'},
+ bike:{power:1.55,torque:1.25,airControl:1.25,grip:1.2,tank:1.15,burn:.9,focus:'High speed and independent aerial control'},
  tractor:{power:1.25,torque:1.8,spring:1.1,damping:1.3,grip:1.45,tank:1.25,burn:.85,focus:'Climbing torque, hill grip and endurance'},
  tank:{power:1.5,torque:1.5,spring:1.1,damping:1.35,trackGrip:1.6,tank:1.25,burn:.9,focus:'Explosive tracked acceleration and compressed-track grip'},
  monster:{power:1.5,torque:1.5,spring:1.15,damping:1.5,grip:1.35,tank:1.3,burn:.85,focus:'High-speed climbs and controlled heavy landings'}
