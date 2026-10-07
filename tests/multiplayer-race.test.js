@@ -16,6 +16,7 @@ async function setup(){
   await db.exec(await readFile(new URL('../supabase/migrations/202610070001_accounts.sql',import.meta.url),'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/202610070002_multiplayer.sql',import.meta.url),'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/202610070004_multiplayer_races.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/202610070005_multiplayer_rematches.sql',import.meta.url),'utf8'));
 
   const rawA='a'.repeat(64),rawB='b'.repeat(64),hashA=await sha(rawA),hashB=await sha(rawB);
   await db.query('select public.ridge_auth($1,$2,$3,$4)',[true,'Driver_A','Password-testing-123',hashA]);
@@ -124,6 +125,43 @@ test('multiplayer race lifecycle is authoritative from voting through results',a
 
     const ranked=results.data.room.members.filter(m=>m.raceActive).sort((a,b)=>(b.finalDistance??b.distance)-(a.finalDistance??a.distance));
     assert.deepEqual(ranked.map(m=>Math.round(m.finalDistance)),[123,101,88]);
+    assert.equal(results.data.room.members.find(m=>m.id===host.data.memberId).roomWins,1);
+    assert.equal(results.data.room.members.find(m=>m.id===second.data.memberId).roomWins,0);
+    assert.equal(results.data.room.members.find(m=>m.id===guest.data.memberId).roomWins,0);
+
+    const nonHostRematch=await send('rematch',{},s);
+    assert.equal(nonHostRematch.status,403);
+
+    const rematch=await send('rematch',{},h);
+    assert.equal(rematch.status,200);
+    assert.equal(rematch.data.room.status,'lobby');
+    assert.ok(rematch.data.room.members.every(m=>m.ready===false));
+    assert.ok(rematch.data.room.members.every(m=>m.raceActive===false));
+    assert.equal(rematch.data.room.members.find(m=>m.id===host.data.memberId).roomWins,1,'room wins survive a rematch');
+
+    await send('ready',{ready:true},h);
+    await send('ready',{ready:true},s);
+    await send('ready',{ready:true},g);
+    const secondRace=await send('start',{},h);
+    assert.equal(secondRace.status,200);
+    assert.equal(secondRace.data.room.raceNumber,2);
+
+    await send('vote',{mapId:'highway'},h);
+    await send('vote',{mapId:'highway'},s);
+    await send('vote',{mapId:'countryside'},g);
+    await db.query("update ridge_private.multiplayer_rooms set vote_ends_at=now()-interval '1 second' where code=$1",[code]);
+    const secondCountdown=await send('state',{},h);
+    assert.equal(secondCountdown.data.room.selectedMap,'highway');
+    await db.query("update ridge_private.multiplayer_rooms set race_start_at=now()-interval '1 second' where code=$1",[code]);
+    await send('state',{},h);
+
+    await send('finish',{distance:80,finishStatus:'dead'},h);
+    await send('finish',{distance:160,finishStatus:'dead'},s);
+    const secondResults=await send('finish',{distance:90,finishStatus:'dead'},g);
+    assert.equal(secondResults.data.room.status,'results');
+    assert.equal(secondResults.data.room.members.find(m=>m.id===host.data.memberId).roomWins,1);
+    assert.equal(secondResults.data.room.members.find(m=>m.id===second.data.memberId).roomWins,1);
+    assert.equal(secondResults.data.room.members.find(m=>m.id===guest.data.memberId).roomWins,0);
 
     const roomCount=(await db.query('select count(*)::int as n from ridge_private.multiplayer_rooms where code=$1',[code])).rows[0].n;
     assert.equal(roomCount,1,'results room should remain available until players leave or it expires');
@@ -143,7 +181,11 @@ test('frontend multiplayer wiring includes voting, progress, countdown and resul
   assert.match(multiplayer,/startRace/);
   assert.match(multiplayer,/vote\(mapId\)/);
   assert.match(multiplayer,/progress\(distance\)/);
+  assert.match(multiplayer,/async function rematch\(\)/);
   assert.match(lobby,/lobbyVoteGrid/);
+  assert.match(lobby,/roomWins/);
+  assert.match(race,/roomWins/);
+  assert.match(race,/multiplayerResultsRematch/);
   assert.match(race,/raceProgressMs/);
   assert.match(race,/main\.reset\(\{mapId:room\.selectedMap,vehicleId:me\.vehicleId,multiplayer:true\}\)/);
   assert.match(main,/options\.mapId/);

@@ -58,7 +58,7 @@ export function createHandler({rpc,origins,pepper}){
         return reply({...result,memberToken});
       }
 
-      if(!['state','vehicle','ready','start','vote','progress','finish','leave'].includes(action))return reply({error:'Unknown action'},400);
+      if(!['state','vehicle','ready','start','vote','progress','finish','rematch','leave'].includes(action))return reply({error:'Unknown action'},400);
       const memberToken=req.headers.get('x-ridge-multiplayer')||'';
       if(!/^[a-f0-9]{64}$/.test(memberToken))return reply({error:'Join a room first'},401);
       const tokenHash=await digest(memberToken);
@@ -97,6 +97,8 @@ export function createHandler({rpc,origins,pepper}){
         if(!['dead','finished'].includes(body.finishStatus))return reply({error:'Invalid finish state'},400);
         result=await rpc('ridge_mp_finish',{p_member_token_hash:tokenHash,p_distance:body.distance,p_status:body.finishStatus});
       }
+
+      if(action==='rematch')result=await rpc('ridge_mp_rematch',{p_member_token_hash:tokenHash});
 
       if(action==='leave')result=await rpc('ridge_mp_leave',{p_member_token_hash:tokenHash});
 

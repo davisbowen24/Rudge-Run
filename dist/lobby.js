@@ -42,6 +42,11 @@ export function createLobbyUi({multiplayer,cloudSave,state,ui,race}){
       ready.className=member.ready?'lobby-ready':'lobby-not-ready';
       ready.textContent=member.ready?'READY':'NOT READY';
       badges.append(ready);
+      const wins=document.createElement('span');
+      wins.className='lobby-wins';
+      wins.textContent='🏆 '+Number(member.roomWins||0);
+      wins.title=(Number(member.roomWins||0)===1?'1 race win':Number(member.roomWins||0)+' race wins')+' in this room';
+      badges.append(wins);
       card.append(main,badges);
       list.append(card);
     }
@@ -219,6 +224,13 @@ export function createLobbyUi({multiplayer,cloudSave,state,ui,race}){
       const button=e.target.closest('[data-vote-map]');
       if(button)action(()=>multiplayer.vote(button.dataset.voteMap));
     });
+    $('multiplayerResultsRematch').addEventListener('click',()=>action(async()=>{
+      await multiplayer.rematch();
+      race.prepareRematch?.();
+      ui.showScreen('lobby');
+      renderLobby();
+      $('lobbyReady').focus();
+    }));
     $('lobbyLeave').addEventListener('click',()=>action(async()=>{
       await multiplayer.leave();
       ui.showScreen('start');

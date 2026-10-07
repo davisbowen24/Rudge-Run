@@ -138,6 +138,11 @@ export function createMultiplayer({auth,cloudSave,state}){
     return applyRoom(await request('finish',{distance:Number(distance),finishStatus}));
   }
 
+  async function rematch(){
+    if(!session)throw new Error('Join a room first.');
+    return applyRoom(await request('rematch'));
+  }
+
   async function leave(){
     if(!session){clearSession();return;}
     try{await request('leave');}
@@ -155,7 +160,7 @@ export function createMultiplayer({auth,cloudSave,state}){
   }
 
   return {
-    create,join,refresh,resume,updateVehicle,setReady,startRace,vote,progress,finish,leave,start,startPolling,stopPolling,
+    create,join,refresh,resume,updateVehicle,setReady,startRace,vote,progress,finish,rematch,leave,start,startPolling,stopPolling,
     room:()=>room,
     member,
     session:()=>session,

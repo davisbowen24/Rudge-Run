@@ -74,12 +74,16 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     $('multiplayerProgress').hidden=true;
     $('multiplayerRaceEnd').hidden=true;
     const rows=resultsRows(room),selfId=multiplayer.session()?.memberId;
-    $('multiplayerResultsMap').textContent=(MAPS[room.selectedMap]?.name||room.selectedMap||'Unknown map')+' · Room '+room.code;
+    const me=room.members?.find(member=>member.id===selfId);
+    $('multiplayerResultsMap').textContent=(MAPS[room.selectedMap]?.name||room.selectedMap||'Unknown map')+' · Race '+room.raceNumber+' · Room '+room.code;
     $('multiplayerResultsList').innerHTML=rows.map((member,index)=>{
       const distance=Math.round(Number(member.finalDistance??member.distance??0));
       const result=member.raceStatus==='finished'?'FINISHED':'OUT';
-      return '<div class="multiplayer-result-row'+(member.id===selfId?' is-you':'')+'"><strong>#'+(index+1)+' '+escapeHtml(member.displayName)+'</strong><span>'+escapeHtml(VEHICLES[member.vehicleId]?.name||member.vehicleId)+' · '+distance.toLocaleString('en-US')+' m · '+result+'</span></div>';
+      const wins=Number(member.roomWins||0);
+      return '<div class="multiplayer-result-row'+(member.id===selfId?' is-you':'')+(index===0?' is-winner':'')+'"><strong>#'+(index+1)+' '+escapeHtml(member.displayName)+'</strong><span>'+escapeHtml(VEHICLES[member.vehicleId]?.name||member.vehicleId)+' · '+distance.toLocaleString('en-US')+' m · '+result+' · 🏆 '+wins+' win'+(wins===1?'':'s')+'</span></div>';
     }).join('');
+    $('multiplayerResultsRematch').disabled=!me?.isHost;
+    $('multiplayerResultsRematch').textContent=me?.isHost?'Rematch':'Waiting for Host';
     ui.showScreen('multiplayerResults');
   }
 
@@ -87,10 +91,27 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   }
 
+  function prepareRematch(){
+    clearCountdown();
+    active=false;
+    finished=false;
+    state.multiplayerRaceActive=false;
+    state.playing=false;
+    targets.clear();
+    displayed.clear();
+    $('multiplayerProgress').hidden=true;
+    $('multiplayerRaceEnd').hidden=true;
+  }
+
   function syncFromRoom(room=multiplayer.room()){
     if(!room)return;
     updateClock(room);
     updateTargets(room);
+    if(room.status==='lobby'&&state.screen==='multiplayerResults'){
+      prepareRematch();
+      ui.showScreen('lobby');
+      return;
+    }
     if(room.status==='countdown')armCountdown(room);
     if(room.status==='racing'){
       const me=room.members?.find(member=>member.id===multiplayer.session()?.memberId);
@@ -186,5 +207,5 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     });
   }
 
-  return {bindEvents,update,finish,active:activeRace,syncFromRoom};
+  return {bindEvents,update,finish,active:activeRace,syncFromRoom,prepareRematch};
 }
