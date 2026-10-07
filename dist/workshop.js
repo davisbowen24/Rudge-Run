@@ -15,6 +15,12 @@ export function createWorkshop({state,save,upgrades,economy,render,physics,ui}) 
   function stage(id,mode){return `<div class="vehicle-stage"><div class="stage-caption"><span>${personality(id)}</span><span>RIDGE RUN / MOTOR WORKS</span></div><canvas id="${mode}Stage" width="1000" height="460" aria-label="${esc(VEHICLES[id].name)} on the showroom platform"></canvas><div class="stage-nav"><button data-step="-1" aria-label="Previous vehicle">‹</button><span>${mode==='store'?VEHICLE_ORDER.indexOf(id)+1:state.progression.owned.indexOf(id)+1} / ${mode==='store'?20:state.progression.owned.length}</span><button data-step="1" aria-label="Next vehicle">›</button></div></div>`;}
   function bars(id){const v=vehicleBase(id),all=VEHICLE_ORDER.map(vehicleBase);const traits=[['Power',x=>x.enginePower],['Speed',x=>x.maxSpeed],['Grip',x=>x.tireGrip],['Air agility',x=>x.airTilt*x.airControl]];return `<div class="character-bars">${traits.map(([label,get])=>{const pct=Math.round(get(v)/Math.max(...all.map(get))*100);return `<div><span>${label}</span><i aria-label="${label}: ${pct}% of lineup maximum"><b style="width:${pct}%"></b></i></div>`;}).join('')}</div><small class="bar-note">Base traits · relative to the lineup</small>`;}
   function details(id){const m=VEHICLE_STAT_TABLE[id];return `<details class="vehicle-details"><summary>Exact vehicle specs</summary><dl>${[['Mass','mass'],['Torque','motorTorque'],['Power','enginePower'],['Acceleration cap','accelerationLimit'],['Gearing','wheelSpeedLimit'],['Grip','tireGrip'],['Air control','airControl'],['Ground stability','pitchSupport'],['Ground damping','groundDamping'],['Suspension travel','suspensionTravel']].map(([label,key])=>`<div><dt>${label}</dt><dd>${(m[key]??1).toFixed(2)}×</dd></div>`).join('')}</dl><small>Jeep = 1.00× · base tuning before upgrades</small></details>`;}
+  function home(){
+    const id=state.progression.selected,d=VEHICLES[id];
+    $('homePresentation').innerHTML=`<div class="home-stage-copy"><div class="vehicle-stage home-vehicle-stage"><div class="stage-caption"><span>${personality(id)}</span><span>RIDGE RUN / TRAIL READY</span></div><canvas id="homeStage" width="1000" height="460" aria-label="${esc(d.name)} ready for the next run"></canvas></div><div class="home-vehicle-identity"><span class="ownership is-owned">● EQUIPPED</span><h2>${esc(d.name)}</h2><p>${esc(d.description)}</p>${bars(id)}</div></div>`;
+    drawStage('home',id);
+  }
+
   function store(){
     if(!VEHICLES[browsing])browsing=state.progression.selected;
     const id=browsing,d=VEHICLES[id],owned=state.progression.owned.includes(id),equipped=id===state.progression.selected,affordable=state.progression.balance>=d.price;
@@ -66,18 +72,20 @@ export function createWorkshop({state,save,upgrades,economy,render,physics,ui}) 
     // Moving floor highlight stays out of the vehicle silhouette.
     g.strokeStyle=`rgba(147,206,220,${.18+(glow*.6)})`;g.lineWidth=2;g.beginPath();g.ellipse(500,364,343,36,0,.1,Math.PI-.1);g.stroke();
     if(glow>.01){g.globalAlpha=glow*.18;g.fillStyle='#fbd285';g.fillRect(0,0,1000,460);g.globalAlpha=1;}
-    g.fillStyle=UI_THEME.colors.secondary;g.font=canvasFont(11,600);g.textAlign='center';g.fillText(mode==='garage'?'SERVICE BAY  /  READY TO BUILD':'MOTOR WORKS  /  THE COLLECTION',500,433);g.textAlign='start';
+    g.fillStyle=UI_THEME.colors.secondary;g.font=canvasFont(11,600);g.textAlign='center';g.fillText(mode==='garage'?'SERVICE BAY  /  READY TO BUILD':mode==='home'?'TRAIL READY  /  NEXT RUN':'MOTOR WORKS  /  THE COLLECTION',500,433);g.textAlign='start';
   }
   function update(dt){
-    if(!['store','garage'].includes(state.screen))return;
+    if(!['store','garage','start'].includes(state.screen))return;
     clock+=dt;transition=Math.min(1,transition+dt*4);glow=Math.max(0,glow-dt*1.4);
-    const id=state.screen==='store'?browsing:state.progression.selected;if(lastVehicle!==id){lastVehicle=id;}
-    drawStage(state.screen,id);
+    const mode=state.screen==='start'?'home':state.screen;
+    const id=state.screen==='store'?browsing:state.progression.selected;
+    if(lastVehicle!==id)lastVehicle=id;
+    drawStage(mode,id);
   }
   function bindEvents(){
     $('vehicleCards').addEventListener('click',activate);$('garagePresentation').addEventListener('click',activate);
     // Arrow navigation only when focus belongs to the showroom; form controls keep native keys.
     $('storeScreen').addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight'].includes(e.key)&&!['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)){e.preventDefault();const i=VEHICLE_ORDER.indexOf(browsing),dir=e.key==='ArrowRight'?1:-1;move(VEHICLE_ORDER[(i+dir+20)%20],dir);}});
   }
-  return {store,garage,enter,update,bindEvents,celebrate,move,drawStage,current:()=>browsing};
+  return {home,store,garage,enter,update,bindEvents,celebrate,move,drawStage,current:()=>browsing};
 }

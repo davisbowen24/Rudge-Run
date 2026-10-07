@@ -29,6 +29,7 @@ export function createUi({ stats, workshop, moments, state, economy, terrain, sa
     $('tip').textContent=reason==='Out of fuel'?'Keep moving and grab the red fuel cans.':reason==='Fell into the construction pit'?'Build speed across the concrete slab and aim for the steel landing.':reason==='Fell between rooftops'?'Build speed on the flat roof and launch from its ramp.':reason==='Hit the cave ceiling'?'Keep jumps low and level the vehicle before tight passages.':reason==='Lost in the haunted trench'?'Land on the spectral steps before leaping to the far bank.':reason==='Fell into a crevasse'?'Build speed before the ice jump.':reason==='Landed in lava'?'Use the launch ridge and rising thermal air to clear the crater.':'Use gas and brake in the air to land on your wheels.';
     $('finalDistance').textContent=Math.floor((state.furthest-140)/10)+' m';
     $('finalCoins').textContent=state.coins;
+    $('endRunRoute').textContent=VEHICLES[state.progression.selected].name+' · '+MAPS[state.activeMap].name;
     showScreen('over');
     $('again').focus();
   }
@@ -87,9 +88,23 @@ export function createUi({ stats, workshop, moments, state, economy, terrain, sa
     $('garageVehicle').focus();
   }
 
-  function showScreen(next){
+  function renderMenuContext(){
+    const map=MAPS[state.progression.selectedMap]||MAPS.countryside;
+    const vehicle=VEHICLES[state.progression.selected]||VEHICLES.base;
     const goal=economy.nextGoal(state.progression.selectedMap);
-    $('startGoal').textContent=MAPS[state.progression.selectedMap].name+' · Best '+state.progression.best[state.progression.selectedMap]+' m · Next goal '+goal.distance+' m (+'+goal.reward+' coins)';
+    $('selectedStart').textContent=vehicle.name;
+    $('homeSelectedMap').textContent=map.name;
+    $('startGoal').textContent='Best '+state.progression.best[state.progression.selectedMap]+' m · Next goal '+goal.distance+' m (+'+goal.reward+' coins)';
+    $('garageRoute').textContent=vehicle.name+' · '+map.name;
+    $('storeRoute').textContent=vehicle.name+' · '+map.name;
+    $('selectedGarage').textContent=vehicle.name+' · '+UPGRADE_PROFILES[state.progression.selected].focus;
+    for(const id of ['startBalance','endBalance','garageBalance','storeBalance','mapBalance'])
+      $(id).textContent=state.progression.balance.toLocaleString('en-US');
+    $('menuStatusCoins').textContent=state.progression.balance.toLocaleString('en-US');
+  }
+
+  function showScreen(next){
+    renderMenuContext();
     state.screen=next;
     document.body.dataset.screen=next;
     input.clearControls();
@@ -104,12 +119,9 @@ export function createUi({ stats, workshop, moments, state, economy, terrain, sa
     $('lobbyScreen').hidden=next!=='lobby';
     $('multiplayerResultsScreen').hidden=next!=='multiplayerResults';
     if(next!=='run')$('multiplayerRaceEnd').hidden=true;
-    $('selectedStart').textContent=VEHICLES[state.progression.selected].name;
-    $('selectedGarage').textContent=VEHICLES[state.progression.selected].name+' · '+UPGRADE_PROFILES[state.progression.selected].focus;
     $('overlay').hidden=next!=='over';
     $('pause').hidden=true;
-    for(const id of ['startBalance','endBalance','garageBalance','storeBalance','mapBalance'])
-    $(id).textContent=state.progression.balance;
+    if(next==='start')workshop.home?.();
   }
 
   function openGarage(){
@@ -124,9 +136,8 @@ export function createUi({ stats, workshop, moments, state, economy, terrain, sa
   }
 
   function closeGarage(){
-    if(state.garageReturn==='store'){showScreen('store');renderStore();$('storeBack').focus();return;}
-    showScreen(state.garageReturn);
-    $(state.garageReturn==='start'?'startGarage':'endGarage').focus();
+    showScreen('start');
+    $('startGarage').focus();
   }
 
   function statSummary(key,stats){
@@ -165,6 +176,7 @@ export function createUi({ stats, workshop, moments, state, economy, terrain, sa
     $('garageInvestment').textContent='Best on '+MAPS[state.progression.selectedMap].name+': '+state.progression.best[state.progression.selectedMap]+' m · Next goal: '+goal.distance+' m (+'+goal.reward+' coins)';
     $('selectedGarage').textContent=VEHICLES[state.progression.selected].name+' · '+UPGRADE_PROFILES[state.progression.selected].focus;
     $('garageBalance').textContent=state.progression.balance.toLocaleString('en-US');
+    renderMenuContext();
     workshop.garage();
   }
 
@@ -182,13 +194,11 @@ export function createUi({ stats, workshop, moments, state, economy, terrain, sa
 
   function closeStore(){
     $('resetConfirm').hidden=true;
-    showScreen(state.storeReturn);
-    if(state.storeReturn==='garage')
-    renderGarage();
-    $(state.storeReturn==='garage'?'garageStore':'startStore').focus();
+    showScreen('start');
+    $('startStore').focus();
   }
 
-  function renderStore(){ workshop.store(); }
+  function renderStore(){ renderMenuContext();workshop.store(); }
 
   function resetAllProgress(){
 
@@ -227,12 +237,8 @@ export function createUi({ stats, workshop, moments, state, economy, terrain, sa
   }
 
   function closeMaps(){
-    showScreen(state.mapReturn);
-    if(state.mapReturn==='garage')
-    renderGarage();
-    if(state.mapReturn==='store')
-    renderStore();
-    $(state.mapReturn==='garage'?'garageDrive':state.mapReturn==='store'?'storeDrive':state.mapReturn==='over'?'again':'startRun').focus();
+    showScreen('start');
+    $('startMap').focus();
   }
 
   function renderMaps(){
@@ -293,7 +299,9 @@ export function createUi({ stats, workshop, moments, state, economy, terrain, sa
 
     $('quitGarage').addEventListener('click',exitToGarage);
 
-    $('again').addEventListener('click',openMaps);
+    $('again').addEventListener('click',()=>main.reset());
+    $('endMap').addEventListener('click',openMaps);
+    $('endHome').addEventListener('click',()=>{showScreen('start');$('startRun').focus();});
 
     $('upgradeCards').addEventListener('click',e=>{
       const button=e.target.closest('[data-upgrade]');
@@ -315,9 +323,11 @@ export function createUi({ stats, workshop, moments, state, economy, terrain, sa
       $('garageMessage').textContent='Upgrades below apply only to '+VEHICLES[id].name+'.';
     });
 
-    $('startRun').addEventListener('click',openMaps);
+    $('startRun').addEventListener('click',()=>main.reset());
+    $('startMap').addEventListener('click',openMaps);
 
-    $('garageDrive').addEventListener('click',openMaps);
+    $('garageDrive').addEventListener('click',()=>main.reset());
+    $('garageMap').addEventListener('click',openMaps);
 
     $('startGarage').addEventListener('click',openGarage);
 
@@ -359,7 +369,8 @@ export function createUi({ stats, workshop, moments, state, economy, terrain, sa
 
     $('storeBack').addEventListener('click',closeStore);
 
-    $('storeDrive').addEventListener('click',openMaps);
+    $('storeDrive').addEventListener('click',()=>main.reset());
+    $('storeMap').addEventListener('click',openMaps);
 
     $('mapCards').addEventListener('click',e=>{
       const b=e.target.closest('[data-map]');
@@ -369,6 +380,7 @@ export function createUi({ stats, workshop, moments, state, economy, terrain, sa
       if(b.dataset.action==='unlock')
       economy.unlockMap(id);else
       economy.selectMap(id);
+      renderMenuContext();
       const next=$('mapCards').querySelector(`[data-map="${id}"]`);
       if(next&&!next.disabled)
       next.focus();else
@@ -381,6 +393,6 @@ export function createUi({ stats, workshop, moments, state, economy, terrain, sa
 
   }
 
-  return { resize, end, updateHUD, showBonus, drawBonuses, pauseRun, resumeRun, exitToGarage, showScreen, openGarage, closeGarage, statSummary, upgradeBenefit, renderGarage, openStore, closeStore, renderStore, resetAllProgress, openMaps, closeMaps, renderMaps, bindEvents };
+  return { resize, end, updateHUD, showBonus, drawBonuses, pauseRun, resumeRun, exitToGarage, showScreen, renderMenuContext, openGarage, closeGarage, statSummary, upgradeBenefit, renderGarage, openStore, closeStore, renderStore, resetAllProgress, openMaps, closeMaps, renderMaps, bindEvents };
 
 }

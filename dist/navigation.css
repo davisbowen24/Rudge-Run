@@ -1,0 +1,495 @@
+/* Ridge Run navigation and screen-identity pass.
+   Loaded last so this file can reshape menus without touching gameplay HUD/physics styles. */
+
+.menu:not([hidden]),#overlay:not([hidden]){
+  animation:ridge-screen-in .2s ease-out both;
+}
+@keyframes ridge-screen-in{
+  from{opacity:0;transform:translateY(5px)}
+  to{opacity:1;transform:none}
+}
+
+.menu{
+  padding:72px 24px 28px;
+}
+#startScreen{
+  background:
+    radial-gradient(circle at 18% 18%,#3c738050 0,transparent 32%),
+    radial-gradient(circle at 82% 78%,#ad70472b 0,transparent 34%),
+    linear-gradient(145deg,#071b25e8,#0b3441eb 54%,#132a35ed);
+}
+#garageScreen{
+  background:linear-gradient(135deg,#06151eea,#132c35ee 48%,#30271fee);
+}
+#storeScreen{
+  background:linear-gradient(140deg,#07151fed,#152a38ed 48%,#342a22ed);
+}
+#mapScreen{
+  background:linear-gradient(145deg,#071a24eb,#153846e9 48%,#1e3f39ec);
+}
+#statsScreen{
+  background:linear-gradient(145deg,#091924ed,#202d3eed);
+}
+#accountScreen{
+  background:linear-gradient(145deg,#071923ed,#183640ed);
+}
+#multiplayerScreen{
+  background:linear-gradient(145deg,#071824ef,#26354aef);
+}
+#lobbyScreen{
+  background:linear-gradient(145deg,#081824ef,#153c45ef 58%,#2c3026ef);
+}
+#multiplayerResultsScreen{
+  background:linear-gradient(145deg,#071824ef,#302d45ef);
+}
+
+/* One predictable escape position on every non-run destination. */
+.screen-nav-button,
+#recordsBack,
+#accountBack,
+#multiplayerBack,
+#lobbyLeave,
+#multiplayerResultsLeave{
+  position:fixed!important;
+  z-index:80;
+  top:max(18px,env(safe-area-inset-top));
+  left:max(18px,env(safe-area-inset-left));
+  width:auto!important;
+  min-width:92px;
+  margin:0!important;
+  padding:10px 15px!important;
+  border:1px solid #8aa8b2!important;
+  border-radius:999px!important;
+  background:#0d2733e8!important;
+  color:var(--text-primary)!important;
+  box-shadow:0 6px 20px #0010184d!important;
+  font-size:13px!important;
+  font-weight:800!important;
+}
+#lobbyLeave,#multiplayerResultsLeave{
+  border-color:#ba7d73!important;
+  background:#3c2527e8!important;
+}
+
+/* HOME — not a giant centered card. */
+.home-screen{
+  align-items:center;
+}
+.home-shell{
+  width:min(1120px,96vw);
+  margin:auto;
+}
+.home-topline{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:24px;
+  margin-bottom:18px;
+}
+.home-topline h1{
+  margin:4px 0 6px;
+  font-size:clamp(54px,8vw,94px);
+  line-height:.94;
+  letter-spacing:-2px;
+}
+.title-dot{color:var(--text-warning)}
+.home-tagline{
+  margin:0;
+  color:var(--text-secondary);
+  font-size:16px;
+}
+.home-balance,.menu-balance{
+  flex:0 0 auto;
+  padding:9px 13px;
+  border:1px solid #ffffff28;
+  border-radius:999px;
+  background:#081e28b8;
+  color:var(--text-reward);
+  font-weight:800;
+  font-variant-numeric:tabular-nums;
+}
+.home-main{
+  display:grid;
+  grid-template-columns:minmax(0,1.45fr) minmax(300px,.7fr);
+  gap:28px;
+  align-items:center;
+}
+.home-stage-copy{
+  display:grid;
+  grid-template-columns:minmax(0,1.35fr) minmax(220px,.65fr);
+  gap:18px;
+  align-items:center;
+}
+.home-presentation .vehicle-stage{
+  border-color:#ffffff2b;
+  box-shadow:0 24px 70px #00101855;
+}
+.home-vehicle-stage canvas{min-height:300px;object-fit:cover}
+.home-vehicle-identity{
+  padding:16px 6px;
+}
+.home-vehicle-identity h2{
+  margin:10px 0 8px;
+  font-size:30px;
+}
+.home-vehicle-identity p{
+  margin:0 0 12px;
+  color:var(--text-secondary);
+  line-height:1.45;
+  font-size:13px;
+}
+.home-vehicle-identity .character-bars{
+  grid-template-columns:1fr;
+}
+.home-actions{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.home-actions button{margin:0}
+.home-start{
+  min-height:62px;
+  font-size:20px;
+}
+.run-plan,.route-strip{
+  border-left:3px solid var(--text-reward);
+  background:#071d27a8;
+  padding:13px 15px;
+  border-radius:0 11px 11px 0;
+}
+.run-plan>span,.route-strip>span{
+  display:block;
+  color:var(--text-muted);
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:1.8px;
+}
+.run-plan>strong{
+  display:block;
+  margin:5px 0;
+  font-size:20px;
+}
+.run-plan>strong i{font-style:normal;color:var(--text-muted)}
+.run-plan small{
+  color:var(--text-secondary);
+  line-height:1.4;
+}
+.home-vehicle-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.home-utility-row{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  padding-top:3px;
+}
+.utility-button{
+  width:auto;
+  border:1px solid #5e7984;
+  border-radius:9px;
+  background:#102d38b8;
+  color:var(--text-secondary);
+  padding:8px 13px;
+  font-size:12px;
+  font-weight:750;
+}
+.utility-button:hover{color:var(--text-primary);border-color:#8ca5ad}
+.home-controls-note{
+  margin:3px 0 0;
+  font-size:11px;
+  line-height:1.5;
+  color:var(--text-muted);
+}
+
+/* Common route context: Start Run is primary, Change Map is optional. */
+.route-strip{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin:0 0 15px;
+  padding:10px 13px;
+}
+.route-strip>span{margin:0}
+.route-strip strong{
+  color:var(--text-primary);
+  text-align:right;
+  font-size:13px;
+}
+.garage-actions,.showroom-footer{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px!important;
+}
+.garage-actions .again,.showroom-footer .again{
+  min-height:48px;
+}
+#garageBack,#storeBack,#mapBack{display:block}
+.map-footer{grid-template-columns:1fr!important}
+
+/* Make the major destinations feel like different places, not copies of one card. */
+#garageScreen .workshop-panel{
+  width:min(1040px,100%);
+  background:linear-gradient(155deg,#132b34f3,#152a2df3);
+  border-color:#776851;
+  box-shadow:0 28px 80px #0006;
+}
+#storeScreen .showroom-panel{
+  width:min(1120px,100%);
+  background:linear-gradient(155deg,#0d2230f4,#202d35f4);
+  border-color:#586f7c;
+}
+#mapScreen .store-panel{
+  width:min(1080px,100%);
+  background:#0d2832d8;
+  border-color:#4c7b7c;
+}
+#statsScreen .records-panel{
+  width:min(980px,100%);
+  background:#152332e8;
+  border-color:#586879;
+}
+#accountScreen .account-panel{
+  background:#102b35ed;
+  border-color:#4d7881;
+}
+#multiplayerScreen .multiplayer-panel{
+  background:#13283aed;
+  border-color:#526c8d;
+}
+#lobbyScreen .multiplayer-panel{
+  width:min(760px,94vw);
+  background:#112f35ed;
+  border-color:#5c817a;
+}
+#multiplayerResultsScreen .multiplayer-panel{
+  background:#20283ded;
+  border-color:#766d92;
+}
+
+/* Map selection is a destination browser. */
+#mapScreen .garage-top{margin-bottom:8px}
+#mapScreen .map-grid{gap:20px}
+#mapScreen .map-card{
+  padding:20px;
+  background:#0a2530e8;
+  border-color:#35616c;
+  transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease;
+}
+#mapScreen .map-card:hover{
+  transform:translateY(-2px);
+  border-color:#6d9298;
+  box-shadow:0 12px 30px #00141f45;
+}
+#mapScreen .map-card.selected{
+  border-color:var(--text-reward);
+  box-shadow:0 0 0 1px var(--text-reward),0 12px 32px #00141f55;
+}
+#mapScreen .map-card canvas{
+  height:150px;
+}
+#mapScreen .map-selected{
+  padding:11px 13px;
+  border-radius:10px;
+  background:#071e27b8;
+  color:var(--text-primary);
+  text-align:center;
+}
+
+/* Garage = service bay; Showroom = browsing/purchase. */
+#garageScreen .garage-workspace{
+  border-top:1px solid #ffffff16;
+  padding-top:16px;
+}
+#storeScreen .vehicle-rail{
+  padding-top:6px;
+  border-top:1px solid #ffffff12;
+}
+#storeScreen .vehicle-dossier{
+  padding:14px;
+  border-radius:14px;
+  background:#071d27a6;
+}
+
+/* Multiplayer should communicate progression through the room. */
+.lobby-flow{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:6px;
+  margin:12px 0 16px;
+}
+.lobby-flow span{
+  position:relative;
+  padding:8px 5px;
+  border-radius:8px;
+  background:#0a2029;
+  color:var(--text-muted);
+  font-size:10px;
+  font-weight:850;
+  text-align:center;
+  letter-spacing:.5px;
+}
+.lobby-flow[data-phase="lobby"] span[data-step="lobby"],
+.lobby-flow[data-phase="lobby"] span[data-step="ready"],
+.lobby-flow[data-phase="voting"] span[data-step="voting"],
+.lobby-flow[data-phase="countdown"] span[data-step="voting"],
+.lobby-flow[data-phase="racing"] span[data-step="racing"],
+.lobby-flow[data-phase="results"] span[data-step="results"]{
+  background:#28505a;
+  color:var(--text-primary);
+  box-shadow:inset 0 -2px 0 var(--text-reward);
+}
+#multiplayerScreen .card h1,#lobbyScreen .card h1,#multiplayerResultsScreen .card h1{
+  margin-top:7px;
+}
+
+/* Death/result screen = decision screen, with one dominant retry action. */
+#overlay{
+  background:linear-gradient(145deg,#06161dde,#142b35e8);
+}
+.end-shell{
+  width:min(560px,92vw);
+  max-height:92vh;
+  overflow:auto;
+  padding:34px;
+  text-align:center;
+  border-top:1px solid #ffffff31;
+  border-bottom:1px solid #ffffff20;
+  background:linear-gradient(145deg,#102d38dc,#152b35ee);
+  box-shadow:0 28px 80px #00101888;
+}
+.end-shell h1{
+  margin:8px 0;
+  font-size:42px;
+}
+.end-shell>p{color:var(--text-secondary)}
+.end-run-route{
+  margin:8px auto 12px;
+  color:var(--text-secondary);
+  font-weight:750;
+}
+.end-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+  margin-top:16px;
+}
+.end-actions button{margin:0}
+.end-actions .again{grid-column:1/-1;min-height:58px}
+.end-actions .utility-button{justify-self:end}
+
+/* Utility destinations are intentionally less visually loud. */
+#startStats,#startAccount,#endStats{
+  opacity:.9;
+}
+.record-tabs button{
+  min-height:38px!important;
+  padding:8px 10px!important;
+  font-size:12px!important;
+}
+
+/* Compact menu currency treatment instead of oversized blocks. */
+#garageScreen .balance,#storeScreen .balance,#mapScreen .balance{
+  border-radius:999px!important;
+  padding:8px 12px!important;
+  font-size:16px!important;
+  background:#071d27b5!important;
+}
+
+/* Keep common headings visually anchored. */
+#garageScreen .garage-top,
+#storeScreen .garage-top,
+#mapScreen .garage-top,
+#statsScreen .garage-top{
+  border-bottom:1px solid #ffffff14;
+  padding-bottom:12px;
+}
+#garageScreen .garage-top h1,
+#storeScreen .garage-top h1,
+#mapScreen .garage-top h1,
+#statsScreen .garage-top h1{
+  letter-spacing:.2px;
+}
+
+/* Room/result escape controls are explicit; no generic Back semantics. */
+#lobbyLeave::before,#multiplayerResultsLeave::before{content:"← ";}
+
+/* Responsive: preserve hierarchy instead of collapsing into another giant card. */
+@media(max-width:900px){
+  .home-main{grid-template-columns:1fr}
+  .home-stage-copy{grid-template-columns:1fr minmax(220px,.55fr)}
+  .home-presentation{order:2}
+  .home-actions{order:1}
+  .home-vehicle-identity .character-bars{grid-template-columns:1fr 1fr}
+}
+@media(max-width:700px){
+  .menu{padding:66px 10px 18px}
+  .home-topline h1{font-size:56px}
+  .home-topline{align-items:center}
+  .home-balance{font-size:12px}
+  .home-stage-copy{grid-template-columns:1fr}
+  .home-vehicle-identity{display:none}
+  .home-vehicle-stage canvas{min-height:205px}
+  .home-vehicle-actions{grid-template-columns:1fr}
+  .home-utility-row{justify-content:center}
+  .garage-actions,.showroom-footer{grid-template-columns:1fr 1fr!important}
+  .garage-actions .again,.showroom-footer .again{grid-column:1/-1;grid-row:1}
+  .route-strip{align-items:flex-start;flex-direction:column;gap:4px}
+  .route-strip strong{text-align:left}
+  #mapScreen .map-card canvas{height:130px}
+  .end-shell{padding:26px 18px}
+  .end-actions{grid-template-columns:1fr}
+  .end-actions .again,.end-actions .utility-button{grid-column:auto;justify-self:stretch;width:100%}
+}
+@media(max-width:430px){
+  .home-topline{gap:10px}
+  .home-topline h1{font-size:48px}
+  .home-tagline{font-size:13px}
+  .home-balance{padding:7px 9px}
+  .run-plan>strong{font-size:17px}
+  .lobby-flow{gap:3px}
+  .lobby-flow span{font-size:9px;padding:7px 2px}
+}
+@media(prefers-reduced-motion:reduce){
+  .menu:not([hidden]),#overlay:not([hidden]){animation:none}
+  #mapScreen .map-card{transition:none}
+}
+
+#resetProgress{
+  width:auto!important;
+  padding:8px 12px!important;
+  margin-top:0!important;
+  font-size:11px!important;
+  opacity:.72;
+}
+#resetProgress:hover{opacity:1}
+
+.menu-status{
+  position:fixed;
+  z-index:75;
+  top:max(18px,env(safe-area-inset-top));
+  right:max(18px,env(safe-area-inset-right));
+  display:flex;
+  gap:10px;
+  align-items:center;
+  padding:8px 12px;
+  border:1px solid #ffffff22;
+  border-radius:999px;
+  background:#081f2ae6;
+  color:var(--text-secondary);
+  font-size:11px;
+  font-weight:750;
+  box-shadow:0 6px 20px #00101836;
+}
+.menu-status b{color:var(--text-reward);font-variant-numeric:tabular-nums}
+.menu-status span+span{padding-left:10px;border-left:1px solid #ffffff20;color:var(--text-primary)}
+body[data-screen="run"] .menu-status,
+body[data-screen="paused"] .menu-status,
+body[data-screen="over"] .menu-status,
+body[data-screen="start"] .menu-status{display:none}
+@media(max-width:520px){
+  .menu-status{top:18px;right:10px;padding:7px 9px}
+  .menu-status span+span{display:none}
+}

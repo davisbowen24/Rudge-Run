@@ -87,6 +87,7 @@ export function createLobbyUi({multiplayer,cloudSave,state,ui,race}){
 
     $('lobbyCode').textContent=room.code;
     $('lobbyStatus').textContent=multiplayer.status()+' · '+room.status.toUpperCase();
+    $('lobbyFlow').dataset.phase=room.status;
     renderMembers(room);
 
     const owned=new Set(state.progression.owned||['base']);
@@ -220,9 +221,8 @@ export function createLobbyUi({multiplayer,cloudSave,state,ui,race}){
     });
     $('lobbyLeave').addEventListener('click',()=>action(async()=>{
       await multiplayer.leave();
-      ui.showScreen('multiplayer');
-      renderMenu();
-      $('multiplayerCreate').focus();
+      ui.showScreen('start');
+      $('startMultiplayer').focus();
     }));
     renderMenu();
   }
