@@ -1677,7 +1677,7 @@ VEHICLES.tank.name='Super Offroader';
 // Torque, power, traction, mass, gearing, stability/damping and air control are independent tuning inputs.
 // Power generally rises with vehicle price; torque follows vehicle role/mass, so heavy climbers can be torque-rich
 // without also becoming the fastest vehicles.
-// Bike, ATV and Moon Rover keep strong air authority but use safer spin caps and extra landing damping.
+// Bike, ATV and Moon Rover use stronger air correction with lower spin caps; added inertia and lower drivePitch calm ground rotation without weakening air input.
 const VEHICLE_STAT_TABLE={
   "base": {
     "price": 0,
@@ -1707,17 +1707,18 @@ const VEHICLE_STAT_TABLE={
     "accelerationLimit": 1.35,
     "wheelSpeedLimit": 1.1,
     "tireGrip": 1.35,
-    "airControl": 3.06,
-    "maxRotation": 1.45,
-    "inertia": 1,
+    "airControl": 3.75,
+    "maxRotation": 1.05,
+    "inertia": 1.4,
     "suspension": 0.85,
     "suspensionDamping": 0.9,
     "suspensionTravel": 1.45,
     "pitchSupport": 1.15,
-    "groundDamping": 1.35,
+    "groundDamping": 1.45,
     "fuelCapacity": 0.35,
     "fuelBurn": 0.4,
-    "downforceScale": 0
+    "downforceScale": 0,
+    "drivePitch": 0.65
   },
   "bus": {
     "price": 2000,
@@ -1767,17 +1768,18 @@ const VEHICLE_STAT_TABLE={
     "accelerationLimit": 1.45,
     "wheelSpeedLimit": 1.25,
     "tireGrip": 1.45,
-    "airControl": 2.4000000000000004,
-    "maxRotation": 1.4,
-    "inertia": 1,
+    "airControl": 3,
+    "maxRotation": 1.05,
+    "inertia": 1.35,
     "suspension": 0.9,
     "suspensionDamping": 1,
     "suspensionTravel": 1.5,
     "pitchSupport": 1.1,
-    "groundDamping": 1.3,
+    "groundDamping": 1.4,
     "fuelCapacity": 0.85,
     "fuelBurn": 0.9,
-    "downforceScale": 0
+    "downforceScale": 0,
+    "drivePitch": 0.7
   },
   "snowmobile": {
     "price": 20000,
@@ -1887,17 +1889,18 @@ const VEHICLE_STAT_TABLE={
     "accelerationLimit": 1.5,
     "wheelSpeedLimit": 1.55,
     "tireGrip": 1.05,
-    "airControl": 2.2475,
-    "maxRotation": 1.3,
-    "inertia": 1.15,
+    "airControl": 2.9,
+    "maxRotation": 1,
+    "inertia": 1.55,
     "suspension": 0.85,
     "suspensionDamping": 0.9,
     "suspensionTravel": 1.65,
     "pitchSupport": 1.1,
-    "groundDamping": 1.3,
+    "groundDamping": 1.45,
     "fuelCapacity": 1.2,
     "fuelBurn": 0.9,
-    "downforceScale": 0
+    "downforceScale": 0,
+    "drivePitch": 0.75
   },
   "battletank": {
     "price": 250000,
@@ -2108,6 +2111,7 @@ for(const [id,row] of Object.entries(VEHICLE_STAT_TABLE)){
   m.suspensionTravel=row.suspensionTravel;
   m.pitchSupport=row.pitchSupport;
   m.groundDamping=row.groundDamping;
+  if(Number.isFinite(row.drivePitch))m.drivePitch=row.drivePitch;
   m.fuelCapacity=row.fuelCapacity;
   m.fuelBurn=row.fuelBurn;
   m.downforceScale=row.downforceScale;
