@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { BASE_VEHICLE_TRAITS } from '../dist/config.js';
-import { VEHICLE_ORDER, VEHICLE_STAT_TABLE, vehicleBase } from '../dist/vehicles.js';
+import { VEHICLE_ORDER, VEHICLE_STAT_TABLE, UPGRADE_CURVES, upgradeScale, vehicleBase } from '../dist/vehicles.js';
+import { createUpgrades } from '../dist/upgrades.js';
 
 function close(actual,expected,label){
   const tolerance=1e-9*Math.max(1,Math.abs(expected));
@@ -61,6 +62,24 @@ test('Dune Buggy and Hovercraft power tuning matches requested balance pass',()=
   close(VEHICLE_STAT_TABLE.hovercraft.motorTorque,1.36,'Hovercraft torque');
   close(VEHICLE_STAT_TABLE.hovercraft.enginePower,2.0825,'Hovercraft power');
 });
+
+test('Fuel upgrade leaves stock capacity unchanged and cuts maxed capacity by 30 percent',()=>{
+  const upgradeSystem=createUpgrades({
+    state:{progression:{selected:'base'}},
+    save:{levelsFor:()=>({engine:0,suspension:0,tires:0,fuel:0})}
+  });
+
+  for(const id of VEHICLE_ORDER){
+    const stock=upgradeSystem.vehicleStats({engine:0,suspension:0,tires:0,fuel:0},id);
+    const maxed=upgradeSystem.vehicleStats({engine:0,suspension:0,tires:0,fuel:5},id);
+    const base=vehicleBase(id);
+    const previousMax=base.fuelCapacity*UPGRADE_CURVES.tank[5]*upgradeScale(id,'tank',5);
+
+    close(stock.fuelCapacity,base.fuelCapacity,id+' stock fuel capacity');
+    close(maxed.fuelCapacity,previousMax*.70,id+' max fuel capacity');
+  }
+});
+
 
 test('Jeep remains the exact 1.0 tuning reference',()=>{
   const row=VEHICLE_STAT_TABLE.base;

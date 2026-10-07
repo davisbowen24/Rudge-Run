@@ -24,6 +24,9 @@ export function createUpgrades({ state, save }) {
     const suspensionLevel=base.suspensionUpgrade==='airControl'?0:levels.suspension;
 
     const mu=base.tireGrip*gain('grip',tireLevel),power=gain('power',levels.engine);
+    // Keep stock fuel unchanged, then progressively reduce the old fuel-upgrade capacity
+    // so a maxed tank has 70% of its previous capacity/endurance.
+    const fuelUpgradeScale=1-.30*(levels.fuel/MAX_LEVEL);
     // ATV and Moon Rover are intentionally agile, but direct linear engine-power scaling made
     // high upgrade levels snap to their rotation caps almost instantly. Keep their air control
     // increasing with engine power, but use a square-root response for predictable corrections.
@@ -39,7 +42,7 @@ export function createUpgrades({ state, save }) {
  suspension:base.suspension*gain('spring',suspensionLevel),suspensionDamping:base.suspensionDamping*gain('damping',suspensionLevel),
  inertia:base.inertia,comOffsetY:base.comOffsetY+(base.tracked?Math.min(8,2*suspensionLevel):3.8*suspensionLevel),
  tireGrip:mu,staticGrip:mu,dynamicGrip:mu*u.dynamic[tireLevel],
- fuelCapacity:base.fuelCapacity*gain('tank',levels.fuel),fuelBurn:base.fuelBurn*gain('burn',levels.fuel)};
+ fuelCapacity:base.fuelCapacity*gain('tank',levels.fuel)*fuelUpgradeScale,fuelBurn:base.fuelBurn*gain('burn',levels.fuel)};
 
   }
 
