@@ -12,7 +12,7 @@ test('every map has a distinct detail and atmosphere profile',()=>{
     assert.ok(profile,`missing visual profile for ${id}`);
     assert.ok(profile.detail,`${id} needs secondary world detail`);
     assert.ok(profile.atmosphere?.kind,`${id} needs atmosphere`);
-    assert.ok(Number.isFinite(profile.atmosphere.density)&&profile.atmosphere.density>0,`${id} needs atmosphere density`);
+    assert.ok(Number.isFinite(profile.atmosphere.density)&&profile.atmosphere.density>0&&profile.atmosphere.density<=.2,`${id} atmosphere should stay subtle`);
     assert.ok(Number.isFinite(profile.atmosphere.speed),`${id} needs atmosphere speed`);
     assert.ok(MATERIALS[profile.material],`${id} references unknown material ${profile.material}`);
   }
@@ -30,15 +30,16 @@ test('major map families use recognizable atmospheric identities',()=>{
   assert.equal(MAP_VISUALS.neon.atmosphere.kind,'neon');
 });
 
-test('renderer layers atmosphere behind and in front of the world',async()=>{
+test('renderer keeps atmosphere behind the playable action and secondary details sparse',async()=>{
   const [render,effects]=await Promise.all([
     import('node:fs/promises').then(({readFile})=>readFile(new URL('../dist/render.js',import.meta.url),'utf8')),
     import('node:fs/promises').then(({readFile})=>readFile(new URL('../dist/effects.js',import.meta.url),'utf8'))
   ]);
 
   assert.match(render,/effects\.drawAtmosphere\(state\.ctx,'back'\)/);
-  assert.match(render,/effects\.drawAtmosphere\(state\.ctx,'front'\)/);
+  assert.doesNotMatch(render,/effects\.drawAtmosphere\(state\.ctx,'front'\)/);
   assert.match(effects,/function detail\(/);
+  assert.match(effects,/Math\.abs\(n\)%3===1/);
   assert.match(effects,/function drawAtmosphere\(/);
   assert.match(effects,/particles\.length>=Math\.floor\(180\*quality\)/,'existing bounded gameplay particle cap should remain in place');
 });

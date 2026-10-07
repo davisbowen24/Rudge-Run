@@ -188,16 +188,16 @@ export function createEffects({state, terrain}) {
     const base=profile().atmosphere||{kind:'pollen',density:0,color:profile().accent,speed:0};
     if(base.kind!=='seasonal')return base;
     return [
-      {kind:'petals',density:.48,color:'#ffd9e4',speed:18},
-      {kind:'pollen',density:.34,color:'#f4e6a1',speed:10},
-      {kind:'leaves',density:.76,color:'#d58b42',speed:31},
-      {kind:'snow',density:.84,color:'#f5fdff',speed:29}
+      {kind:'petals',density:.12,color:'#ffd9e4',speed:18},
+      {kind:'pollen',density:.08,color:'#f4e6a1',speed:10},
+      {kind:'leaves',density:.18,color:'#d58b42',speed:31},
+      {kind:'snow',density:.16,color:'#f5fdff',speed:29}
     ][state.seasonIndex]||base;
   }
 
   function drawAtmosphere(g,layer='back'){
     if(state.screen!=='run'||!state.W||!state.H)return;
-    const a=atmosphereSpec(),front=layer==='front',count=Math.floor((front?20:46)*a.density*quality);
+    const a=atmosphereSpec(),front=layer==='front',count=Math.floor((front?6:28)*a.density*quality);
     if(count<=0)return;
     const drift=a.speed||12;
     g.save();
@@ -206,7 +206,7 @@ export function createEffects({state, terrain}) {
       let x=(hx*state.W+clock*drift*(.3+hz)*(i%2?1:-.35)+state.camera.x*(front?.015:.005))%(state.W+80)-40;
       if(x<-40)x+=state.W+80;
       let y=(hy*state.H+clock*drift*(.35+hz))%(state.H+100)-50;
-      const alpha=(front?.28:.16)*(.55+hz*.75);
+      const alpha=(front?.14:.09)*(.55+hz*.75);
       g.globalAlpha=alpha;
       if(a.kind==='snow'){
         circle(g,x,y,front?2.2+hz*2:1.2+hz*1.5,a.color);
@@ -252,10 +252,10 @@ export function createEffects({state, terrain}) {
       g.save();g.translate(x,y+13);g.globalAlpha=.88;prop(g,p.prop,Math.abs(n),p.accent);g.restore();
 
       const dx=x+spacing*.48;
-      if(p.detail&&valid(dx)){
+      if(p.detail&&Math.abs(n)%3===1&&valid(dx)){
         const dy=terrain.ground(dx),da=Math.atan((terrain.ground(dx+7)-terrain.ground(dx-7))/14);
         if(Math.abs(da)<.8&&(quality>=.55||n%2===0)){
-          g.save();g.translate(dx,dy+10);g.rotate(da*.35);g.globalAlpha=.82;detail(g,p.detail,Math.abs(n),p.accent);g.restore();
+          g.save();g.translate(dx,dy+10);g.rotate(da*.35);g.globalAlpha=.62;detail(g,p.detail,Math.abs(n),p.accent);g.restore();
         }
       }
     }

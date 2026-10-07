@@ -1228,7 +1228,6 @@ else {
     paintVehicle(state.ctx,v,physics.point(0,0).x,physics.point(0,0).y,state.car.a,state.car.wheels,v.tracked?state.car.trackPhase:state.car.wheelSpin);
     state.ctx.restore();
 
-    effects.drawAtmosphere(state.ctx,'front');
     effects.drawSpeed(state.ctx);
     moments.drawOverlay(state.ctx);
 
