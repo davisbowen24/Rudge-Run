@@ -50,7 +50,7 @@ export function createEconomy({ stats, moments, state, terrain, save, ui, upgrad
   }
 
   function coinTierAt(x){
-    const d=Math.max(0,runMeters(x)),p=CONFIG.progression,value=Math.max(1,Math.floor(d));
+    const d=Math.max(0,runMeters(x)),p=CONFIG.progression,value=Math.max(1,Math.floor(d/4));
     if(d>=p.goldMeters)
     return {name:'Gold',value,rim:'#a77828',face:'#ffd36c',inner:'#ecb547'};
     if(d>=p.silverMeters)
