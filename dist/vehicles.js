@@ -1677,6 +1677,7 @@ VEHICLES.tank.name='Super Offroader';
 // Torque, power, traction, mass, gearing, stability/damping and air control are independent tuning inputs.
 // Power generally rises with vehicle price; torque follows vehicle role/mass, so heavy climbers can be torque-rich
 // without also becoming the fastest vehicles.
+// Bike, ATV and Moon Rover keep strong air authority but use safer spin caps and extra landing damping.
 const VEHICLE_STAT_TABLE={
   "base": {
     "price": 0,
@@ -1707,13 +1708,13 @@ const VEHICLE_STAT_TABLE={
     "wheelSpeedLimit": 1.1,
     "tireGrip": 1.35,
     "airControl": 3.06,
-    "maxRotation": 1.8,
-    "inertia": 0.9,
+    "maxRotation": 1.45,
+    "inertia": 1,
     "suspension": 0.85,
     "suspensionDamping": 0.9,
     "suspensionTravel": 1.45,
     "pitchSupport": 1.15,
-    "groundDamping": 1.15,
+    "groundDamping": 1.35,
     "fuelCapacity": 0.35,
     "fuelBurn": 0.4,
     "downforceScale": 0
@@ -1767,13 +1768,13 @@ const VEHICLE_STAT_TABLE={
     "wheelSpeedLimit": 1.25,
     "tireGrip": 1.45,
     "airControl": 2.4000000000000004,
-    "maxRotation": 1.7,
-    "inertia": 0.9,
+    "maxRotation": 1.4,
+    "inertia": 1,
     "suspension": 0.9,
     "suspensionDamping": 1,
     "suspensionTravel": 1.5,
     "pitchSupport": 1.1,
-    "groundDamping": 1.1,
+    "groundDamping": 1.3,
     "fuelCapacity": 0.85,
     "fuelBurn": 0.9,
     "downforceScale": 0
@@ -1887,13 +1888,13 @@ const VEHICLE_STAT_TABLE={
     "wheelSpeedLimit": 1.55,
     "tireGrip": 1.05,
     "airControl": 2.2475,
-    "maxRotation": 1.65,
-    "inertia": 1.05,
+    "maxRotation": 1.3,
+    "inertia": 1.15,
     "suspension": 0.85,
     "suspensionDamping": 0.9,
     "suspensionTravel": 1.65,
     "pitchSupport": 1.1,
-    "groundDamping": 1.1,
+    "groundDamping": 1.3,
     "fuelCapacity": 1.2,
     "fuelBurn": 0.9,
     "downforceScale": 0
