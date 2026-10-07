@@ -484,11 +484,31 @@ else{
 
     }else
     if(v.visualType==='bike'){
-      shape([[-31,10],[-12,-13],[18,-10],[31,12],[0,9],[-12,-13]],null,color,6);
-      shape([[20,-11],[26,-32],[17,-35]],null,'#d5ded0',4);
-      box(-26,-22,31,7,'#132e36');
-      shape([[-6,-22],[5,-32],[19,-24],[12,-15]],color);
-      shape([[2,-31],[-8,-14],[1,4]],null,'#244752',7);
+      // Cosmetic motocross bodywork only; wheel anchors and rider hitbox stay unchanged.
+      shape([[-31,10],[-12,-13],[18,-10],[31,12],[0,9],[-12,-13]],null,'#263742',7);
+      shape([[-31,10],[-12,-13],[18,-10],[0,9],[-31,10]],null,'#bcc8ce',3);
+      shape([[20,-11],[26,-32],[17,-35]],null,'#d8e2e8',5);
+      shape([[22,-14],[26,-29]],null,'#e7b44e',3);
+      shape([[16,-35],[26,-35],[30,-32]],null,'#182b35',4);
+      // Engine case, cooling fins, skid plate and high exhaust.
+      shape([[-12,-8],[3,-12],[12,-3],[10,10],[-9,10]],'#5d707c','#172d38',2);
+      for(let fin=0;fin<4;fin++) box(-9,-7+fin*3,15,1,'#b5c3cb');
+      disk(2,4,6,'#9babb5');
+      disk(2,4,2,'#344853');
+      shape([[-12,12],[10,13],[17,7]],null,'#d2dce1',3);
+      shape([[11,0],[18,-6],[11,-15],[-25,-15]],null,'#8e9fa9',4);
+      shape([[-25,-15],[-37,-18]],null,'#dce3e7',6);
+      // Crisp red plastics and white race panels retain the existing silhouette.
+      shape([[-38,-22],[-23,-26],[-7,-23],[-12,-17],[-34,-18]],'#ed4947','#263742',2);
+      shape([[-7,-23],[5,-31],[19,-25],[15,-13],[3,-16]],'#ef4945','#263742',2);
+      shape([[0,-25],[7,-28],[15,-24],[10,-20]],'#ffb08d',null);
+      shape([[-23,-17],[-5,-19],[1,-13],[-10,-5],[-25,-8]],'#f3f5e9','#263742',2);
+      shape([[-25,-24],[-7,-25],[2,-23],[-1,-19],[-25,-19]],'#182b35',null);
+      shape([[20,-20],[32,-23],[43,-17],[30,-17]],'#ef4945','#263742',2);
+      shape([[20,-29],[29,-29],[30,-20],[21,-21]],'#f3f5e9','#263742',2);
+      g.fillStyle='#233642';
+      g.font=canvasFont(9,900);
+      g.fillText('07',-20,-8);
     }
 else
     if(v.visualType==='tractor'){
@@ -583,7 +603,16 @@ else {
       }
     }
 
-    if(v.visualType!=='tank'){
+    if(v.visualType==='bike'){
+      const h=v.head;
+      shape([[h.x-3,h.y+11],[-7,-21],[5,-7],[12,-6]],null,'#213945',7);
+      shape([[h.x,h.y+12],[12,-23],[24,-32]],null,'#e64c48',6);
+      disk(h.x,h.y,12,'#f1f4e9');
+      shape([[h.x-10,h.y-5],[h.x+4,h.y-11],[h.x+13,h.y-6]],null,'#ed4947',4);
+      shape([[h.x+1,h.y-4],[h.x+12,h.y-4],[h.x+10,h.y+2],[h.x+2,h.y+2]],'#233c4a',null);
+      shape([[h.x-1,h.y+6],[h.x+10,h.y+6],[h.x+14,h.y+2]],null,'#ed4947',4);
+      shape([[h.x+1,h.y-8],[h.x+16,h.y-7]],null,'#f1f4e9',3);
+    }else if(v.visualType!=='tank'){
       const h=v.head;
       shape([[h.x,h.y+12],[h.x+10,-12],[h.x+22,-22]],null,'#244752',6);
       disk(h.x,h.y,12,'#f2c594');
