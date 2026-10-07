@@ -110,3 +110,12 @@ References: https://supabase.com/docs/guides/database/functions,
 https://supabase.com/docs/guides/database/postgres/row-level-security,
 https://supabase.com/docs/guides/functions/secrets,
 https://www.postgresql.org/docs/current/pgcrypto.html.
+
+
+## Multiplayer Phase 1: rooms and lobby
+1. Apply `supabase/migrations/202610070002_multiplayer.sql` after the account migration.
+2. The multiplayer Edge Function reuses the existing `ALLOWED_ORIGINS` and `RATE_LIMIT_PEPPER` secrets; no new private frontend secret is required.
+3. Deploy with `supabase functions deploy ridge-multiplayer --no-verify-jwt`.
+4. The public frontend endpoint is configured in `dist/multiplayerConfig.js`. If the Supabase project changes, update that public URL.
+5. Lobby updates poll every two seconds. Members remain reconnectable during brief drops and are removed after 30 seconds without a heartbeat; host ownership then transfers to the earliest remaining member. Empty rooms are deleted.
+6. Run `npm test` after applying the migration locally/test-side. Phase 1 deliberately does not implement map voting, race starts, live race progress, results, friends or invites.

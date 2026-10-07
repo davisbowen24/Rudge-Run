@@ -1,6 +1,8 @@
 import { createAuth } from './auth.js';
 import { createCloudSave } from './cloudSave.js';
 import { createAccountUi } from './accountUi.js';
+import { createMultiplayer } from './multiplayer.js';
+import { createLobbyUi } from './lobby.js';
 import { createStats } from './stats.js';
 import { installTheme } from './theme.js';
 import { createWorkshop } from './workshop.js';
@@ -23,7 +25,7 @@ export function createGame() {
 
   const state = {};
 
-  const services = { state, auth: createAuth(), cloudSave: {}, accountUi: {}, stats: {}, workshop: {}, moments: {}, effects: {}, render: {}, terrain: {}, economy: {}, physics: {}, upgrades: {}, save: {}, input: {}, ui: {}, main: {}, feedback: {} };
+  const services = { state, auth: createAuth(), cloudSave: {}, accountUi: {}, multiplayer: {}, lobby: {}, stats: {}, workshop: {}, moments: {}, effects: {}, render: {}, terrain: {}, economy: {}, physics: {}, upgrades: {}, save: {}, input: {}, ui: {}, main: {}, feedback: {} };
 
   Object.assign(services.render, createRender(services));
 
@@ -52,8 +54,12 @@ export function createGame() {
   Object.assign(services.stats, createStats(services));
   Object.assign(services.cloudSave, createCloudSave(services));
   Object.assign(services.accountUi, createAccountUi(services));
+  Object.assign(services.multiplayer, createMultiplayer(services));
+  Object.assign(services.lobby, createLobbyUi(services));
   services.main.start();
   services.accountUi.bindEvents();
+  services.lobby.bindEvents();
+  services.multiplayer.start();
   services.cloudSave.start();
   services.stats.bindEvents();
   services.workshop.bindEvents();

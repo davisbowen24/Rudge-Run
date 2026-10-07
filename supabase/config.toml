@@ -2,3 +2,7 @@ project_id = "ridge-run"
 [functions.ridge-account]
 verify_jwt = false
 # Custom opaque sessions are verified by the function/database on EVERY private action.
+
+[functions.ridge-multiplayer]
+verify_jwt = false
+# Room-member tokens and account sessions are verified by the function/database.
