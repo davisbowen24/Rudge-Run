@@ -1,23 +1,23 @@
 /** Presentation-only profiles. Never used by terrain, physics or economy. */
 export const MAP_VISUALS = Object.freeze({
-  countryside: {material:'dirt', prop:'fence', accent:'#e1c579'},
-  highway: {material:'asphalt', prop:'highway', accent:'#f6e4a1'},
-  desert: {material:'sand', prop:'cactus', accent:'#ffdc91'},
-  bootcamp: {material:'mud', prop:'barricade', accent:'#c9b979'},
-  seasons: {material:'dirt', prop:'grove', accent:'#dfab64'},
-  construction: {material:'concrete', prop:'construction', accent:'#ffbf50'},
-  arctic: {material:'ice', prop:'ice', accent:'#d2faff'},
-  jungle: {material:'mud', prop:'jungle', accent:'#85cb78'},
-  cave: {material:'rock', prop:'cave', accent:'#87dfde'},
-  volcano: {material:'basalt', prop:'volcano', accent:'#ff7c3d'},
-  rooftops: {material:'concrete', prop:'rooftop', accent:'#e9c993'},
-  wasteland: {material:'slime', prop:'barrels', accent:'#b6fa5e'},
-  mars: {material:'mars', prop:'mars', accent:'#f7b986'},
-  haunted: {material:'mud', prop:'grave', accent:'#c5a6f3'},
-  moon: {material:'moon', prop:'moon', accent:'#e3e9ee'},
-  underwater: {material:'silt', prop:'coral', accent:'#70e7e8'},
-  neon: {material:'grid', prop:'neon', accent:'#59efff'},
-  alien: {material:'crystal', prop:'crystal', accent:'#d595ff'}
+  countryside: {material:'dirt', prop:'fence', detail:'meadow', accent:'#e1c579', atmosphere:{kind:'pollen',density:.42,color:'#f7e8ae',speed:15}},
+  highway: {material:'asphalt', prop:'highway', detail:'roadside', accent:'#f6e4a1', atmosphere:{kind:'haze',density:.24,color:'#dbe7e8',speed:38}},
+  desert: {material:'sand', prop:'cactus', detail:'desert', accent:'#ffdc91', atmosphere:{kind:'dust',density:.62,color:'#e9c47c',speed:44}},
+  bootcamp: {material:'mud', prop:'barricade', detail:'bootcamp', accent:'#c9b979', atmosphere:{kind:'dust',density:.36,color:'#b9aa7a',speed:28}},
+  seasons: {material:'dirt', prop:'grove', detail:'seasonal', accent:'#dfab64', atmosphere:{kind:'seasonal',density:.62,color:'#dfab64',speed:22}},
+  construction: {material:'concrete', prop:'construction', detail:'construction', accent:'#ffbf50', atmosphere:{kind:'dust',density:.46,color:'#d0b184',speed:30}},
+  arctic: {material:'ice', prop:'ice', detail:'arctic', accent:'#d2faff', atmosphere:{kind:'snow',density:.82,color:'#f3fdff',speed:32}},
+  jungle: {material:'mud', prop:'jungle', detail:'jungle', accent:'#85cb78', atmosphere:{kind:'spores',density:.58,color:'#c8eda5',speed:12}},
+  cave: {material:'rock', prop:'cave', detail:'cave', accent:'#87dfde', atmosphere:{kind:'motes',density:.48,color:'#b8d4d2',speed:8}},
+  volcano: {material:'basalt', prop:'volcano', detail:'volcano', accent:'#ff7c3d', atmosphere:{kind:'embers',density:.72,color:'#ff9a52',speed:20}},
+  rooftops: {material:'concrete', prop:'rooftop', detail:'rooftop', accent:'#e9c993', atmosphere:{kind:'wind',density:.44,color:'#d7d9df',speed:72}},
+  wasteland: {material:'slime', prop:'barrels', detail:'wasteland', accent:'#b6fa5e', atmosphere:{kind:'toxic',density:.54,color:'#b7ef68',speed:13}},
+  mars: {material:'mars', prop:'mars', detail:'mars', accent:'#f7b986', atmosphere:{kind:'dust',density:.54,color:'#d88d69',speed:25}},
+  haunted: {material:'mud', prop:'grave', detail:'haunted', accent:'#c5a6f3', atmosphere:{kind:'fog',density:.62,color:'#cdbce0',speed:10}},
+  moon: {material:'moon', prop:'moon', detail:'moon', accent:'#e3e9ee', atmosphere:{kind:'spaceDust',density:.34,color:'#dbe4eb',speed:7}},
+  underwater: {material:'silt', prop:'coral', detail:'underwater', accent:'#70e7e8', atmosphere:{kind:'bubbles',density:.70,color:'#a9f3f0',speed:21}},
+  neon: {material:'grid', prop:'neon', detail:'neon', accent:'#59efff', atmosphere:{kind:'neon',density:.52,color:'#75fbff',speed:31}},
+  alien: {material:'crystal', prop:'crystal', detail:'alien', accent:'#d595ff', atmosphere:{kind:'alien',density:.56,color:'#d8a0ff',speed:14}}
 });
 
 export const MATERIALS = Object.freeze({
