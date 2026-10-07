@@ -44,6 +44,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     $('multiplayerRaceEnd').hidden=true;
     $('multiplayerProgress').hidden=false;
     main.reset({mapId:room.selectedMap,vehicleId:me.vehicleId,multiplayer:true});
+    multiplayer.renderRoomScoreboard?.();
     updateTargets(room);
   }
 
@@ -91,7 +92,9 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   }
 
-  function prepareRematch(){
+  let transitionTimer=null;
+
+  function prepareRematch(message='Returning to the lobby…'){
     clearCountdown();
     active=false;
     finished=false;
@@ -101,6 +104,16 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     displayed.clear();
     $('multiplayerProgress').hidden=true;
     $('multiplayerRaceEnd').hidden=true;
+
+    const transition=$('multiplayerRematchTransition');
+    $('multiplayerRematchTransitionText').textContent=message;
+    transition.hidden=false;
+    requestAnimationFrame(()=>transition.classList.add('is-visible'));
+    if(transitionTimer)clearTimeout(transitionTimer);
+    transitionTimer=setTimeout(()=>{
+      transition.classList.remove('is-visible');
+      setTimeout(()=>{transition.hidden=true;},220);
+    },900);
   }
 
   function syncFromRoom(room=multiplayer.room()){
@@ -108,7 +121,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     updateClock(room);
     updateTargets(room);
     if(room.status==='lobby'&&state.screen==='multiplayerResults'){
-      prepareRematch();
+      prepareRematch('Host started a rematch · returning to the lobby');
       ui.showScreen('lobby');
       return;
     }

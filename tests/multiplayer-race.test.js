@@ -170,6 +170,80 @@ test('multiplayer race lifecycle is authoritative from voting through results',a
   }
 });
 
+test('four clients keep a room scoreboard across races and rematches',async()=>{
+  const {db,send,rawA}=await setup();
+  try{
+    const host=await send('create',{vehicleId:'base'},{'X-Ridge-Session':rawA});
+    assert.equal(host.status,200);
+    const code=host.data.room.code;
+    const h={'X-Ridge-Multiplayer':host.data.memberToken};
+
+    const guests=[];
+    for(const name of ['Guest One','Guest Two','Guest Three']){
+      const joined=await send('join',{roomCode:code,guestName:name,vehicleId:'base'});
+      assert.equal(joined.status,200);
+      guests.push({data:joined.data,headers:{'X-Ridge-Multiplayer':joined.data.memberToken}});
+    }
+    assert.equal(guests[2].data.room.members.length,4);
+
+    for(const headers of [h,...guests.map(g=>g.headers)])await send('ready',{ready:true},headers);
+    let started=await send('start',{},h);
+    assert.equal(started.status,200);
+    assert.equal(started.data.room.raceNumber,1);
+
+    for(const headers of [h,...guests.map(g=>g.headers)])await send('vote',{mapId:'countryside'},headers);
+    await db.query("update ridge_private.multiplayer_rooms set vote_ends_at=now()-interval '1 second' where code=$1",[code]);
+    await send('state',{},h);
+    await db.query("update ridge_private.multiplayer_rooms set race_start_at=now()-interval '1 second' where code=$1",[code]);
+    await send('state',{},h);
+
+    await send('finish',{distance:100,finishStatus:'dead'},h);
+    await send('finish',{distance:130,finishStatus:'dead'},guests[0].headers);
+    await send('finish',{distance:90,finishStatus:'dead'},guests[1].headers);
+    let firstResults=await send('finish',{distance:80,finishStatus:'dead'},guests[2].headers);
+    assert.equal(firstResults.data.room.status,'results');
+
+    const firstWinner=firstResults.data.room.members.find(m=>m.id===guests[0].data.memberId);
+    assert.equal(firstWinner.roomWins,1);
+    assert.deepEqual(
+      firstResults.data.room.members.map(m=>Number(m.roomWins||0)).sort((a,b)=>b-a),
+      [1,0,0,0]
+    );
+
+    const rematch=await send('rematch',{},h);
+    assert.equal(rematch.status,200);
+    assert.equal(rematch.data.room.status,'lobby');
+    assert.equal(rematch.data.room.raceNumber,1);
+    assert.equal(rematch.data.room.members.find(m=>m.id===guests[0].data.memberId).roomWins,1);
+
+    for(const headers of [h,...guests.map(g=>g.headers)])await send('ready',{ready:true},headers);
+    started=await send('start',{},h);
+    assert.equal(started.data.room.raceNumber,2);
+
+    for(const headers of [h,...guests.map(g=>g.headers)])await send('vote',{mapId:'highway'},headers);
+    await db.query("update ridge_private.multiplayer_rooms set vote_ends_at=now()-interval '1 second' where code=$1",[code]);
+    await send('state',{},h);
+    await db.query("update ridge_private.multiplayer_rooms set race_start_at=now()-interval '1 second' where code=$1",[code]);
+    await send('state',{},h);
+
+    await send('finish',{distance:170,finishStatus:'dead'},h);
+    await send('finish',{distance:120,finishStatus:'dead'},guests[0].headers);
+    await send('finish',{distance:115,finishStatus:'dead'},guests[1].headers);
+    const secondResults=await send('finish',{distance:110,finishStatus:'dead'},guests[2].headers);
+
+    assert.equal(secondResults.data.room.status,'results');
+    assert.equal(secondResults.data.room.raceNumber,2);
+    assert.equal(secondResults.data.room.members.find(m=>m.id===host.data.memberId).roomWins,1);
+    assert.equal(secondResults.data.room.members.find(m=>m.id===guests[0].data.memberId).roomWins,1);
+    assert.deepEqual(
+      secondResults.data.room.members.map(m=>Number(m.roomWins||0)).sort((a,b)=>b-a),
+      [1,1,0,0]
+    );
+  }finally{
+    await db.close();
+  }
+});
+
 test('frontend multiplayer wiring includes voting, progress, countdown and results without remote physics',async()=>{
   const [multiplayer,lobby,race,main,physics]=await Promise.all([
     readFile(new URL('../dist/multiplayer.js',import.meta.url),'utf8'),
@@ -184,8 +258,13 @@ test('frontend multiplayer wiring includes voting, progress, countdown and resul
   assert.match(multiplayer,/async function rematch\(\)/);
   assert.match(lobby,/lobbyVoteGrid/);
   assert.match(lobby,/roomWins/);
+  assert.match(lobby,/is-room-leader/);
   assert.match(race,/roomWins/);
   assert.match(race,/multiplayerResultsRematch/);
+  assert.match(race,/multiplayerRematchTransition/);
+  assert.match(multiplayer,/renderRoomScoreboard/);
+  assert.match(multiplayer,/NEXT ·/);
+  assert.match(multiplayer,/is-room-leader/);
   assert.match(race,/raceProgressMs/);
   assert.match(race,/main\.reset\(\{mapId:room\.selectedMap,vehicleId:me\.vehicleId,multiplayer:true\}\)/);
   assert.match(main,/options\.mapId/);

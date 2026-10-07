@@ -1,4 +1,5 @@
 import { MULTIPLAYER_CONFIG } from './multiplayerConfig.js';
+import { $ } from './utils.js';
 
 const SESSION_KEY='ridge-run-multiplayer-session-v1';
 
@@ -11,7 +12,63 @@ export function createMultiplayer({auth,cloudSave,state}){
     if(saved?.memberToken&&/^[a-f0-9]{64}$/.test(saved.memberToken)&&saved?.memberId&&saved?.roomCode)session=saved;
   }catch{}
 
-  function emit(){for(const fn of listeners)fn();}
+  let scoreboardSignature='';
+
+  function escapeHtml(value){
+    return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+
+  function renderRoomScoreboard(){
+    const panel=$('multiplayerRoomScoreboard');
+    if(!panel)return;
+    if(!room){
+      panel.hidden=true;
+      scoreboardSignature='';
+      return;
+    }
+
+    const members=(room.members||[]).slice().sort((a,b)=>{
+      const wins=Number(b.roomWins||0)-Number(a.roomWins||0);
+      if(wins)return wins;
+      return String(a.joinedAt||'').localeCompare(String(b.joinedAt||''))||String(a.displayName||'').localeCompare(String(b.displayName||''));
+    });
+    const currentRace=Math.max(1,Number(room.raceNumber||0)+(room.status==='lobby'?1:0));
+    const maxWins=members.length?Math.max(...members.map(member=>Number(member.roomWins||0))):0;
+    const leaders=maxWins>0?members.filter(member=>Number(member.roomWins||0)===maxWins):[];
+    const signature=[
+      room.code,room.status,currentRace,room.hostMemberId,
+      ...members.flatMap(member=>[member.id,member.displayName,member.roomWins,member.connected])
+    ].join('|');
+    if(signature===scoreboardSignature){
+      panel.hidden=false;
+      return;
+    }
+    scoreboardSignature=signature;
+
+    $('multiplayerRoomRace').textContent=(room.status==='lobby'?'NEXT · ':'')+'RACE '+currentRace;
+    $('multiplayerRoomCode').textContent='ROOM '+room.code;
+    $('multiplayerRoomLeader').textContent=!leaders.length
+      ?'First win takes the lead'
+      :leaders.length===1
+        ?'👑 Leader · '+leaders[0].displayName
+        :'👑 Leaders · '+leaders.map(member=>member.displayName).join(' · ');
+
+    $('multiplayerRoomScoreRows').innerHTML=members.map(member=>{
+      const wins=Number(member.roomWins||0);
+      const isLeader=maxWins>0&&wins===maxWins;
+      const isSelf=member.id===session?.memberId;
+      return '<div class="room-score-row'+(isLeader?' is-room-leader':'')+(isSelf?' is-you':'')+(member.connected?'':' is-disconnected')+'">'
+        +'<span>'+(isLeader?'👑 ':'')+escapeHtml(member.displayName)+(isSelf?' <em>YOU</em>':'')+'</span>'
+        +'<strong>🏆 '+wins+'</strong>'
+        +'</div>';
+    }).join('');
+    panel.hidden=false;
+  }
+
+  function emit(){
+    renderRoomScoreboard();
+    for(const fn of listeners)fn();
+  }
   function setStatus(next){status=next;emit();}
   function persist(){try{if(session)sessionStorage.setItem(SESSION_KEY,JSON.stringify(session));else sessionStorage.removeItem(SESSION_KEY);}catch{}}
   function clearSession(message='Not in a room'){
@@ -166,6 +223,7 @@ export function createMultiplayer({auth,cloudSave,state}){
     session:()=>session,
     status:()=>status,
     configured:()=>Boolean(MULTIPLAYER_CONFIG.endpoint),
+    renderRoomScoreboard,
     subscribe(fn){listeners.add(fn);return()=>listeners.delete(fn);}
   };
 }

@@ -22,13 +22,15 @@ export function createLobbyUi({multiplayer,cloudSave,state,ui,race}){
     list.innerHTML='';
     for(const member of room?.members||[]){
       const card=document.createElement('div');
-      card.className='lobby-member'+(member.id===multiplayer.session()?.memberId?' is-you':'')+(member.connected?'':' is-disconnected');
+      const maxWins=Math.max(0,...(room?.members||[]).map(driver=>Number(driver.roomWins||0)));
+      const roomLeader=maxWins>0&&Number(member.roomWins||0)===maxWins;
+      card.className='lobby-member'+(member.id===multiplayer.session()?.memberId?' is-you':'')+(member.connected?'':' is-disconnected')+(roomLeader?' is-room-leader':'');
       const main=document.createElement('div');
       const name=document.createElement('strong');
       name.textContent=member.displayName+(member.id===multiplayer.session()?.memberId?' (You)':'');
       const meta=document.createElement('small');
       const raceLabel=member.raceActive&&room.status!=='lobby'?' · '+String(member.raceStatus||'waiting').toUpperCase():'';
-      meta.textContent=(VEHICLES[member.vehicleId]?.name||member.vehicleId)+' · '+(member.connected?'Connected':'Reconnecting')+raceLabel;
+      meta.textContent=(VEHICLES[member.vehicleId]?.name||member.vehicleId)+' · '+(member.connected?'Connected':'Reconnecting')+' · '+Number(member.roomWins||0)+' win'+(Number(member.roomWins||0)===1?'':'s')+raceLabel;
       main.append(name,meta);
       const badges=document.createElement('div');
       badges.className='lobby-badges';
@@ -91,7 +93,8 @@ export function createLobbyUi({multiplayer,cloudSave,state,ui,race}){
     if(!room)return;
 
     $('lobbyCode').textContent=room.code;
-    $('lobbyStatus').textContent=multiplayer.status()+' · '+room.status.toUpperCase();
+    const nextRace=Math.max(1,Number(room.raceNumber||0)+(room.status==='lobby'?1:0));
+    $('lobbyStatus').textContent=multiplayer.status()+' · '+room.status.toUpperCase()+' · '+(room.status==='lobby'?'Next ':'')+'Race '+nextRace;
     $('lobbyFlow').dataset.phase=room.status;
     renderMembers(room);
 
@@ -225,11 +228,14 @@ export function createLobbyUi({multiplayer,cloudSave,state,ui,race}){
       if(button)action(()=>multiplayer.vote(button.dataset.voteMap));
     });
     $('multiplayerResultsRematch').addEventListener('click',()=>action(async()=>{
+      const button=$('multiplayerResultsRematch');
+      button.disabled=true;
+      button.textContent='Starting Rematch…';
       await multiplayer.rematch();
-      race.prepareRematch?.();
+      race.prepareRematch?.('Rematch ready · choose your vehicle and ready up');
       ui.showScreen('lobby');
       renderLobby();
-      $('lobbyReady').focus();
+      setTimeout(()=>$('lobbyReady').focus(),650);
     }));
     $('lobbyLeave').addEventListener('click',()=>action(async()=>{
       await multiplayer.leave();

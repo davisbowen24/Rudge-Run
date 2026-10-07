@@ -12,6 +12,14 @@
   <div class="multiplayer-progress-track"><div id="multiplayerProgressMarkers" class="multiplayer-progress-markers"></div></div>
   <small id="multiplayerProgressScale">0 — 500 m</small>
 </div>
+<aside id="multiplayerRoomScoreboard" class="multiplayer-room-scoreboard" hidden aria-label="Room scoreboard">
+  <div class="room-scoreboard-head"><strong id="multiplayerRoomRace">NEXT · RACE 1</strong><small id="multiplayerRoomCode">ROOM -----</small></div>
+  <div id="multiplayerRoomLeader" class="room-scoreboard-leader">First win takes the lead</div>
+  <div id="multiplayerRoomScoreRows" class="room-scoreboard-rows"></div>
+</aside>
+<div id="multiplayerRematchTransition" class="multiplayer-rematch-transition" hidden aria-live="polite">
+  <div><span>REMATCH</span><strong id="multiplayerRematchTransitionText">Returning to the lobby…</strong></div>
+</div>
 <div id="runInfo"><span id="mapLabel">Countryside</span><br><span id="checkpointLabel">Checkpoint: 500 m</span><br><span id="nextFuelLabel">Next gas: 150 m</span><br><span id="roadLabel">Bronze coins: 1</span></div><div id="bonusPopups" aria-hidden="true"></div><div id="bonusAnnounce" role="status" aria-live="polite" style="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)"></div><div id="toast"></div><div id="pause" class="pauseTag" hidden>PAUSED · Return to the trail</div>
 <div class="controls"><button id="brake" class="pedal" aria-label="Brake and reverse">BRAKE<small>← / A</small></button><div class="hint"><b>CHASE THE NEXT RIDGE</b><br>Build speed · Ease off to settle<br>In air: Gas = backflip · Brake = frontflip</div><button id="gas" class="pedal gas" aria-label="Accelerate">GAS<small>D / →</small></button></div>
 <div id="overlay" hidden><div class="end-shell"><div class="eyebrow">END OF THE TRAIL</div><h1 id="reason">Out of fuel</h1><p id="tip">Your next adventure is one hill away.</p><div class="results"><div><b id="finalDistance">0 m</b><span>DISTANCE</span></div><div><b id="finalCoins">0</b><span>COINS COLLECTED</span></div></div><div class="end-run-route" id="endRunRoute">Current route</div><div class="menu-balance">Balance <strong id="endBalance">0</strong> coins</div><div id="runRecords" class="record-wins" aria-live="polite"></div><div class="end-actions"><button class="again" id="again">Play Again</button><button class="secondary" id="endMap">Change Map</button><button class="secondary" id="endGarage">Garage &amp; Upgrades</button><button class="secondary" id="endHome">Home</button><button class="utility-button" id="endStats">Records</button></div></div></div>

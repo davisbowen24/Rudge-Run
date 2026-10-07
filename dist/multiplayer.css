@@ -7,3 +7,89 @@
 #multiplayerResultsRematch{margin-top:12px}
 .multiplayer-result-row.is-winner{border-color:#d8ae53;box-shadow:0 0 0 1px #d8ae5345 inset}
 .multiplayer-result-row.is-winner strong:before{content:"🏆 ";font-size:.95em}
+
+
+/* Persistent room scoreboard — visible anywhere the player is still inside a room. */
+.multiplayer-room-scoreboard{
+  position:fixed;
+  z-index:31;
+  top:96px;
+  right:18px;
+  width:min(230px,28vw);
+  padding:11px;
+  border:1px solid #ffffff2b;
+  border-radius:12px;
+  background:#091f29e8;
+  box-shadow:0 12px 34px #00101866;
+  backdrop-filter:blur(8px);
+  pointer-events:none;
+}
+.multiplayer-room-scoreboard[hidden]{display:none!important}
+body:not([data-screen="lobby"]):not([data-screen="run"]):not([data-screen="multiplayerResults"]) .multiplayer-room-scoreboard{display:none!important}
+body[data-screen="run"] .multiplayer-room-scoreboard{top:148px}
+body[data-screen="lobby"] .menu-status,
+body[data-screen="multiplayerResults"] .menu-status{display:none}
+.room-scoreboard-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.room-scoreboard-head strong{font-size:12px;letter-spacing:.08em;color:var(--text-reward)}
+.room-scoreboard-head small{font-size:9px;color:var(--text-muted);letter-spacing:.06em}
+.room-scoreboard-leader{margin:7px 0 8px;padding:6px 7px;border-radius:7px;background:#ffffff0b;color:var(--text-secondary);font-size:10px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.room-scoreboard-rows{display:grid;gap:5px}
+.room-score-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 7px;border-radius:7px;background:#102d38b8;border:1px solid transparent;font-size:10px}
+.room-score-row span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-secondary)}
+.room-score-row strong{flex:0 0 auto;color:#f2d27b;font-variant-numeric:tabular-nums}
+.room-score-row em{font-style:normal;font-size:8px;color:var(--text-reward);margin-left:3px}
+.room-score-row.is-you{border-color:#ffffff3a}
+.room-score-row.is-room-leader{border-color:#d8ae536b;background:#3b3020b8}
+.room-score-row.is-room-leader span{color:#ffe5a2}
+.room-score-row.is-disconnected{opacity:.48}
+.lobby-member.is-room-leader{border-color:#d8ae53;box-shadow:0 0 0 1px #d8ae5338 inset}
+
+/* Rematches feel like a deliberate round transition instead of a screen snap. */
+.multiplayer-rematch-transition{
+  position:fixed;
+  inset:0;
+  z-index:95;
+  display:grid;
+  place-items:center;
+  background:#06171edb;
+  opacity:0;
+  transition:opacity .2s ease;
+  pointer-events:none;
+}
+.multiplayer-rematch-transition[hidden]{display:none!important}
+.multiplayer-rematch-transition.is-visible{opacity:1}
+.multiplayer-rematch-transition>div{
+  min-width:min(360px,82vw);
+  padding:26px 30px;
+  border:1px solid #ffffff2f;
+  border-radius:16px;
+  background:#102f3ae8;
+  box-shadow:0 24px 70px #0008;
+  text-align:center;
+  transform:translateY(8px) scale(.98);
+  transition:transform .22s ease;
+}
+.multiplayer-rematch-transition.is-visible>div{transform:none}
+.multiplayer-rematch-transition span{display:block;color:var(--text-reward);font-size:12px;font-weight:900;letter-spacing:.18em;margin-bottom:8px}
+.multiplayer-rematch-transition strong{display:block;color:var(--text-primary);font-size:20px}
+
+@media(max-width:760px){
+  .multiplayer-room-scoreboard{
+    top:auto!important;
+    right:8px;
+    bottom:118px;
+    width:min(190px,48vw);
+    padding:8px;
+  }
+  .room-scoreboard-leader{display:none}
+  .room-score-row{padding:5px 6px}
+}
+@media(max-width:520px){
+  .multiplayer-room-scoreboard{width:min(165px,46vw);bottom:108px}
+  .room-scoreboard-head small{display:none}
+  .room-score-row span{max-width:105px}
+}
+@media(prefers-reduced-motion:reduce){
+  .multiplayer-rematch-transition,
+  .multiplayer-rematch-transition>div{transition:none}
+}
