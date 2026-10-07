@@ -1670,388 +1670,411 @@ VEHICLES.monster.name='The Big Finger (Monster Truck)';
 
 VEHICLES.tank.name='Super Offroader';
 
-// Jeep is the 1.0 handling baseline. These rows tune each vehicle's niche while
-// keeping enough suspension, traction, rotational stability and air authority to remain controllable.
+// AUTHORITATIVE VEHICLE PERFORMANCE TABLE.
+// Jeep is the 1.0 reference. The earlier vehicle blocks define chassis geometry and special behavior;
+// all performance tuning below overwrites their performance multipliers before gameplay.
+// accelerationLimit is a desired-acceleration force cap (physics uses F = m*a), not measured acceleration.
+// Torque, power, traction, mass, gearing, stability/damping and air control are independent tuning inputs.
 const VEHICLE_STAT_TABLE={
   "base": {
     "price": 0,
     "mass": 1,
+    "motorTorque": 1,
     "enginePower": 1,
-    "acceleration": 1,
-    "maxSpeed": 1,
+    "accelerationLimit": 1,
+    "wheelSpeedLimit": 1,
     "tireGrip": 1,
-    "airTilt": 1,
+    "airControl": 1,
     "maxRotation": 1,
     "inertia": 1,
     "suspension": 1,
     "suspensionDamping": 1,
     "suspensionTravel": 1,
     "pitchSupport": 1,
+    "groundDamping": 1,
     "fuelCapacity": 1,
     "fuelBurn": 1,
-    "downforceScale": 0,
-    "airControl": 1
+    "downforceScale": 0
   },
   "bike": {
     "price": 500,
     "mass": 0.4,
+    "motorTorque": 1,
     "enginePower": 1,
-    "acceleration": 1.35,
-    "maxSpeed": 1.05,
+    "accelerationLimit": 1.35,
+    "wheelSpeedLimit": 1.05,
     "tireGrip": 1.35,
-    "airTilt": 1.7,
+    "airControl": 3.06,
     "maxRotation": 1.8,
     "inertia": 0.9,
     "suspension": 0.85,
     "suspensionDamping": 0.9,
     "suspensionTravel": 1.45,
     "pitchSupport": 1.15,
+    "groundDamping": 1.15,
     "fuelCapacity": 0.35,
     "fuelBurn": 0.4,
-    "downforceScale": 0,
-    "airControl": 1.8
+    "downforceScale": 0
   },
   "bus": {
     "price": 2000,
     "mass": 2.8,
+    "motorTorque": 1.9,
     "enginePower": 1.9,
-    "acceleration": 0.95,
-    "maxSpeed": 1.15,
+    "accelerationLimit": 0.95,
+    "wheelSpeedLimit": 1.15,
     "tireGrip": 1.15,
-    "airTilt": 0.65,
+    "airControl": 0.42250000000000004,
     "maxRotation": 0.65,
     "inertia": 3.5,
     "suspension": 2.2,
     "suspensionDamping": 2,
     "suspensionTravel": 1.05,
     "pitchSupport": 2.3,
+    "groundDamping": 2.3,
     "fuelCapacity": 2.4,
     "fuelBurn": 1.8,
-    "downforceScale": 0,
-    "airControl": 0.65
+    "downforceScale": 0
   },
   "tractor": {
     "price": 5000,
     "mass": 2.17,
+    "motorTorque": 3,
     "enginePower": 3,
-    "acceleration": 0.85,
-    "maxSpeed": 0.9,
+    "accelerationLimit": 0.85,
+    "wheelSpeedLimit": 0.9,
     "tireGrip": 2.1,
-    "airTilt": 0.7,
+    "airControl": 0.48999999999999994,
     "maxRotation": 0.7,
     "inertia": 2,
     "suspension": 1.7,
     "suspensionDamping": 1.5,
     "suspensionTravel": 1.35,
     "pitchSupport": 1.9,
+    "groundDamping": 1.9,
     "fuelCapacity": 2,
     "fuelBurn": 1.5,
-    "downforceScale": 0,
-    "airControl": 0.7
+    "downforceScale": 0
   },
   "atv": {
     "price": 10000,
     "mass": 0.6,
+    "motorTorque": 1.25,
     "enginePower": 1.25,
-    "acceleration": 1.45,
-    "maxSpeed": 1.25,
+    "accelerationLimit": 1.45,
+    "wheelSpeedLimit": 1.25,
     "tireGrip": 1.45,
-    "airTilt": 1.6,
+    "airControl": 2.4000000000000004,
     "maxRotation": 1.7,
     "inertia": 0.9,
     "suspension": 0.9,
     "suspensionDamping": 1,
     "suspensionTravel": 1.5,
     "pitchSupport": 1.1,
+    "groundDamping": 1.1,
     "fuelCapacity": 0.85,
     "fuelBurn": 0.9,
-    "downforceScale": 0,
-    "airControl": 1.5
+    "downforceScale": 0
   },
   "snowmobile": {
     "price": 20000,
     "mass": 0.8,
+    "motorTorque": 1.4,
     "enginePower": 1.4,
-    "acceleration": 1.3,
-    "maxSpeed": 1.5,
+    "accelerationLimit": 1.3,
+    "wheelSpeedLimit": 1.5,
     "tireGrip": 1.75,
-    "airTilt": 1.35,
+    "airControl": 1.6875,
     "maxRotation": 1.35,
     "inertia": 1.05,
     "suspension": 1,
     "suspensionDamping": 1.05,
     "suspensionTravel": 1.4,
     "pitchSupport": 1.1,
+    "groundDamping": 1.1,
     "fuelCapacity": 1,
     "fuelBurn": 1.05,
-    "downforceScale": 0,
-    "airControl": 1.25
+    "downforceScale": 0
   },
   "lowrider": {
     "price": 35000,
     "mass": 1.1,
+    "motorTorque": 1.35,
     "enginePower": 1.35,
-    "acceleration": 1.2,
-    "maxSpeed": 1.5,
+    "accelerationLimit": 1.2,
+    "wheelSpeedLimit": 1.5,
     "tireGrip": 1.1,
-    "airTilt": 1,
+    "airControl": 1,
     "maxRotation": 1.05,
     "inertia": 1.35,
     "suspension": 1.4,
     "suspensionDamping": 1.5,
     "suspensionTravel": 0.8,
     "pitchSupport": 1.5,
+    "groundDamping": 1.5,
     "fuelCapacity": 1,
     "fuelBurn": 1.1,
-    "downforceScale": 0,
-    "airControl": 1
+    "downforceScale": 0
   },
   "monowheel": {
     "price": 55000,
     "mass": 0.3,
+    "motorTorque": 0.8,
     "enginePower": 0.8,
-    "acceleration": 1.4,
-    "maxSpeed": 1.4,
+    "accelerationLimit": 1.4,
+    "wheelSpeedLimit": 1.4,
     "tireGrip": 1.05,
-    "airTilt": 1.4,
+    "airControl": 2.0999999999999996,
     "maxRotation": 1.5,
     "inertia": 0.85,
     "suspension": 0.8,
     "suspensionDamping": 0.9,
     "suspensionTravel": 1,
     "pitchSupport": 1.3,
+    "groundDamping": 1.3,
     "fuelCapacity": 0.65,
     "fuelBurn": 0.65,
-    "downforceScale": 0,
-    "airControl": 1.5
+    "downforceScale": 0
   },
   "firetruck": {
     "price": 80000,
     "mass": 2.8,
+    "motorTorque": 2.4,
     "enginePower": 2.4,
-    "acceleration": 1,
-    "maxSpeed": 1.1,
+    "accelerationLimit": 1,
+    "wheelSpeedLimit": 1.1,
     "tireGrip": 1.35,
-    "airTilt": 0.65,
+    "airControl": 0.42250000000000004,
     "maxRotation": 0.65,
     "inertia": 4,
     "suspension": 2.3,
     "suspensionDamping": 2.2,
     "suspensionTravel": 1,
     "pitchSupport": 2.5,
+    "groundDamping": 2.5,
     "fuelCapacity": 2.5,
     "fuelBurn": 2.2,
-    "downforceScale": 0,
-    "airControl": 0.65
+    "downforceScale": 0
   },
   "steamroller": {
     "price": 120000,
     "mass": 4.5,
+    "motorTorque": 3.8,
     "enginePower": 3.8,
-    "acceleration": 0.7,
-    "maxSpeed": 0.85,
+    "accelerationLimit": 0.7,
+    "wheelSpeedLimit": 0.85,
     "tireGrip": 2.2,
-    "airTilt": 0.45,
+    "airControl": 0.2025,
     "maxRotation": 0.45,
     "inertia": 4.8,
     "suspension": 3.2,
     "suspensionDamping": 2.8,
     "suspensionTravel": 0.65,
     "pitchSupport": 2.6,
+    "groundDamping": 2.6,
     "fuelCapacity": 3,
     "fuelBurn": 2.5,
-    "downforceScale": 0,
-    "airControl": 0.45
+    "downforceScale": 0
   },
   "rover": {
     "price": 175000,
     "mass": 0.5,
+    "motorTorque": 1.15,
     "enginePower": 1.15,
-    "acceleration": 1.15,
-    "maxSpeed": 1.35,
+    "accelerationLimit": 1.15,
+    "wheelSpeedLimit": 1.35,
     "tireGrip": 1.05,
-    "airTilt": 1.45,
+    "airControl": 2.2475,
     "maxRotation": 1.65,
     "inertia": 1.05,
     "suspension": 0.85,
     "suspensionDamping": 0.9,
     "suspensionTravel": 1.65,
     "pitchSupport": 1.1,
+    "groundDamping": 1.1,
     "fuelCapacity": 1.2,
     "fuelBurn": 0.9,
-    "downforceScale": 0,
-    "airControl": 1.55
+    "downforceScale": 0
   },
   "battletank": {
     "price": 250000,
     "mass": 3.5,
+    "motorTorque": 3.2,
     "enginePower": 3.2,
-    "acceleration": 1.05,
-    "maxSpeed": 0.95,
+    "accelerationLimit": 1.05,
+    "wheelSpeedLimit": 0.95,
     "tireGrip": 2.6,
-    "airTilt": 0.55,
+    "airControl": 0.275,
     "maxRotation": 0.55,
     "inertia": 3.8,
     "suspension": 2.6,
     "suspensionDamping": 2.3,
     "suspensionTravel": 1,
     "pitchSupport": 2.6,
+    "groundDamping": 2.6,
     "fuelCapacity": 3.2,
     "fuelBurn": 2.7,
-    "downforceScale": 0,
-    "airControl": 0.5
+    "downforceScale": 0
   },
   "formula": {
     "price": 350000,
     "mass": 0.95,
+    "motorTorque": 1.9,
     "enginePower": 1.9,
-    "acceleration": 2,
-    "maxSpeed": 2.2,
+    "accelerationLimit": 2,
+    "wheelSpeedLimit": 2.2,
     "tireGrip": 1.75,
-    "airTilt": 1,
+    "airControl": 0.9,
     "maxRotation": 1,
     "inertia": 1.6,
     "suspension": 1.55,
     "suspensionDamping": 1.7,
     "suspensionTravel": 0.7,
     "pitchSupport": 1.9,
+    "groundDamping": 1.9,
     "fuelCapacity": 1.4,
     "fuelBurn": 1.6,
-    "downforceScale": 0,
-    "airControl": 0.9
+    "downforceScale": 0
   },
   "hovercraft": {
     "price": 450000,
     "mass": 0.8,
+    "motorTorque": 1.6,
     "enginePower": 1.6,
-    "acceleration": 1.25,
-    "maxSpeed": 1.85,
+    "accelerationLimit": 1.25,
+    "wheelSpeedLimit": 1.85,
     "tireGrip": 0.2,
-    "airTilt": 1.45,
+    "airControl": 2.1025,
     "maxRotation": 1.35,
     "inertia": 1.25,
     "suspension": 0.55,
     "suspensionDamping": 0.85,
     "suspensionTravel": 1.5,
     "pitchSupport": 1.1,
+    "groundDamping": 1.1,
     "fuelCapacity": 1.3,
     "fuelBurn": 1.4,
-    "downforceScale": 0,
-    "airControl": 1.45
+    "downforceScale": 0
   },
   "supercar": {
     "price": 550000,
     "mass": 1,
+    "motorTorque": 1.7,
     "enginePower": 1.7,
-    "acceleration": 2.05,
-    "maxSpeed": 1.7,
+    "accelerationLimit": 2.05,
+    "wheelSpeedLimit": 1.7,
     "tireGrip": 1.4,
-    "airTilt": 1.05,
+    "airControl": 1.1025,
     "maxRotation": 1.05,
     "inertia": 1.35,
     "suspension": 1.45,
     "suspensionDamping": 1.6,
     "suspensionTravel": 0.8,
     "pitchSupport": 1.7,
+    "groundDamping": 1.7,
     "fuelCapacity": 1.5,
     "fuelBurn": 1.5,
-    "downforceScale": 0,
-    "airControl": 1.05
+    "downforceScale": 0
   },
   "hotrod": {
     "price": 675000,
     "mass": 1.1,
+    "motorTorque": 2,
     "enginePower": 2,
-    "acceleration": 2.05,
-    "maxSpeed": 1.8,
+    "accelerationLimit": 2.05,
+    "wheelSpeedLimit": 1.8,
     "tireGrip": 1.5,
-    "airTilt": 1,
+    "airControl": 1,
     "maxRotation": 1,
     "inertia": 1.55,
     "suspension": 1.35,
     "suspensionDamping": 1.4,
     "suspensionTravel": 0.85,
     "pitchSupport": 1.35,
+    "groundDamping": 1.35,
     "fuelCapacity": 1.4,
     "fuelBurn": 1.7,
-    "downforceScale": 0,
-    "airControl": 1
+    "downforceScale": 0
   },
   "dragster": {
     "price": 775000,
     "mass": 1,
+    "motorTorque": 2.1,
     "enginePower": 2.1,
-    "acceleration": 2.2,
-    "maxSpeed": 2.05,
+    "accelerationLimit": 2.2,
+    "wheelSpeedLimit": 2.05,
     "tireGrip": 1.6,
-    "airTilt": 0.85,
+    "airControl": 0.68,
     "maxRotation": 0.85,
     "inertia": 2,
     "suspension": 1.7,
     "suspensionDamping": 1.55,
     "suspensionTravel": 0.7,
     "pitchSupport": 1.9,
+    "groundDamping": 1.9,
     "fuelCapacity": 1.4,
     "fuelBurn": 1.8,
-    "downforceScale": 0,
-    "airControl": 0.8
+    "downforceScale": 0
   },
   "tank": {
     "price": 850000,
     "mass": 3.17,
+    "motorTorque": 3,
     "enginePower": 3,
-    "acceleration": 1.15,
-    "maxSpeed": 1.6,
+    "accelerationLimit": 1.15,
+    "wheelSpeedLimit": 1.6,
     "tireGrip": 2.5,
-    "airTilt": 0.9,
+    "airControl": 0.81,
     "maxRotation": 0.9,
     "inertia": 2.2,
     "suspension": 2.2,
     "suspensionDamping": 1.8,
     "suspensionTravel": 1.15,
     "pitchSupport": 2,
+    "groundDamping": 2,
     "fuelCapacity": 2.2,
     "fuelBurn": 1.9,
-    "downforceScale": 1,
-    "airControl": 0.9
+    "downforceScale": 1
   },
   "buggy": {
     "price": 925000,
     "mass": 0.75,
+    "motorTorque": 1.4,
     "enginePower": 1.4,
-    "acceleration": 1.55,
-    "maxSpeed": 1.4,
+    "accelerationLimit": 1.55,
+    "wheelSpeedLimit": 1.4,
     "tireGrip": 1.5,
-    "airTilt": 1.45,
+    "airControl": 2.03,
     "maxRotation": 1.45,
     "inertia": 1.1,
     "suspension": 0.9,
     "suspensionDamping": 1,
     "suspensionTravel": 1.8,
     "pitchSupport": 1.15,
+    "groundDamping": 1.15,
     "fuelCapacity": 1,
     "fuelBurn": 0.95,
-    "downforceScale": 0,
-    "airControl": 1.4
+    "downforceScale": 0
   },
   "monster": {
     "price": 1000000,
     "mass": 2.5,
+    "motorTorque": 2.9,
     "enginePower": 2.9,
-    "acceleration": 1.05,
-    "maxSpeed": 1.4,
+    "accelerationLimit": 1.05,
+    "wheelSpeedLimit": 1.4,
     "tireGrip": 1.5,
-    "airTilt": 1.1,
+    "airControl": 1.1550000000000002,
     "maxRotation": 1.05,
     "inertia": 1.8,
     "suspension": 2,
     "suspensionDamping": 1.8,
     "suspensionTravel": 2.1,
     "pitchSupport": 2,
+    "groundDamping": 2,
     "fuelCapacity": 2.6,
     "fuelBurn": 2.2,
-    "downforceScale": 0,
-    "airControl": 1.05
+    "downforceScale": 0
   }
 };
 
@@ -2061,15 +2084,32 @@ for(const [id,row] of Object.entries(VEHICLE_STAT_TABLE)){
 
   const d=VEHICLES[id],m=d.multipliers,stopRatio=(m.suspensionMin??1)/(m.suspensionTravel??1);
 
-  for(const [key,value] of Object.entries(row))
-  if(key!=='price')
-  m[key]=value;
+  // Map the clear authoring names into the existing runtime physics fields.
+  // Keeping these aliases here makes this refactor behavior-preserving and avoids touching the physics engine.
+  m.mass=row.mass;
+  m.motorTorque=row.motorTorque;
+  m.enginePower=row.enginePower;
+  m.acceleration=row.accelerationLimit;
+  m.maxSpeed=row.wheelSpeedLimit;
+  m.wheelSpeedLimit=row.wheelSpeedLimit;
+  m.tireGrip=row.tireGrip;
 
-  m.motorTorque=row.enginePower;
-  m.wheelSpeedLimit=row.maxSpeed;
-  m.groundDamping=row.pitchSupport;
- // Keep each strut's bottom-stop fraction while applying the specified travel.
+  // One per-vehicle air-control multiplier. airTilt remains the common Jeep baseline/upgradable term.
+  m.airTilt=1;
+  m.airControl=row.airControl;
+  m.maxRotation=row.maxRotation;
 
+  m.inertia=row.inertia;
+  m.suspension=row.suspension;
+  m.suspensionDamping=row.suspensionDamping;
+  m.suspensionTravel=row.suspensionTravel;
+  m.pitchSupport=row.pitchSupport;
+  m.groundDamping=row.groundDamping;
+  m.fuelCapacity=row.fuelCapacity;
+  m.fuelBurn=row.fuelBurn;
+  m.downforceScale=row.downforceScale;
+
+  // Keep each chassis's original bottom-stop fraction while applying the authoritative travel.
   m.suspensionMin=stopRatio*row.suspensionTravel;
 
   if(id!=='base')
