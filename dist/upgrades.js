@@ -23,7 +23,13 @@ export function createUpgrades({ state, save }) {
 
     const suspensionLevel=base.suspensionUpgrade==='airControl'?0:levels.suspension;
 
-    const mu=base.tireGrip*gain('grip',tireLevel),power=gain('power',levels.engine);
+    const rawGripGain=gain('grip',tireLevel);
+    const stockGripGain=gain('grip',0);
+    // Preserve each vehicle's current level-0 traction, but make every tire-upgrade
+    // gain above stock 25% less effective. Vehicles using the separate Downforce
+    // upgrade keep tireLevel at 0 and are therefore unchanged.
+    const tractionGain=stockGripGain+(rawGripGain-stockGripGain)*.75;
+    const mu=base.tireGrip*tractionGain,power=gain('power',levels.engine);
     // Keep stock fuel unchanged, then progressively reduce the old fuel-upgrade capacity
     // so a maxed tank has 70% of its previous capacity/endurance.
     const fuelUpgradeScale=1-.30*(levels.fuel/MAX_LEVEL);

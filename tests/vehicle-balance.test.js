@@ -63,6 +63,32 @@ test('Dune Buggy and Hovercraft power tuning matches requested balance pass',()=
   close(VEHICLE_STAT_TABLE.hovercraft.enginePower,2.0825,'Hovercraft power');
 });
 
+test('Traction upgrades keep stock grip unchanged and reduce upgrade gain by 25 percent',()=>{
+  const upgradeSystem=createUpgrades({
+    state:{progression:{selected:'base'}},
+    save:{levelsFor:()=>({engine:0,suspension:0,tires:0,fuel:0})}
+  });
+
+  for(const id of VEHICLE_ORDER){
+    const base=vehicleBase(id);
+    const stock=upgradeSystem.vehicleStats({engine:0,suspension:0,tires:0,fuel:0},id);
+
+    if(base.tiresUpgrade==='downforce'){
+      const maxed=upgradeSystem.vehicleStats({engine:0,suspension:0,tires:5,fuel:0},id);
+      close(maxed.tireGrip,stock.tireGrip,id+' downforce vehicle tire grip remains unchanged');
+      continue;
+    }
+
+    const maxed=upgradeSystem.vehicleStats({engine:0,suspension:0,tires:5,fuel:0},id);
+    const oldStockGain=UPGRADE_CURVES.grip[0]*upgradeScale(id,'grip',0);
+    const oldMaxGain=UPGRADE_CURVES.grip[5]*upgradeScale(id,'grip',5);
+    const expectedGain=oldStockGain+(oldMaxGain-oldStockGain)*.75;
+
+    close(stock.tireGrip,base.tireGrip*oldStockGain,id+' stock traction');
+    close(maxed.tireGrip,base.tireGrip*expectedGain,id+' max traction');
+  }
+});
+
 test('Fuel upgrade leaves stock capacity unchanged and cuts maxed capacity by 30 percent',()=>{
   const upgradeSystem=createUpgrades({
     state:{progression:{selected:'base'}},
