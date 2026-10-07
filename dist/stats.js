@@ -6,6 +6,7 @@ import { $ } from './utils.js';
 const totals={totalDistance:0,totalRuns:0,totalCoins:0,totalFlips:0,fuelCans:0,checkpoints:0};
 const records={bestDistance:0,mostCoins:0,longestJump:0,longestAirtime:0,mostFlipsJump:0,mostFlipsRun:0};
 const labels={bestDistance:'Longest run distance',mostCoins:'Most coins in one run',longestJump:'Longest jump',longestAirtime:'Longest airtime',mostFlipsJump:'Most flips in one jump',mostFlipsRun:'Most flips in one run',totalDistance:'Total distance driven',totalRuns:'Total runs',totalCoins:'Total coins earned',totalFlips:'Total flips',fuelCans:'Fuel cans collected',checkpoints:'Checkpoints reached'};
+const escapeText=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const valid=n=>Number.isFinite(n)&&n>=0?n:0;
 export function freshStats(){return {version:1,global:{...totals,...records},maps:Object.fromEntries(Object.keys(MAPS).map(id=>[id,{bestDistance:0,vehicleId:null}])),vehicles:Object.fromEntries(Object.keys(VEHICLES).map(id=>[id,{...totals,...records}])),lastRun:null};}
 export function normalizeStats(raw,legacy={}){
@@ -80,7 +81,7 @@ export function createStats({state,economy,save,ui,moments}){
     const map=s.maps[run.mapId];if(run.bestDistance>map.bestDistance){map.bestDistance=run.bestDistance;map.vehicleId=run.vehicleId;}
     Object.assign(run,recordCandidates());run.finished=true;flight=null;
     s.lastRun=JSON.parse(JSON.stringify(run));save.saveProgress();
-    $('runRecords').innerHTML=run.broken.length?`<h2>✦ New records</h2>${run.broken.map(x=>`<div>${x}</div>`).join('')}`:'';
+    $('runRecords').innerHTML=run.broken.length?`<h2>✦ New records</h2>${run.broken.map(x=>`<div>${escapeText(x)}</div>`).join('')}`:'';
     return run.broken;
   }
   const card=(key,value)=>`<article class="record-card"><span>${labels[key]}</span><strong>${format(key,value)}</strong></article>`;
@@ -92,7 +93,7 @@ export function createStats({state,economy,save,ui,moments}){
     if(tab==='maps')html=`<div class="map-records">${MAP_CATALOG.map(([id])=>{const r=s.maps[id];return `<article class="record-card"><span>⚑ ${MAPS[id].name}</span><strong>${num(r.bestDistance)} <small>m</small></strong><p>${r.vehicleId?VEHICLES[r.vehicleId].name:r.bestDistance?'Previous record · vehicle unknown':'No completed run yet'}</p></article>`;}).join('')}</div>`;
     else if(tab==='runs'){
       html='<h2>Personal bests</h2><div class="record-grid">'+Object.keys(records).map(k=>card(k,s.global[k])).join('')+'</div>';
-      const r=s.lastRun;html+=r?`<h2>Latest run · ${MAPS[r.mapId].name}</h2><p>${VEHICLES[r.vehicleId].name}</p><div class="record-grid">${['bestDistance','totalCoins','longestJump','longestAirtime','totalFlips','mostFlipsJump','fuelCans','checkpoints'].map(k=>card(k,r[k])).join('')}</div><div class="record-wins">${r.broken.map(x=>`<p>✦ ${x}</p>`).join('')}</div>`:'<p>Finish a run to start your story.</p>';
+      const r=s.lastRun;html+=r?`<h2>Latest run · ${MAPS[r.mapId].name}</h2><p>${VEHICLES[r.vehicleId].name}</p><div class="record-grid">${['bestDistance','totalCoins','longestJump','longestAirtime','totalFlips','mostFlipsJump','fuelCans','checkpoints'].map(k=>card(k,r[k])).join('')}</div><div class="record-wins">${r.broken.map(x=>`<p>✦ ${escapeText(x)}</p>`).join('')}</div>`:'<p>Finish a run to start your story.</p>';
     }else{
       const data=tab==='vehicles'?s.vehicles[vehicle]:s.global;
       html=`<h2>${tab==='vehicles'?VEHICLES[vehicle].name:'Your highlights'}</h2><div class="record-grid prominent">${['bestDistance','longestJump','mostFlipsJump','mostCoins'].map(k=>card(k,data[k])).join('')}</div><h2>${tab==='vehicles'?'Behind the wheel':'Career totals'}</h2><div class="record-grid">${['totalDistance','totalRuns','totalCoins','longestAirtime','mostFlipsRun','totalFlips','fuelCans','checkpoints'].map(k=>card(k,data[k])).join('')}</div>`;

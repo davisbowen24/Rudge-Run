@@ -1,6 +1,6 @@
 import { $ } from './utils.js';
 
-export function createInput({ state, ui, stats }) {
+export function createInput({ state, ui, stats, accountUi }) {
 
   function input(name){
     return state.pointers[name].size>0 || (name==='gas'?(state.keys.has('ArrowRight')||state.keys.has('KeyD')):(state.keys.has('ArrowLeft')||state.keys.has('KeyA')));
@@ -44,6 +44,7 @@ export function createInput({ state, ui, stats }) {
       }
       if(e.code==='Escape'){
         if(state.screen==='stats')stats.close();
+        if(state.screen==='account')accountUi.close();
         if(state.screen==='maps')
         ui.closeMaps();else
         if(state.screen==='store')

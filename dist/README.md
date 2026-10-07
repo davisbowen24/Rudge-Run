@@ -122,3 +122,10 @@ is finalized once on loss, garage exit, or page exit. Safe wheel-contact landing
 qualify for jump distance/airtime; existing completed-flip events retain their reward
 semantics. Distance driven is cumulative absolute horizontal movement; best distance
 is maximum forward progress. Purchases never subtract from coins-earned statistics.
+
+### Optional accounts and cloud saves
+The Account page supports username/password accounts without email aliases. Guest play
+and existing local saves remain available. See [`SUPABASE_SETUP.md`](../SUPABASE_SETUP.md)
+for database/Edge deployment, the public endpoint setting, security details and tests.
+Run `npm ci && npm test` from the repository root. No runtime dependency or build step
+has been added to the game; PGlite is used only by the backend tests.

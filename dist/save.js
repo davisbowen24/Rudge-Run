@@ -3,7 +3,7 @@ import { MAPS, PREVIOUS_CHECKPOINT_SPACING } from './maps.js';
 import { UPGRADES, VEHICLES, freshLevels } from './vehicles.js';
 import { MAX_LEVEL, PERSISTENT_KEY, SAVE_KEY } from './config.js';
 
-export function createSave({ economy, state }) {
+export function createSave({ economy, state, cloudSave }) {
 
   function migrateCheckpointDistance(id,distance){
 
@@ -36,14 +36,15 @@ export function createSave({ economy, state }) {
   }
 
   function readSavedProgress(){
+    const cached=cloudSave.initialSave();if(cached)return cached;
     try{
-      const saved=JSON.parse(localStorage.getItem(PERSISTENT_KEY));
+      const saved=JSON.parse(localStorage.getItem(cloudSave.localKey(PERSISTENT_KEY)));
       if(saved&&Number.isSafeInteger(saved.balance))
       return saved;
     }catch(e){
     }
     try{
-      return JSON.parse(sessionStorage.getItem(SAVE_KEY));
+      return JSON.parse(sessionStorage.getItem(cloudSave.localKey(SAVE_KEY)));
     }catch(e){
       return null;
     }
@@ -54,22 +55,25 @@ export function createSave({ economy, state }) {
   }
 
   function saveProgress(){
+    cloudSave.saved(state.progression);
     const data=JSON.stringify(state.progression);
     try{
-      localStorage.setItem(PERSISTENT_KEY,data);
+      localStorage.setItem(cloudSave.localKey(PERSISTENT_KEY),data);
     }catch(e){
     }
     try{
-      sessionStorage.setItem(SAVE_KEY,data);
+      sessionStorage.setItem(cloudSave.localKey(SAVE_KEY),data);
     }catch(e){
     }
   }
 
-  function loadProgress() {
+  function loadProgress(source) {
 
     try{
-      const saved=readSavedProgress();
+      const saved=source??readSavedProgress();
       if(saved&&Number.isSafeInteger(saved.balance)&&saved.balance>=0){
+        // Preserve optional settings and future permanent fields as part of the full save.
+        for(const [key,value] of Object.entries(saved))if(!Object.hasOwn(state.progression,key)&&!['__proto__','constructor','prototype'].includes(key))state.progression[key]=value;
         state.progression.balance=saved.balance;
         for(const id of Object.keys(MAPS)){
           if(Number.isFinite(saved.best?.[id])&&saved.best[id]>=0)

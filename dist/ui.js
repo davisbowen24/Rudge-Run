@@ -95,6 +95,7 @@ export function createUi({ stats, workshop, moments, state, economy, terrain, sa
     $('storeScreen').hidden=next!=='store';
     $('mapScreen').hidden=next!=='maps';
     $('statsScreen').hidden=next!=='stats';
+    $('accountScreen').hidden=next!=='account';
     $('selectedStart').textContent=VEHICLES[state.progression.selected].name;
     $('selectedGarage').textContent=VEHICLES[state.progression.selected].name+' · '+UPGRADE_PROFILES[state.progression.selected].focus;
     $('overlay').hidden=next!=='over';
