@@ -39,6 +39,21 @@ test('vehicle performance table maps cleanly into runtime physics traits',()=>{
   }
 });
 
+test('Jeep suspension travel is 20% longer without changing non-base absolute travel',()=>{
+  const jeep=vehicleBase('base');
+  const snowmobile=vehicleBase('snowmobile');
+
+  close(jeep.suspensionTravel,21.6,'Jeep suspension travel');
+  close(jeep.suspensionMin,7.2,'Jeep suspension minimum');
+  // Snowmobile was 18 * 1.4 = 25.2 before the base change; compensation keeps it there.
+  close(snowmobile.suspensionTravel,25.2,'Snowmobile absolute suspension travel');
+});
+
+test('Snowmobile ground drive-pitch response is reduced by 20 percent',()=>{
+  assert.equal(VEHICLE_STAT_TABLE.snowmobile.drivePitch,0.8);
+  close(vehicleBase('snowmobile').drivePitch/BASE_VEHICLE_TRAITS.drivePitch,0.8,'Snowmobile drive pitch');
+});
+
 test('Jeep remains the exact 1.0 tuning reference',()=>{
   const row=VEHICLE_STAT_TABLE.base;
   for(const key of [
