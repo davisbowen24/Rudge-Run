@@ -268,7 +268,11 @@ export function createPhysics({ stats, moments, state, terrain, ui, save, input,
   }
 
   function airAngularAcceleration(omega,control,v){
-    const acceleration=-control*v.airTilt*v.airControl*MAPS[state.activeMap].air;
+    let acceleration=-control*v.airTilt*v.airControl*(v.airResponse??1)*MAPS[state.activeMap].air;
+    // Agile vehicles can counter-rotate harder than they accelerate in the same direction,
+    // so the rider can arrest a flip quickly instead of waiting for momentum to bleed away.
+    if(acceleration*omega<0)
+    acceleration*=v.airBrake??1;
     if(Math.abs(omega)>=v.maxRotation&&acceleration*omega>0)
     return 0;
     return acceleration;

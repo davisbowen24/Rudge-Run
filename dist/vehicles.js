@@ -1709,6 +1709,8 @@ const VEHICLE_STAT_TABLE={
     "wheelSpeedLimit": 1.1,
     "tireGrip": 1.35,
     "airControl": 2.6,
+    "airResponse": 7.5,
+    "airBrake": 2,
     "maxRotation": 1.8,
     "inertia": 1.4,
     "suspension": 0.85,
@@ -1770,6 +1772,8 @@ const VEHICLE_STAT_TABLE={
     "wheelSpeedLimit": 1.25,
     "tireGrip": 1.45,
     "airControl": 2.25,
+    "airResponse": 7,
+    "airBrake": 1.9,
     "maxRotation": 1.65,
     "inertia": 1.35,
     "suspension": 0.9,
@@ -2105,6 +2109,8 @@ for(const [id,row] of Object.entries(VEHICLE_STAT_TABLE)){
   // One per-vehicle air-control multiplier. airTilt remains the common Jeep baseline/upgradable term.
   m.airTilt=1;
   m.airControl=row.airControl;
+  if(Number.isFinite(row.airResponse))m.airResponse=row.airResponse;
+  if(Number.isFinite(row.airBrake))m.airBrake=row.airBrake;
   m.maxRotation=row.maxRotation;
 
   m.inertia=row.inertia;

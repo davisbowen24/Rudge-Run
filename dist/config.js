@@ -17,6 +17,8 @@ const BASE_VEHICLE_TRAITS=Object.freeze({
   "fuelBurn": 2.5,
   "airTilt": 4.466,
   "airControl": 1,
+  "airResponse": 1,
+  "airBrake": 1,
   "maxRotation": 4.48,
   "wheelRadius": 19,
   "halfWidth": 51,
