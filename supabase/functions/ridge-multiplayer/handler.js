@@ -9,8 +9,8 @@ export function createHandler({rpc,origins,pepper}){
   function statusFor(result){
     if(result?.unauthorized)return 401;
     if(result?.error==='room_not_found')return 404;
-    if(['room_full','already_in_room','room_closed','code_taken'].includes(result?.error))return 409;
-    if(result?.error==='vehicle_not_owned')return 403;
+    if(['vehicle_not_owned','host_only'].includes(result?.error))return 403;
+    if(['room_full','already_in_room','room_closed','code_taken','invalid_state','not_ready','not_participant','race_finished'].includes(result?.error))return 409;
     return result?.error?400:200;
   }
   return async function handle(req){
@@ -29,6 +29,7 @@ export function createHandler({rpc,origins,pepper}){
       let body;try{body=JSON.parse(new TextDecoder().decode(bytes));}catch{return reply({error:'Invalid JSON'},400);}
       if(!body||typeof body!=='object'||Array.isArray(body))return reply({error:'Invalid request'},400);
       const action=body.action;
+
       if(action==='create'||action==='join'){
         const accountToken=req.headers.get('x-ridge-session')||'';
         if(accountToken&&!/^[a-f0-9]{64}$/.test(accountToken))return reply({error:'Invalid account session'},401);
@@ -57,23 +58,53 @@ export function createHandler({rpc,origins,pepper}){
         return reply({...result,memberToken});
       }
 
-      if(!['state','vehicle','ready','leave'].includes(action))return reply({error:'Unknown action'},400);
+      if(!['state','vehicle','ready','start','vote','progress','finish','leave'].includes(action))return reply({error:'Unknown action'},400);
       const memberToken=req.headers.get('x-ridge-multiplayer')||'';
       if(!/^[a-f0-9]{64}$/.test(memberToken))return reply({error:'Join a room first'},401);
       const tokenHash=await digest(memberToken);
+
+      if(!await rpc('ridge_limit',{p_bucket:await bucket('mp-member:'+tokenHash),p_limit:600,p_seconds:60})){
+        return reply({error:'Too many multiplayer requests. Try again shortly.'},429);
+      }
+
       let result;
       if(action==='state')result=await rpc('ridge_mp_state',{p_member_token_hash:tokenHash});
+
       if(action==='vehicle'){
         if(typeof body.vehicleId!=='string'||!/^[a-z0-9_-]{1,32}$/.test(body.vehicleId))return reply({error:'Invalid vehicle'},400);
         result=await rpc('ridge_mp_vehicle',{p_member_token_hash:tokenHash,p_vehicle_id:body.vehicleId});
       }
+
       if(action==='ready'){
         if(typeof body.ready!=='boolean')return reply({error:'Invalid ready state'},400);
         result=await rpc('ridge_mp_ready',{p_member_token_hash:tokenHash,p_ready:body.ready});
       }
+
+      if(action==='start')result=await rpc('ridge_mp_start',{p_member_token_hash:tokenHash});
+
+      if(action==='vote'){
+        if(typeof body.mapId!=='string'||!/^[a-z0-9_-]{1,32}$/.test(body.mapId))return reply({error:'Invalid map'},400);
+        result=await rpc('ridge_mp_vote',{p_member_token_hash:tokenHash,p_map_id:body.mapId});
+      }
+
+      if(action==='progress'){
+        if(typeof body.distance!=='number'||!Number.isFinite(body.distance)||body.distance<0||body.distance>10000000)return reply({error:'Invalid distance'},400);
+        result=await rpc('ridge_mp_progress',{p_member_token_hash:tokenHash,p_distance:body.distance});
+      }
+
+      if(action==='finish'){
+        if(typeof body.distance!=='number'||!Number.isFinite(body.distance)||body.distance<0||body.distance>10000000)return reply({error:'Invalid distance'},400);
+        if(!['dead','finished'].includes(body.finishStatus))return reply({error:'Invalid finish state'},400);
+        result=await rpc('ridge_mp_finish',{p_member_token_hash:tokenHash,p_distance:body.distance,p_status:body.finishStatus});
+      }
+
       if(action==='leave')result=await rpc('ridge_mp_leave',{p_member_token_hash:tokenHash});
-      const status=statusFor(result);if(status!==200)return reply({error:result.error||'Room unavailable'},status);
+
+      const status=statusFor(result);
+      if(status!==200)return reply({error:result.error||'Room unavailable'},status);
       return reply(result);
-    }catch{return reply({error:'Multiplayer service unavailable.'},503);}
+    }catch{
+      return reply({error:'Multiplayer service unavailable.'},503);
+    }
   };
 }

@@ -2,16 +2,18 @@ import { CONFIG, GRAVITY_SCALE } from './config.js';
 import { MAPS } from './maps.js';
 import { $, clamp } from './utils.js';
 
-export function createMain({ stats, workshop, effects, moments, state, upgrades, save, ui, terrain, physics, economy, feedback, render, input }) {
+export function createMain({ stats, workshop, effects, moments, state, upgrades, save, ui, terrain, physics, economy, feedback, render, input, race }) {
 
-  function reset(){
+  function reset(options={}){
     state.usedBoostPads.clear();
     state.bridgeMotion.clear();
     state.slimeCooldown=0;
     state.spray=[];
     state.sprayClock=0;
     state.paused=false;
-    state.activeMap=state.progression.ownedMaps.includes(state.progression.selectedMap)?state.progression.selectedMap:'countryside';
+    state.multiplayerRaceActive=Boolean(options.multiplayer);
+    const requestedMap=options.mapId;
+    state.activeMap=requestedMap&&MAPS[requestedMap]?requestedMap:(state.progression.ownedMaps.includes(state.progression.selectedMap)?state.progression.selectedMap:'countryside');
     CONFIG.world.gravity=MAPS[state.activeMap].gravity*GRAVITY_SCALE;
     state.nextCheckpoint=1;
     state.seasonIndex=0;
@@ -19,7 +21,8 @@ export function createMain({ stats, workshop, effects, moments, state, upgrades,
     state.airTime=0;
     state.bonusEvents=[];
     $('bonusPopups').innerHTML='';
-    Object.assign(CONFIG.vehicle,upgrades.vehicleStats(save.levelsFor()));
+    const vehicleId=options.vehicleId||state.progression.selected;
+    Object.assign(CONFIG.vehicle,upgrades.vehicleStats(save.levelsFor(vehicleId),vehicleId));
     ui.showScreen('run');
     state.car={x:140,y:terrain.ground(140)-physics.rideHeight(CONFIG.vehicle),vx:0,vy:0,a:0,av:0,wheelSpin:0,trackPhase:0,wheelLengths:CONFIG.vehicle.wheels.map(w=>clamp(physics.rideHeight(CONFIG.vehicle)+CONFIG.vehicle.comOffsetY-w.y-w.r,CONFIG.vehicle.suspensionMin,CONFIG.vehicle.suspensionTravel)),wheelPhases:CONFIG.vehicle.wheels.map(()=>0),wheelSlip:CONFIG.vehicle.wheels.map(()=>false),wheelSpeeds:CONFIG.vehicle.wheels.map(()=>0),wheels:[],grounded:false};
     state.camera={x:state.car.x-230,y:state.car.y-120};
@@ -68,6 +71,7 @@ export function createMain({ stats, workshop, effects, moments, state, upgrades,
     render.draw();
     workshop.update(elapsed);
     ui.updateHUD();
+    race.update?.(elapsed);
     requestAnimationFrame(frame);
   }
 
@@ -152,6 +156,8 @@ export function createMain({ stats, workshop, effects, moments, state, upgrades,
     state.started = undefined;
 
     state.paused = false;
+
+    state.multiplayerRaceActive = false;
 
     state.time = 0;
 

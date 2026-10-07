@@ -4,7 +4,7 @@ import { CONFIG, MAX_LEVEL } from './config.js';
 import { MAPS, MAP_CATALOG, MAP_TIERS, SEASONS } from './maps.js';
 import { UPGRADES, UPGRADE_PROFILES, VEHICLES, VEHICLE_ORDER, VEHICLE_TIERS, vehicleBase } from './vehicles.js';
 
-export function createUi({ stats, workshop, moments, state, economy, terrain, save, input, upgrades, physics, render, main }) {
+export function createUi({ stats, workshop, moments, state, economy, terrain, save, input, upgrades, physics, render, main, race }) {
 
   function resize(){
     state.W=innerWidth;
@@ -21,6 +21,10 @@ export function createUi({ stats, workshop, moments, state, economy, terrain, sa
     economy.recordBest();
     state.playing=false;
     stats.finish();
+    if(race.active?.()){
+      race.finish(reason);
+      return;
+    }
     $('reason').textContent=reason;
     $('tip').textContent=reason==='Out of fuel'?'Keep moving and grab the red fuel cans.':reason==='Fell into the construction pit'?'Build speed across the concrete slab and aim for the steel landing.':reason==='Fell between rooftops'?'Build speed on the flat roof and launch from its ramp.':reason==='Hit the cave ceiling'?'Keep jumps low and level the vehicle before tight passages.':reason==='Lost in the haunted trench'?'Land on the spectral steps before leaping to the far bank.':reason==='Fell into a crevasse'?'Build speed before the ice jump.':reason==='Landed in lava'?'Use the launch ridge and rising thermal air to clear the crater.':'Use gas and brake in the air to land on your wheels.';
     $('finalDistance').textContent=Math.floor((state.furthest-140)/10)+' m';
@@ -49,7 +53,7 @@ export function createUi({ stats, workshop, moments, state, economy, terrain, sa
   function drawBonuses(){ moments.drawPopups(); }
 
   function pauseRun(){
-    if(state.screen!=='run'||!state.playing)
+    if(state.screen!=='run'||!state.playing||race.active?.())
     return;
     economy.recordBest();
     state.paused=true;
@@ -98,6 +102,8 @@ export function createUi({ stats, workshop, moments, state, economy, terrain, sa
     $('accountScreen').hidden=next!=='account';
     $('multiplayerScreen').hidden=next!=='multiplayer';
     $('lobbyScreen').hidden=next!=='lobby';
+    $('multiplayerResultsScreen').hidden=next!=='multiplayerResults';
+    if(next!=='run')$('multiplayerRaceEnd').hidden=true;
     $('selectedStart').textContent=VEHICLES[state.progression.selected].name;
     $('selectedGarage').textContent=VEHICLES[state.progression.selected].name+' · '+UPGRADE_PROFILES[state.progression.selected].focus;
     $('overlay').hidden=next!=='over';
