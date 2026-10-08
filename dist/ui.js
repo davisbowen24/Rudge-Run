@@ -12,7 +12,8 @@ export function createUi({ stats, workshop, moments, state, economy, terrain, sa
     state.dpr=Math.min(devicePixelRatio||1,2);
     state.canvas.width=Math.round(state.W*state.dpr);
     state.canvas.height=Math.round(state.H*state.dpr);
-    state.scale=clamp(Math.min(state.W/1150,state.H/720),.6,1.35);
+    // Wider gameplay framing; HUD and menu sizing remain independent.
+    state.scale=clamp(Math.min(state.W/1150,state.H/720),.6,1.35)*.8;
   }
 
   function end(reason){
