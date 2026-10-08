@@ -1,3 +1,4 @@
+import { drawMapHorizon } from './mapPresentation.js';
 import { canvasFont, UI_THEME } from './theme.js';
 import { BIOMES, LATE_BIOMES, MAPS, SEASONS } from './maps.js';
 import { VEHICLES } from './vehicles.js';
@@ -1317,6 +1318,7 @@ else {
       path(pts,palette.ridges[layer]);
     }
 
+    drawMapHorizon(state.ctx,state.activeMap,state.W,state.H,state.camera.x);
     drawBiomeBackdrop();
     effects.drawAtmosphere(state.ctx,'back');
     state.ctx.save();

@@ -1,3 +1,4 @@
+import { drawMapPreview } from './mapPresentation.js';
 import { canvasFont, UI_THEME } from './theme.js';
 import { $, clamp } from './utils.js';
 import { CONFIG, MAX_LEVEL } from './config.js';
@@ -248,47 +249,11 @@ export function createUi({ stats, workshop, moments, state, economy, terrain, sa
     $('mapCards').innerHTML=MAP_CATALOG.map(([id,price,tier],index)=>{
       const m=MAPS[id];
       const owned=state.progression.ownedMaps.includes(id),selected=id===state.progression.selectedMap,affordable=state.progression.balance>=m.price;
-      return `<article class="map-card ${selected?'selected':''}" data-status="${selected?'equipped':owned?'owned':'locked'}"><div class="vehicle-tag">${index+1} · Tier ${tier}: ${MAP_TIERS[tier-1]}</div><h2>${m.name}</h2><canvas id="map-preview-${id}" width="500" height="150" aria-label="${m.name} terrain preview"></canvas><p>${m.description}</p><div class="map-physics">Gravity: ${Number(m.gravity.toFixed(3))} m/s² · Grip: ${m.gripLabel}<br>${m.flags.seasons?`New season every ${m.seasonDistance} m`:m.terrainLabel}</div><div class="map-physics">Best ${state.progression.best[id]} m · Next goal ${economy.nextGoal(id).distance} m</div><div class="price-line">${owned?(selected?'Selected':'Owned'):m.price.toLocaleString('en-US')+' coins'}</div><button class="buy" data-map="${id}" data-action="${owned?'select':'unlock'}" ${selected||(!owned&&!affordable)?'disabled':''}>${owned?(selected?'Selected':'Select'):'Unlock · '+m.price.toLocaleString('en-US')+' coins'}</button>${!owned&&!affordable?`<div style="font-size:12px;color:var(--text-secondary);margin-top:8px">Need ${(m.price-state.progression.balance).toLocaleString('en-US')} more coins</div>`:''}</article>`;
+      return `<article class="map-card ${selected?'selected':''}" data-status="${selected?'equipped':owned?'owned':'locked'}"><div class="map-card-top"><span class="vehicle-tag">DESTINATION ${String(index+1).padStart(2,'0')} · TIER ${tier}</span><span class="map-state">${selected?'SELECTED':owned?'OWNED':'LOCKED'}</span></div><h2>${m.name}</h2><canvas id="map-preview-${id}" width="600" height="240" aria-label="${m.name} terrain preview"></canvas><p>${m.description}</p><div class="map-physics">Gravity: ${Number(m.gravity.toFixed(3))} m/s² · Grip: ${m.gripLabel}<br>${m.flags.seasons?`New season every ${m.seasonDistance} m`:m.terrainLabel}</div><div class="map-record-strip"><span>PERSONAL BEST<strong>${(state.progression.best[id]||0).toLocaleString('en-US')} m</strong></span><span>NEXT MILESTONE<strong>${economy.nextGoal(id).distance.toLocaleString('en-US')} m</strong></span></div><div class="price-line">${owned?(selected?'Selected':'Owned'):m.price.toLocaleString('en-US')+' coins'}</div><button class="buy" data-map="${id}" data-action="${owned?'select':'unlock'}" ${selected||(!owned&&!affordable)?'disabled':''}>${owned?(selected?'Selected':'Select'):'Unlock · '+m.price.toLocaleString('en-US')+' coins'}</button>${!owned&&!affordable?`<div style="font-size:12px;color:var(--text-secondary);margin-top:8px">Need ${(m.price-state.progression.balance).toLocaleString('en-US')} more coins</div>`:''}</article>`;
     }).join('');
     for(const [id,m] of Object.entries(MAPS)){
       const g=$('map-preview-'+id).getContext('2d');
-      g.fillStyle=m.sky[0];
-      g.fillRect(0,0,500,150);
-      if(m.flags.seasons){
-        for(let i=0;i<4;i++){
-          g.fillStyle=SEASONS[i].sky[0];
-          g.fillRect(i*125,0,125,150);
-          g.fillStyle=UI_THEME.colors.secondary;
-          g.font=canvasFont(12,700);
-          g.fillText(SEASONS[i].name,i*125+12,24);
-        }
-      }else{
-        g.beginPath();
-        g.arc(415,32,16,0,Math.PI*2);
-        g.fillStyle=m.flags.starfield?'#a4cbdc':'#f8e5ad';
-        g.fill();
-      }
-      g.beginPath();
-      g.moveTo(0,150);
-      for(let x=0;x<=500;x+=2)
-      g.lineTo(x,Math.min(148,80+(terrain.terrainHeight(id,800+x*6)-90)*.28));
-      g.lineTo(500,150);
-      g.closePath();
-      g.fillStyle=m.soil;
-      g.fill();
-      g.strokeStyle=m.edge;
-      g.lineWidth=4;
-      g.stroke();
-      if(m.flags.ceiling){
-        g.beginPath();
-        g.moveTo(0,0);
-        for(let x=0;x<=500;x+=2)
-        g.lineTo(x,80+(terrain.caveCeiling(800+x*6,id)-90)*.28);
-        g.lineTo(500,0);
-        g.closePath();
-        g.fillStyle='#252e37';
-        g.fill();
-      }
+      drawMapPreview(g,id,m);
     }
   }
 
