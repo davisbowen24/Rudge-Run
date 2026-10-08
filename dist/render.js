@@ -306,7 +306,12 @@ else{
     g.save();
     g.translate(x,y);
     g.rotate(angle);
-    const color=VEHICLES[v.id].color;
+    // Local metallic paint follows chassis rotation; purely visual, shared by every view.
+    const paint=VEHICLES[v.id].color;
+    const shade=(hex,f)=>'#'+hex.slice(1).match(/../g).map(c=>Math.min(255,Math.round(parseInt(c,16)*f)).toString(16).padStart(2,'0')).join('');
+    const color=g.createLinearGradient(0,-65,0,16);
+    color.addColorStop(0,shade(paint,1.32));color.addColorStop(.46,shade(paint,1.12));
+    color.addColorStop(.49,paint);color.addColorStop(1,shade(paint,.62));
 
     if(v.visualType==='monowheel'){
 
@@ -457,7 +462,7 @@ else{
       box(-90,-70,105,7,'#62717b');
       g.fillStyle=UI_THEME.colors.ink;
       g.font=canvasFont(13,700);
-      g.fillText('TRAIL TOURS',-66,-10);
+      // Side lettering is supplied by the expedition livery below.
 
     }else
     if(v.visualType==='battletank'){
@@ -677,6 +682,87 @@ else {
       case 'monowheel':
         bolts(-15,1,4,10);trim([[-21,-26],[15,-28]]);
         box(-13,-6,15,2,'#a0e6ec');break;
+    }
+
+    // Model-specific liveries and hardware stay inside the existing visual envelope.
+    const decal=(text,x,y,size=7,ink='#f7f2d9')=>{g.fillStyle=ink;g.font=canvasFont(size,900);g.fillText(text,x,y);};
+    const slashes=(x,y,n,c)=>{for(let j=0;j<n;j++)shape([[x+j*8,y],[x+j*8+4,y],[x+j*8-1,y+9],[x+j*8-5,y+9]],c,null);};
+    const grille=(x,y,w)=>{box(x,y,w,9,'#132530');for(let j=2;j<w;j+=4)box(x+j,y+1,1,7,'#a2b7bf');};
+    const badge=(text,x,y,c)=>{box(x-2,y-8,21,11,'#152a35');decal(text,x,y,8,c);};
+    switch(v.visualType){
+      case 'base':
+        shape([[-39,-4],[-23,-4],[-14,4],[-39,4]],'#203645',null);
+        slashes(-20,-4,3,'#ffe6aa');badge('4X4',-24,4,'#fff0c4');
+        grille(29,-3,17);box(-40,10,29,3,'#9daeb2');break;
+      case 'monster':
+        shape([[-46,0],[-28,-12],[-31,-3],[-5,-13],[-11,-3],[16,-10],[5,4]],'#ffbb45',null);
+        shape([[-44,2],[-20,-4],[-23,1],[0,-4],[-9,5]],'#f26447',null);
+        decal('BIG FINGER',-37,10,7);grille(30,-5,19);break;
+      case 'bike':
+        slashes(5,-25,2,'#fff1cb');box(-24,-20,15,1,'#ef9a79');
+        decal('RR',-14,-12,5,'#e64b42');break;
+      case 'atv':
+        shape([[-28,-10],[-8,-17],[9,-17],[1,-9]],'#e3f68f',null);
+        badge('04',-19,3,'#a5f2dd');grille(19,-6,18);
+        shape([[-39,5],[-33,10],[-24,10]],null,'#bccacf',3);break;
+      case 'tractor':
+        box(8,-19,33,3,'#e5d46a');grille(31,-10,16);
+        decal('FIELD 60',7,5,6,'#e8ecc1');box(-33,-20,15,3,'#344533');break;
+      case 'steamroller':
+        slashes(-69,-8,4,'#ffdb64');grille(-75,-13,25);
+        badge('08',-18,2,'#ffd46c');box(20,4,27,2,'#f7d57e');break;
+      case 'bus':
+        shape([[-106,-9],[-71,-9],[-57,0],[47,0],[62,7],[-106,7]],'#267e88',null);
+        shape([[-103,-7],[-73,-7],[-58,2],[45,2]],null,'#e7f4cc',2);
+        decal('EXPEDITION',-38,-9,8,'#213d4d');grille(77,0,16);break;
+      case 'firetruck':
+        slashes(38,-3,4,'#ffe6a0');box(-102,1,116,2,'#eaf2dc');
+        decal('RESCUE',-67,-37,8);badge('112',68,3,'#ffe3a1');
+        for(let k=0;k<3;k++)box(49+k*7,-60,3,4,'#e7fbff');break;
+      case 'supercar':
+        shape([[-61,1],[-24,1],[-5,7],[-61,7]],'#1a3549',null);
+        slashes(-40,-6,3,'#70eff8');badge('GT',3,3,'#aef8ff');
+        shape([[42,-3],[63,-4]],null,'#edffff',2);break;
+      case 'lowrider':
+        shape([[-66,-2],[-31,-2],[-12,3],[16,-2],[61,-2]],null,'#f8d88e',1.5);
+        shape([[-66,0],[-31,0],[-12,5],[16,0],[61,0]],null,'#341e48',1.5);
+        grille(66,-1,14);decal('DELUXE',-15,-4,5,'#ffefbc');break;
+      case 'hotrod':
+        shape([[-5,5],[12,-8],[9,0],[27,-8],[24,0],[44,-6],[31,7]],'#ffd258',null);
+        shape([[1,6],[17,0],[14,5],[30,1],[24,7]],'#ff7044',null);
+        for(let j=0;j<3;j++){box(11+j*9,-27,5,10,'#d1dce0');box(12+j*9,-27,2,3,'#253945');}break;
+      case 'formula':
+        slashes(28,-4,4,'#fff2d1');box(-91,-30,23,2,'#fff3ce');
+        decal('APEX',-58,-4,7);grille(9,-9,16);break;
+      case 'dragster':
+        shape([[-17,-5],[82,2],[57,5],[-9,0]],'#ffe795',null);
+        shape([[-14,-3],[55,3],[-6,2]],'#f57441',null);
+        decal('NITRO',-99,-9,8);box(-108,-51,28,2,'#fbe5b0');break;
+      case 'buggy':
+        shape([[-39,0],[-16,-8],[3,-6],[-10,4]],'#283b46',null);
+        badge('21',-25,2,'#ffe482');slashes(28,-3,3,'#fcf0c5');
+        shape([[-23,-40],[-10,-20],[7,-42]],null,'#e88445',2);break;
+      case 'tank':
+        decal('TRAIL COMMAND',-42,-8,6,'#e7dfa9');slashes(57,-28,3,'#d5c984');
+        grille(-46,-37,23);box(-88,-88,6,13,'#e1dcb0');break;
+      case 'battletank':
+        shape([[-77,-14],[-56,-23],[-36,-14],[-12,-20],[0,-10],[-32,-4]],'#45553c',null);
+        shape([[7,-19],[33,-25],[47,-13],[26,-7]],'#98a071',null);
+        decal('IRON 03',-20,5,7,'#ece7c2');bolts(-21,-43,5,12);break;
+      case 'rover':
+        slashes(-48,-3,3,'#dabb64');badge('LUNA',-11,3,'#aeeffc');
+        box(38,-9,17,7,'#223e57');for(let j=0;j<3;j++)box(40+j*5,-8,3,2,'#9beeff');break;
+      case 'snowmobile':
+        shape([[-48,0],[-26,-7],[0,-1],[22,-8],[38,-3],[2,6]],'#233c53',null);
+        shape([[-38,1],[-22,-3],[0,3],[24,-3]],null,'#a7f3ff',2);
+        decal('POLAR',-19,2,6);break;
+      case 'hovercraft':
+        box(-34,2,66,4,'#203b4e');slashes(36,0,3,'#b7fff2');
+        decal('AIR RUNNER',-27,5,7,'#bcfff2');
+        g.beginPath();g.arc(-55,-27,19,0,Math.PI*2);g.strokeStyle='#6bdccb';g.lineWidth=1.5;g.stroke();break;
+      case 'monowheel':
+        badge('01',-10,2,'#8af7ee');box(11,-17,3,4,'#e1ffff');
+        shape([[-19,-23],[-15,-27],[10,-28]],null,'#77e9e4',2);break;
     }
 
     if(v.visualType==='bike'){
