@@ -262,18 +262,27 @@ else{
       g.save();
       g.translate(w.x,w.y);
       g.rotate(angle+(w.spin??spin/w.r));
-      disk(0,0,w.r+2,'#112d35');
-      disk(0,0,w.r-4,'#344b51');
-      for(let n=0;n<12;n++){
-        g.rotate(Math.PI/6);
-        shape([[w.r-5,-3],[w.r+1,-2]],null,'#87958f',3);
+      // Layered rubber, machined rims and rotating hub hardware; collision radius is untouched.
+      const rubber=g.createRadialGradient(-w.r*.25,-w.r*.3,w.r*.15,0,0,w.r+2);
+      rubber.addColorStop(0,'#46535b');rubber.addColorStop(.68,'#202d35');rubber.addColorStop(1,'#0c1921');
+      disk(0,0,w.r+2,rubber);
+      for(let n=0;n<16;n++){
+        const a=n*Math.PI/8,c=Math.cos(a),sn=Math.sin(a);
+        shape([[c*(w.r-3)-sn*2,sn*(w.r-3)+c*2],[c*w.r+sn*2,sn*w.r-c*2]],null,'#53636a',2);
       }
-      disk(0,0,w.r*.5,'#d9d6bd');
-      for(let n=0;n<6;n++){
-        const a=n*Math.PI/3;
-        shape([[0,0],[Math.cos(a)*w.r*.43,Math.sin(a)*w.r*.43]],null,'#667e7f',2);
+      disk(0,0,w.r*.66,'#111e26');
+      disk(0,0,w.r*.57,'#c3cdd0');
+      disk(0,0,w.r*.47,'#384952');
+      for(let n=0;n<8;n++){
+        const a=n*Math.PI/4;
+        shape([[Math.cos(a)*w.r*.14,Math.sin(a)*w.r*.14],[Math.cos(a)*w.r*.5,Math.sin(a)*w.r*.5]],null,'#a6b8c0',2);
       }
-      disk(0,0,4,'#173e49');
+      disk(0,0,w.r*.19,'#e0e5df');
+      for(let n=0;n<5;n++){
+        const a=n*Math.PI*2/5;
+        disk(Math.cos(a)*w.r*.12,Math.sin(a)*w.r*.12,Math.max(.65,w.r*.035),'#445962');
+      }
+      disk(0,0,w.r*.065,'#21353e');
       g.restore();
     }
 
@@ -601,6 +610,73 @@ else {
         shape([[-42,14],[-22,33],[23,33],[44,14]],null,'#899a9f',5);
         box(-26,-18,45,6,'#e6d4f5');
       }
+    }
+
+    // Small, vehicle-specific details share the existing local body frame in game and garage.
+    const vent=(x,y,count=4)=>{for(let j=0;j<count;j++)box(x+j*4,y,2,6,'#172c37');};
+    const bolts=(x,y,count=4,step=10)=>{for(let j=0;j<count;j++){disk(x+j*step,y,1.4,'#d0dadd');disk(x+j*step,y,.55,'#50636b');}};
+    const trim=(points)=>shape(points,null,'#e2f0ef',1.2);
+    const glass=(x,y,w,h)=>{shape([[x,y+h],[x+w*.4,y],[x+w*.65,y],[x+w*.25,y+h]],'#ffffff35',null);};
+    const lamp=(x,y,c)=>{box(x-1,y-1,9,6,'#24343c');box(x,y,7,4,c);box(x+1,y,5,1,'#fffce5');};
+    switch(v.visualType){
+      case 'base':case 'monster':
+        shape([[-26,-13],[-26,6],[14,6],[14,-13]],null,'#623c4566',1.5);
+        box(-20,-10,9,2,'#d9dedd');vent(27,-5,4);bolts(-39,9,7,12);
+        trim([[-36,-18],[17,-18],[29,-8],[v.halfWidth-9,-8]]);
+        glass(9,-34,12,14);lamp(-v.halfWidth+2,-4,'#fb6260');
+        box(-20,8,34,3,'#263c45');break;
+      case 'bike':
+        bolts(-9,10,3,8);trim([[-33,-22],[-24,-24],[-12,-22]]);
+        box(-3,-28,5,2,'#f8d882');break;
+      case 'atv':
+        shape([[-43,-18],[-31,-18],[-31,-14],[-43,-14]],null,'#cad9db',2);
+        shape([[28,-18],[42,-14],[42,-9]],null,'#cad9db',2);
+        vent(-18,-6,5);bolts(-26,6,5,12);lamp(31,-12,'#fff2b7');
+        trim([[-18,-17],[3,-25],[23,-20]]);break;
+      case 'tractor':case 'steamroller':
+        vent(v.visualType==='tractor'?13:-73,-10,5);
+        glass(v.visualType==='tractor'?-33:-49,-45,22,20);
+        bolts(-29,6,5,12);lamp(v.visualType==='tractor'?45:12,-13,'#ffefb0');
+        box(-15,-16,8,2,'#dce2d8');break;
+      case 'bus':
+        for(let j=0;j<6;j++){glass(-100+j*28,-49,17,21);box(-92+j*28,-21,6,2,'#d4ddd7');}
+        shape([[71,-15],[71,8],[91,8],[91,-15]],null,'#9b763a',1);
+        bolts(-99,8,10,20);lamp(100,-3,'#ffefbe');lamp(-109,-9,'#fa6563');break;
+      case 'firetruck':
+        for(let j=0;j<3;j++){box(-90+j*42,-7,13,2,'#2c4752');bolts(-99+j*42,-26,3,12);}
+        glass(66,-43,23,22);disk(47,-8,7,'#eee7bc');disk(47,-8,4,'#c84239');
+        lamp(101,-9,'#fff0be');break;
+      case 'supercar':case 'lowrider':case 'hotrod':
+        shape([[-26,-8],[-24,6],[23,6],[25,-9]],null,'#132b3b88',1.3);
+        box(-16,-7,10,2,'#c5dce1');vent(34,-3,5);
+        trim([[-57,-6],[-37,-10],[-28,-11]]);glass(-18,-25,26,10);
+        lamp(-65,0,'#ff5f64');break;
+      case 'formula':case 'dragster':
+        trim([[12,1],[68,4],[85,5]]);vent(-20,-6,5);bolts(-47,7,5,23);
+        box(-42,-4,14,8,'#e8eddf');g.fillStyle='#253b46';g.font=canvasFont(7,900);g.fillText(v.visualType==='formula'?'01':'09',-40,3);
+        shape([[-91,-28],[-69,-28]],null,'#f3e4b8',1.5);break;
+      case 'buggy':
+        trim([[-29,-45],[5,-48],[26,-14]]);vent(-59,-13,3);
+        shape([[-29,1],[16,1],[30,7]],null,'#e5dbb4',2);bolts(-38,8,7,11);
+        lamp(41,-6,'#fff1b4');break;
+      case 'tank':case 'battletank':
+        bolts(-69,2,9,17);vent(v.visualType==='tank'?-48:-73,-12,6);
+        trim(v.visualType==='tank'?[[18,-33],[86,-33]]:[[-51,-28],[45,-28],[75,-17]]);
+        lamp(65,-7,'#fff0ad');break;
+      case 'rover':
+        for(let j=0;j<4;j++)trim([[25+j*10,-22],[25+j*10,-18],[32+j*10,-18]]);
+        box(-23,-18,27,10,'#e4e6d8');box(-19,-15,6,3,'#72cfe1');vent(-10,-16,3);
+        bolts(-48,6,8,13);trim([[-54,-10],[-24,-16],[17,-13]]);break;
+      case 'snowmobile':
+        vent(19,-14,5);trim([[-52,-4],[-34,-8],[2,-2]]);glass(26,-39,10,13);
+        bolts(-36,5,5,15);lamp(47,-6,'#eaf9ff');break;
+      case 'hovercraft':
+        glass(-7,-26,22,12);bolts(-65,7,10,14);vent(37,-6,6);
+        shape([[-67,18],[65,18]],null,'#698b9a',1.5);
+        lamp(63,5,'#c1f6ff');break;
+      case 'monowheel':
+        bolts(-15,1,4,10);trim([[-21,-26],[15,-28]]);
+        box(-13,-6,15,2,'#a0e6ec');break;
     }
 
     if(v.visualType==='bike'){

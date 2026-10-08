@@ -31,15 +31,19 @@ export function createUpgrades({ state, save }) {
     // Keep stock fuel unchanged, then progressively reduce the old fuel-upgrade capacity
     // so a maxed tank has 70% of its previous capacity/endurance.
     const fuelUpgradeScale=1-.30*(levels.fuel/MAX_LEVEL);
-    // Air rotation stays at each vehicle's stock-engine strength. Only the
-    // dedicated Air Control upgrade changes it; Engine upgrades affect driving.
+    // Fixed at the former max-engine air strength, independent of purchased Engine levels.
+    // The motorcycle retains its separate Air Control upgrade and its original normalization.
     const airGain=base.suspensionUpgrade==='airControl'?gain('airControl',levels.suspension):1;
-    const stockAirFactor=UPGRADE_CURVES.power[0]/10;
+    const maxEnginePower=gain('power',MAX_LEVEL);
+    const fixedAirFactor=base.suspensionUpgrade==='airControl'?UPGRADE_CURVES.power[0]/10
+      :['atv','rover'].includes(id)
+        ?(UPGRADE_CURVES.power[0]/10)*Math.sqrt(maxEnginePower/UPGRADE_CURVES.power[0])
+        :maxEnginePower/10;
 
     return {...base,
  downforce:base.tiresUpgrade==='downforce'?u.downforce[levels.tires]*OFFROAD_DOWNFORCE_REFERENCE*base.downforceScale:0,
  downforceGrip:base.tiresUpgrade==='downforce'?2.5*levels.tires/MAX_LEVEL*upgradeScale(id,'trackGrip',levels.tires):0,
- airTilt:base.airTilt*.8*stockAirFactor*airGain,
+ airTilt:base.airTilt*.8*fixedAirFactor*airGain,
  acceleration:base.acceleration*gain('torque',levels.engine),wheelSpeedLimit:base.wheelSpeedLimit*Math.cbrt(power/UPGRADE_CURVES.power[0]),enginePower:base.enginePower*power,engineTorque:base.engineTorque*gain('torque',levels.engine),
  suspension:base.suspension*gain('spring',suspensionLevel),suspensionDamping:base.suspensionDamping*gain('damping',suspensionLevel),
  inertia:base.inertia,comOffsetY:base.comOffsetY+(base.tracked?Math.min(8,2*suspensionLevel):3.8*suspensionLevel),
