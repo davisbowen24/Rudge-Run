@@ -331,7 +331,7 @@ export function createPhysics({ stats, moments, state, terrain, ui, save, input,
 
     const raceDownforce=v.visualType==='formula'&&state.car.grounded?v.downforceScale*Math.min(2.5,Math.pow(state.car.vx/400,2)):0;
     const downforce=v.mass*CONFIG.world.gravity*(v.downforce+raceDownforce),downforceAngle=v.downforceAngle*Math.PI/180,downAxis={x:axis.x*Math.cos(downforceAngle)+forward.x*Math.sin(downforceAngle),y:axis.y*Math.cos(downforceAngle)+forward.y*Math.sin(downforceAngle)},supportLoad=v.mass*CONFIG.world.gravity+downforce*Math.cos(downforceAngle);
-    let fx=downAxis.x*downforce,fy=v.mass*CONFIG.world.gravity+downAxis.y*downforce,torque=0,contacts=0;
+    let fx=downAxis.x*downforce,fy=v.mass*CONFIG.world.gravity+downAxis.y*downforce,torque=0,contacts=0,contactPitchTorque=0;
     fy-=v.mass*bubbleLift(state.car.x,state.car.y);
     if(state.activeMap==='underwater'){
       fx-=v.mass*.14*MAPS[state.activeMap].drag*state.car.vx;
@@ -360,7 +360,7 @@ export function createPhysics({ stats, moments, state, terrain, ui, save, input,
           contacts++;
           fx+=springX+guideX;
           fy+=springY+guideY;
-          torque+=rx*(springY+guideY)-ry*(springX+guideX);
+          contactPitchTorque+=rx*(springY+guideY)-ry*(springX+guideX);
 
           const direction=v.visualType==='monowheel'?1:(forward.x*n.tx+forward.y*n.ty)>=0?1:-1,localSpeed=along*direction,radius=v.wheels.reduce((sum,q)=>sum+q.r,0)/v.wheels.length,share=v.tracked?normal/Math.max(v.mass*CONFIG.world.gravity*.3,previousTrackLoad):v.rearDriveShare!==null?(i===0?v.rearDriveShare:1-v.rearDriveShare):1/v.wheels.length;
 // F = min(torque / radius, power / speed). Grip limits the delivered tractive force.
@@ -435,6 +435,9 @@ export function createPhysics({ stats, moments, state, terrain, ui, save, input,
       state.car.wheelPhases.fill(state.car.trackPhase/v.wheelRadius);
     }
     state.car.grounded=contacts>0;
+    // A single-wheel motorcycle landing transfers more suspension load into pitch,
+    // bringing the second wheel down faster without altering airborne rotation.
+    torque+=contactPitchTorque*(v.visualType==='bike'&&contacts===1?1.4:1);
     torque+=groundPitchTorque(v,contacts);
     if(!contacts)
     torque+=airAngularAcceleration(state.car.av,control,v)*v.inertia;else
