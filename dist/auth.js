@@ -3,7 +3,7 @@ const KEY='ridge-run-account-session-v1';
 export function validateCredentials(username,password){
   if(!/^[A-Za-z0-9_]{3,20}$/.test(username))throw new Error('Use 3–20 letters, numbers or underscores for your username.');
   const bytes=new TextEncoder().encode(password).length;
-  if(password.length<12||bytes>72||password.includes('\0'))throw new Error('Use a password of at least 12 characters and at most 72 UTF-8 bytes.');
+  if(password.length<1||bytes>72||password.includes('\0'))throw new Error('Use any non-empty password up to 72 UTF-8 bytes.');
 }
 export function createAuth(){
   let session=null;

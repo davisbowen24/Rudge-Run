@@ -22,7 +22,7 @@ export function createHandler({rpc,origins,pepper}){
       const {action}=body;
       if(action==='register'||action==='login'){
         const {username,password}=body;
-        if(typeof username!=='string'||!/^[A-Za-z0-9_]{3,20}$/.test(username)||typeof password!=='string'||password.length<12||encoder.encode(password).length>72||password.includes('\0'))return reply({error:'Invalid username or password format'},400);
+        if(typeof username!=='string'||!/^[A-Za-z0-9_]{3,20}$/.test(username)||typeof password!=='string'||password.length<1||encoder.encode(password).length>72||password.includes('\0'))return reply({error:'Invalid username or password format'},400);
         // Username bucket cannot be bypassed by spoofing a proxy/IP header. Global limit bounds signup abuse.
         for(const [name,limit,seconds] of [['auth-global',120,60],['user:'+username.toLowerCase(),10,900],...(action==='register'?[['signup-global',30,3600]]:[])]){
           if(!await rpc('ridge_limit',{p_bucket:await bucket(name),p_limit:limit,p_seconds:seconds}))return reply({error:'Too many attempts. Try again later.'},429);

@@ -15,9 +15,11 @@ test('merge is idempotent, never adds duplicated currency/totals and retains rec
  const m=mergeSaves(a,b);assert.equal(m.balance,150);assert.equal(m.stats.global.totalRuns,3);assert.equal(m.levelsByVehicle.base.engine,3);assert.equal(m.stats.maps.countryside.vehicleId,'bike');assert.equal(m.settings.sound,false);assert(m.owned.includes('bike'));assert(m.ownedMaps.includes('moon'));assert.deepEqual(mergeSaves(m,b),m);
  assert.equal(Object.hasOwn(mergeSaves(JSON.parse('{"__proto__":{"polluted":true}}'),{}),'__proto__'),false);
 });
-test('credential validation: case preserved, strong password bounds, no silent bcrypt truncation',()=>{
- assert.doesNotThrow(()=>validateCredentials('Driver_One','long-enough-password'));for(const name of ['ab','has space','x@y','a'.repeat(21)])assert.throws(()=>validateCredentials(name,'long-enough-password'));
- for(const p of ['short','é'.repeat(37),'012345678901\0'])assert.throws(()=>validateCredentials('Driver_One',p));
+test('credential validation allows short passwords while preserving bcrypt-safe technical bounds',()=>{
+ assert.doesNotThrow(()=>validateCredentials('Driver_One','1234'));
+ assert.doesNotThrow(()=>validateCredentials('Driver_One','x'));
+ for(const name of ['ab','has space','x@y','a'.repeat(21)])assert.throws(()=>validateCredentials(name,'1234'));
+ for(const p of ['', 'é'.repeat(37),'012345678901\0'])assert.throws(()=>validateCredentials('Driver_One',p));
 });
 test('legacy guest saves and optional settings survive without account configuration',()=>{
  storage();const s=progress();localStorage.setItem('ridge-run-progress-v3',JSON.stringify(s));const state={};const save=createSave({state,economy:{checkpointDistance:n=>n*500},cloudSave:{initialSave:()=>null,localKey:k=>k,saved(){}}});state.progression=save.freshProgress();save.loadProgress();assert.equal(state.progression.balance,100);assert.equal(state.progression.settings.sound,false);assert.equal(state.progression.levelsByVehicle.base.engine,1);save.saveProgress();assert.equal(JSON.parse(localStorage.getItem('ridge-run-progress-v3')).balance,100);
@@ -46,7 +48,7 @@ test('pending account cache survives reload and is isolated from another account
 test('Edge handler validates sessions, rejects wrong origins and never trusts supplied ownership',async()=>{
  let args,lastName;const handler=createHandler({origins:['https://game.test'],pepper:'x'.repeat(64),rpc:async(name,body)=>{args=body;lastName=name;if(name==='ridge_limit')return true;if(name==='ridge_auth')return {user:{id:'A',username:'Driver_A'}};return {save:{userId:'A',revision:1}};}});
  const send=(body,token,origin='https://game.test')=>handler(new Request('https://edge.test',{method:'POST',headers:{origin,'Content-Type':'application/json',...(token?{'X-Ridge-Session':token}:{})},body:JSON.stringify(body)}));
- let r=await send({action:'login',username:'Driver_A',password:'safe-password-123'});assert.equal(r.status,200);const login=await r.json();assert.match(login.token,/^[a-f0-9]{64}$/);assert.notEqual(args.p_token_hash,login.token);assert.equal(login.user.username,'Driver_A');assert.equal(login.password,undefined);
+ let r=await send({action:'login',username:'Driver_A',password:'1234'});assert.equal(r.status,200);const login=await r.json();assert.match(login.token,/^[a-f0-9]{64}$/);assert.notEqual(args.p_token_hash,login.token);assert.equal(login.user.username,'Driver_A');assert.equal(login.password,undefined);
  r=await send({action:'save',userId:'B',username:'Victim',expectedRevision:0,saveVersion:1,progression:progress()},login.token);assert.equal(r.status,200);assert.equal(lastName,'ridge_save');assert.equal(args.userId,undefined);assert.equal(args.p_user_id,undefined);assert.equal((await r.json()).save.userId,'A');
  assert.equal((await send({action:'load'})).status,401);assert.equal((await send({action:'load'},login.token,'https://evil.test')).status,403);
  const expired=createHandler({origins:['https://game.test'],pepper:'x'.repeat(64),rpc:async()=>({unauthorized:true})});assert.equal((await expired(new Request('https://edge.test',{method:'POST',headers:{origin:'https://game.test','Content-Type':'application/json','X-Ridge-Session':login.token},body:'{"action":"load"}'}))).status,401);
@@ -54,5 +56,5 @@ test('Edge handler validates sessions, rejects wrong origins and never trusts su
 test('Edge handler propagates revision conflict and fails closed on throttling',async()=>{
  const req=()=>new Request('https://edge.test',{method:'POST',headers:{origin:'https://game.test','Content-Type':'application/json','X-Ridge-Session':'a'.repeat(64)},body:JSON.stringify({action:'save',expectedRevision:1,saveVersion:1,progression:progress()})});
  const h=createHandler({origins:['https://game.test'],pepper:'x'.repeat(64),rpc:async()=>({conflict:true,save:{revision:4}})});assert.equal((await h(req())).status,409);
- const limited=createHandler({origins:['https://game.test'],pepper:'x'.repeat(64),rpc:async()=>false});const r=await limited(new Request('https://edge.test',{method:'POST',headers:{origin:'https://game.test','Content-Type':'application/json'},body:JSON.stringify({action:'login',username:'Driver_A',password:'safe-password-123'})}));assert.equal(r.status,429);
+ const limited=createHandler({origins:['https://game.test'],pepper:'x'.repeat(64),rpc:async()=>false});const r=await limited(new Request('https://edge.test',{method:'POST',headers:{origin:'https://game.test','Content-Type':'application/json'},body:JSON.stringify({action:'login',username:'Driver_A',password:'1234'})}));assert.equal(r.status,429);
 });
