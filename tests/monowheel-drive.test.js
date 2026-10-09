@@ -28,3 +28,26 @@ test('Monowheel fallback does not propel an airborne vehicle or handle another v
   assert.equal(physics.monowheelContact({...v,visualType:'base'}),null);
   physics.step(1/240);assert.equal(state.car.vx,0);
 });
+
+test('Monowheel gently rights itself only on the ground',()=>{
+  for(const angle of [-.8,.8]){
+    const {state,physics,v}=setup(angle,0);
+    assert(physics.groundPitchTorque(v,1)*angle<0);
+    assert.equal(physics.groundPitchTorque(v,0),0);
+    for(let n=0;n<720;n++)physics.step(1/240);
+    assert(Math.abs(state.car.a)<.15,`settled angle ${state.car.a}`);
+  }
+});
+
+test('Monowheel does not spring-hop on flat ground at rest or under throttle',()=>{
+  for(const control of [0,-1,1]){
+    const {state,physics}=setup(0,control),startY=state.car.y,length=state.car.wheelLengths[0];
+    let rise=0,minVy=0;
+    for(let n=0;n<1200;n++){
+      physics.step(1/240);rise=Math.max(rise,startY-state.car.y);minVy=Math.min(minVy,state.car.vy);
+      assert.equal(state.car.wheelLengths[0],length);
+    }
+    assert(rise<3,`uncommanded rise ${rise}`);
+    assert(minVy>-15,`upward launch speed ${minVy}`);
+  }
+});

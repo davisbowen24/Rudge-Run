@@ -283,6 +283,11 @@ export function createPhysics({ stats, moments, state, terrain, ui, save, input,
   function groundPitchTorque(v,contacts){
     if(!contacts)
     return 0;
+    if(v.visualType==='monowheel'){
+      // Gentle self-balancing only while touching the ground; airborne flips stay manual.
+      const lean=Math.atan2(Math.sin(state.car.a),Math.cos(state.car.a));
+      return v.inertia*clamp(-lean*10-state.car.av*4,-8,8)*v.pitchSupport;
+    }
     const span=v.halfWidth,target=Math.atan2((MAPS[state.activeMap].flags.rooftops?terrain.roofDeck(state.car.x+span):state.activeMap==='construction'?terrain.segmentHeight(terrain.constructionAt(state.car.x+span),state.car.x+span):['arctic','volcano','haunted'].includes(state.activeMap)?terrain.baseTerrainHeight(state.activeMap,state.car.x+span):terrain.ground(state.car.x+span))-(MAPS[state.activeMap].flags.rooftops?terrain.roofDeck(state.car.x-span):state.activeMap==='construction'?terrain.segmentHeight(terrain.constructionAt(state.car.x-span),state.car.x-span):['arctic','volcano','haunted'].includes(state.activeMap)?terrain.baseTerrainHeight(state.activeMap,state.car.x-span):terrain.ground(state.car.x-span)),2*span),error=Math.atan2(Math.sin(state.car.a-target),Math.cos(state.car.a-target)),fade=clamp((1.1-Math.abs(error))/.55,0,1),lean=Math.sign(error)*Math.max(0,Math.abs(error)-.1),strength=v.pitchSupport*groundSupportFactor(v);
     return v.inertia*fade*strength*clamp(-lean*9-state.car.av*1.8,-9,9);
   }
@@ -336,13 +341,14 @@ export function createPhysics({ stats, moments, state, terrain, ui, save, input,
 
     for(let i=0;i<v.wheels.length;i++){
       const w=v.wheels[i],contact=strutContact(w,v);
+      if(v.visualType!=='monowheel')
       state.car.wheelLengths[i]=contact.hit?contact.length:state.car.wheelLengths[i]+(v.suspensionTravel-state.car.wheelLengths[i])*(1-Math.exp(-dt*18));
       const p=wheelPose(w,state.car.wheelLengths[i]),n=contact.normal,alignment=-(axis.x*n.x+axis.y*n.y),rx=p.x-state.car.x,ry=p.y-state.car.y,vx=state.car.vx-state.car.av*ry,vy=state.car.vy+state.car.av*rx,along=vx*n.tx+vy*n.ty,normalSpeed=vx*n.x+vy*n.y,surface=terrain.surfaceAt(p.x);
       if(v.visualType==='snowmobile'&&((MAPS[state.activeMap].flags.seasons&&surface.index===3)||state.activeMap==='arctic'))
       surface.grip*=1.6;
       let normal=0;
 
-      if(contact.hit&&alignment>.15){
+      if(v.visualType!=='monowheel'&&contact.hit&&alignment>.15){
 // Spring/damper acts along the chassis strut. The rigid guide transfers lateral ground load.
 
         const compressionSpeed=-normalSpeed/alignment,spring=clamp(contact.compression*v.suspension+Math.max(0,contact.compression-(v.suspensionTravel-v.suspensionMin)*.7)*v.suspension*5+compressionSpeed*v.suspensionDamping,0,supportLoad*4/v.wheels.length),springX=-axis.x*spring,springY=-axis.y*spring;
@@ -399,8 +405,8 @@ export function createPhysics({ stats, moments, state, terrain, ui, save, input,
       state.car.wheels.push({...p,normal,spin:state.car.wheelPhases[i]});
     }
 
-    // Fallback traction for side/top tire and frame contact. Do not double the motor
-    // when the ordinary suspension contact already supplies drive force.
+    // Monowheel uses one inelastic contact path at every angle. Its fixed strut
+    // avoids switching between a compressed spring and rigid contact (which caused hops).
     if(v.visualType==='monowheel'&&!contacts){
       const hit=monowheelContact(v);
       if(hit){
@@ -466,8 +472,8 @@ export function createPhysics({ stats, moments, state, terrain, ui, save, input,
     state.car.wheelSpin+=state.car.vx*dt;
 // Bottom stops and chassis contacts prevent penetration without unparenting the wheels.
 
-    for(const w of v.wheels){
-      const p=wheelPose(w,v.suspensionMin),depth=p.y-wheelFloor(p.x,w.r);
+    for(const [i,w] of v.wheels.entries()){
+      const p=wheelPose(w,v.visualType==='monowheel'?state.car.wheelLengths[i]:v.suspensionMin),depth=p.y-wheelFloor(p.x,w.r);
       if(depth>0){
         const n=terrainNormal(p.x,w.r);
         applyContactImpulse(p,n,depth*(-n.y));
