@@ -252,6 +252,26 @@ export function createPhysics({ stats, moments, state, terrain, ui, save, input,
     return inside;
   }
 
+  function monowheelContact(v){
+    if(v.visualType!=='monowheel')return null;
+    const candidates=[];
+    // The entire round tire can grip, even when the chassis strut points sideways/up.
+    for(let i=0;i<v.wheels.length;i++){
+      const w=v.wheels[i],p=wheelPose(w,state.car.wheelLengths[i]);
+      candidates.push({p,n:terrainNormal(p.x,w.r),depth:p.y-wheelFloor(p.x,w.r),radius:w.r});
+    }
+    // Sample the existing visible frame perimeter, not a larger invisible drive zone.
+    const frame=[[-22,4],[-24,-30],[18,-32],[24,4]];
+    for(let i=0;i<frame.length;i++){
+      const a=frame[i],b=frame[(i+1)%frame.length];
+      for(let j=0;j<=8;j++){
+        const p=point(a[0]+(b[0]-a[0])*j/8,a[1]+(b[1]-a[1])*j/8),k=terrain.slope(p.x),d=Math.hypot(k,1);
+        candidates.push({p,n:{x:k/d,y:-1/d,tx:1/d,ty:k/d},depth:p.y-terrain.ground(p.x),radius:v.wheelRadius});
+      }
+    }
+    return candidates.filter(c=>c.depth>=-.5).sort((a,b)=>b.depth-a.depth)[0]||null;
+  }
+
   function groundSupportFactor(v){
     const supported=v.wheels.filter((w,i)=>state.car.wheels[i]?.normal>0);
     if(supported.length<2)
@@ -336,7 +356,7 @@ export function createPhysics({ stats, moments, state, terrain, ui, save, input,
           fy+=springY+guideY;
           torque+=rx*(springY+guideY)-ry*(springX+guideX);
 
-          const direction=(forward.x*n.tx+forward.y*n.ty)>=0?1:-1,localSpeed=along*direction,radius=v.wheels.reduce((sum,q)=>sum+q.r,0)/v.wheels.length,share=v.tracked?normal/Math.max(v.mass*CONFIG.world.gravity*.3,previousTrackLoad):v.rearDriveShare!==null?(i===0?v.rearDriveShare:1-v.rearDriveShare):1/v.wheels.length;
+          const direction=v.visualType==='monowheel'?1:(forward.x*n.tx+forward.y*n.ty)>=0?1:-1,localSpeed=along*direction,radius=v.wheels.reduce((sum,q)=>sum+q.r,0)/v.wheels.length,share=v.tracked?normal/Math.max(v.mass*CONFIG.world.gravity*.3,previousTrackLoad):v.rearDriveShare!==null?(i===0?v.rearDriveShare:1-v.rearDriveShare):1/v.wheels.length;
 // F = min(torque / radius, power / speed). Grip limits the delivered tractive force.
 
           const shaftSpeed=Math.max(Math.abs(along),Math.abs(state.car.wheelSpeeds[i])*w.r),available=engineForce(v,shaftSpeed,radius);
@@ -377,6 +397,29 @@ export function createPhysics({ stats, moments, state, terrain, ui, save, input,
       state.car.wheelSpeeds[i]=clamp(state.car.wheelSpeeds[i],-v.wheelSpeedLimit,v.wheelSpeedLimit);
       state.car.wheelPhases[i]=(state.car.wheelPhases[i]+state.car.wheelSpeeds[i]*dt)%(Math.PI*2);
       state.car.wheels.push({...p,normal,spin:state.car.wheelPhases[i]});
+    }
+
+    // Fallback traction for side/top tire and frame contact. Do not double the motor
+    // when the ordinary suspension contact already supplies drive force.
+    if(v.visualType==='monowheel'&&!contacts){
+      const hit=monowheelContact(v);
+      if(hit){
+        const {p,n,radius,depth}=hit,surface=terrain.surfaceAt(p.x);
+        const along=state.car.vx*n.tx+state.car.vy*n.ty;
+        const load=v.mass*CONFIG.world.gravity*Math.max(.15,-n.y);
+        const limit=load*(MAPS[state.activeMap].traction||1)*v.staticGrip*surface.grip;
+        const fade=v.wheelSpeedLimited&&control*along>0?clamp(1-Math.pow(Math.abs(along)/(v.wheelSpeedLimit*radius),8),0,1):1;
+        const requested=control*engineForce(v,Math.abs(along),radius)*fade*(surface.drive??1);
+        const rolling=-Math.tanh(along/12)*load*v.rollingResistance*surface.drag-along*v.mass*(surface.motionDrag||0);
+        const drive=clamp(requested+rolling,-limit,limit);
+        fx+=drive*n.tx+load*n.x;fy+=drive*n.ty+load*n.y;
+        torque+=((p.x-state.car.x)*drive*n.ty-(p.y-state.car.y)*drive*n.tx)*v.drivePitch;
+        applyContactImpulse(p,n,Math.max(0,depth)*(-n.y));
+        contacts=1;
+        state.car.wheels[0].normal=load;
+        state.car.wheelSlip[0]=Math.abs(requested)>limit;
+        state.car.wheelSpeeds[0]+=(along/radius-state.car.wheelSpeeds[0])*(1-Math.exp(-dt*12));
+      }
     }
 
     if(v.tracked){
@@ -488,6 +531,6 @@ export function createPhysics({ stats, moments, state, terrain, ui, save, input,
     state.toastTime=Math.max(0,state.toastTime-dt);
   }
 
-  return { environmentalLoss, effectiveGravity, bubbleLift, hydraulicImpact, speedPadImpact, updateBridgeMotion, thermalAcceleration, slimeImpact, biomeLoss, point, rideHeight, wheelFloor, wheelPose, terrainNormal, strutContact, syncWheelGeometry, engineForce, applyContactImpulse, touchesPickup, groundSupportFactor, groundPitchTorque, airAngularAcceleration, step };
+  return { environmentalLoss, effectiveGravity, bubbleLift, hydraulicImpact, speedPadImpact, updateBridgeMotion, thermalAcceleration, slimeImpact, biomeLoss, point, rideHeight, wheelFloor, wheelPose, terrainNormal, strutContact, syncWheelGeometry, engineForce, applyContactImpulse, touchesPickup, monowheelContact, groundSupportFactor, groundPitchTorque, airAngularAcceleration, step };
 
 }
