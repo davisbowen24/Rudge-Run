@@ -10,7 +10,7 @@ export function createHandler({rpc,origins,pepper}){
     if(result?.unauthorized)return 401;
     if(result?.error==='room_not_found')return 404;
     if(['vehicle_not_owned','host_only'].includes(result?.error))return 403;
-    if(['room_full','already_in_room','room_closed','code_taken','invalid_state','not_ready','not_participant','race_finished'].includes(result?.error))return 409;
+    if(['room_full','already_in_room','room_closed','code_taken','invalid_state','not_ready','not_participant','race_finished','mode_disabled'].includes(result?.error))return 409;
     return result?.error?400:200;
   }
   return async function handle(req){
@@ -58,7 +58,7 @@ export function createHandler({rpc,origins,pepper}){
         return reply({...result,memberToken});
       }
 
-      if(!['state','vehicle','ready','start','vote','progress','finish','rematch','leave'].includes(action))return reply({error:'Unknown action'},400);
+      if(!['state','vehicle','ready','start','vote','progress','progress_live','finish','rematch','leave'].includes(action))return reply({error:'Unknown action'},400);
       const memberToken=req.headers.get('x-ridge-multiplayer')||'';
       if(!/^[a-f0-9]{64}$/.test(memberToken))return reply({error:'Join a room first'},401);
       const tokenHash=await digest(memberToken);
@@ -90,6 +90,20 @@ export function createHandler({rpc,origins,pepper}){
       if(action==='progress'){
         if(typeof body.distance!=='number'||!Number.isFinite(body.distance)||body.distance<0||body.distance>10000000)return reply({error:'Invalid distance'},400);
         result=await rpc('ridge_mp_progress',{p_member_token_hash:tokenHash,p_distance:body.distance});
+      }
+
+      // Live telemetry is a separate opt-in route. Ordinary races still use
+      // the unchanged progress action and monotonic distance scoring.
+      if(action==='progress_live'){
+        const inRange=(value,min,max)=>typeof value==='number'&&Number.isFinite(value)&&value>=min&&value<=max;
+        if(!inRange(body.distance,0,10000000)||!inRange(body.position,0,10000000)||!inRange(body.velocity,-200,200))
+          return reply({error:'Invalid live telemetry'},400);
+        result=await rpc('ridge_mp_progress_live',{
+          p_member_token_hash:tokenHash,
+          p_distance:body.distance,
+          p_live_position:body.position,
+          p_live_velocity:body.velocity
+        });
       }
 
       if(action==='finish'){
