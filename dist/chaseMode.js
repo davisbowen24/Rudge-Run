@@ -99,8 +99,14 @@ export function createChaseMode(options = {}) {
     }
     let leader = null;
     let furthest = -Infinity;
+    let hasActiveRacer = false;
     for (const member of members.values()) {
       if (member.raceActive === false || member.raceStatus !== 'racing') continue;
+      hasActiveRacer = true;
+      // Never extrapolate a disconnected/stale player's position indefinitely.
+      // If ALL active racers are stale, retain the last displayed boundary until
+      // fresh server data arrives; don't create a false elimination or teleport.
+      if (nowMs - member.sampledAtMs > settings.staleAfterMs) continue;
       const predicted = predictedPosition(member, nowMs);
       if (predicted > furthest) {
         furthest = predicted;
@@ -108,7 +114,11 @@ export function createChaseMode(options = {}) {
       }
     }
     if (!leader) {
-      // No surviving racing players. The visual hazard should disappear.
+      if (hasActiveRacer) {
+        predictionAgeMs = Math.max(settings.staleAfterMs + 1, predictionAgeMs ?? 0);
+        return snapshot();
+      }
+      // Nobody is still racing: hide the boundary.
       positionMeters = targetMeters = leaderId = leaderMeters = predictionAgeMs = null;
       return snapshot();
     }
