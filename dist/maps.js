@@ -123,7 +123,13 @@ const MAP_DEFINITIONS={
     "seasonBlendDistance": 1,
     "seasonBumpScale": 1,
     "fuelSpacing": 1,
-    "fuelGrowthMeters": 1
+    "fuelGrowthMeters": 1,
+    "terrainAmplitude": 1,
+    "terrainRoughness": 1,
+    "checkpointSpacing": 1,
+    "obstacleDensity": 1,
+    "rampFrequency": 1,
+    "hazardSeverity": 0.5
   },
   "flags": {
     "freeStarter": true,
@@ -151,7 +157,7 @@ const MAP_DEFINITIONS={
     "edge": "#aec66e",
     "sub": "#71864d"
   },
-  "gripLabel": "Medium",
+  "gripLabel": "1.00×",
   "terrainLabel": "Classic rolling hills with swinging wooden bridges"
 },
  seasons:{
@@ -171,8 +177,8 @@ const MAP_DEFINITIONS={
     "pitch": 1,
     "air": 1,
     "surfaceDrag": 1,
-    "cost": 2.5,
-    "difficultyRate": 1,
+    "cost": 15,
+    "difficultyRate": 1.05,
     "difficultyDistance": 1,
     "terrainStart": 1,
     "terrainHeight": 1,
@@ -204,7 +210,13 @@ const MAP_DEFINITIONS={
     "seasonBlendDistance": 1,
     "seasonBumpScale": 1,
     "fuelSpacing": 1,
-    "fuelGrowthMeters": 1
+    "fuelGrowthMeters": 1,
+    "terrainAmplitude": 1.1,
+    "terrainRoughness": 1.1,
+    "checkpointSpacing": 1,
+    "obstacleDensity": 1,
+    "rampFrequency": 1,
+    "hazardSeverity": 0.9
   },
   "flags": {
     "freeStarter": false,
@@ -232,7 +244,7 @@ const MAP_DEFINITIONS={
     "edge": "#b4cd79",
     "sub": "#7d9657"
   },
-  "gripLabel": "Seasonal",
+  "gripLabel": "1.00× · seasonal changes",
   "terrainLabel": "New season every 500 m"
 },
  bootcamp:{
@@ -246,14 +258,14 @@ const MAP_DEFINITIONS={
     "iceGrip": 1,
     "mudGrip": 1,
     "gravity": 1,
-    "grip": 0.8,
+    "grip": 0.85,
     "traction": 1,
-    "drag": 1,
+    "drag": 1.05,
     "pitch": 1,
     "air": 1,
-    "surfaceDrag": 1,
-    "cost": 6,
-    "difficultyRate": 1,
+    "surfaceDrag": 1.05,
+    "cost": 7.5,
+    "difficultyRate": 1.05,
     "difficultyDistance": 1,
     "terrainStart": 1,
     "terrainHeight": 1,
@@ -285,7 +297,13 @@ const MAP_DEFINITIONS={
     "seasonBlendDistance": 1,
     "seasonBumpScale": 1,
     "fuelSpacing": 1,
-    "fuelGrowthMeters": 1
+    "fuelGrowthMeters": 1,
+    "terrainAmplitude": 1.1,
+    "terrainRoughness": 1.3,
+    "checkpointSpacing": 0.95,
+    "obstacleDensity": 1.35,
+    "rampFrequency": 1.2,
+    "hazardSeverity": 1
   },
   "flags": {
     "freeStarter": false,
@@ -313,7 +331,7 @@ const MAP_DEFINITIONS={
     "edge": "#8d9160",
     "sub": "#706343"
   },
-  "gripLabel": "Muddy",
+  "gripLabel": "0.85×",
   "terrainLabel": "Technical climbs & drops"
 },
  moon:{
@@ -326,15 +344,15 @@ const MAP_DEFINITIONS={
     "winterGrip": 1,
     "iceGrip": 1,
     "mudGrip": 1,
-    "gravity": 0.1653061224489796,
-    "grip": 0.95,
-    "traction": 4.5,
-    "drag": 0.03,
+    "gravity": 0.17,
+    "grip": 0.65,
+    "traction": 1,
+    "drag": 0.6,
     "pitch": 0.3,
     "air": 1,
-    "surfaceDrag": 1,
-    "cost": 10,
-    "difficultyRate": 1,
+    "surfaceDrag": 0.6,
+    "cost": 375,
+    "difficultyRate": 1.2,
     "difficultyDistance": 1,
     "terrainStart": 1,
     "terrainHeight": 1,
@@ -365,8 +383,14 @@ const MAP_DEFINITIONS={
     "seasonDistance": 1,
     "seasonBlendDistance": 1,
     "seasonBumpScale": 1,
-    "fuelSpacing": 1,
-    "fuelGrowthMeters": 1
+    "fuelSpacing": 1.1,
+    "fuelGrowthMeters": 1,
+    "terrainAmplitude": 1.35,
+    "terrainRoughness": 1.35,
+    "checkpointSpacing": 1.05,
+    "obstacleDensity": 1.2,
+    "rampFrequency": 1.4,
+    "hazardSeverity": 1.3
   },
   "flags": {
     "freeStarter": false,
@@ -394,7 +418,7 @@ const MAP_DEFINITIONS={
     "edge": "#c0c6d1",
     "sub": "#8b919f"
   },
-  "gripLabel": "Lunar traction",
+  "gripLabel": "0.65×",
   "terrainLabel": "Standard air control"
 },
 };
@@ -405,18 +429,27 @@ Object.assign(MAP_DEFINITIONS,{
     "description": "Long paved climbs and sweeping descents. Difficulty grows at 70% of the normal rate, but fuel and milestones are farther apart.",
     "character": "highway",
     "multipliers": {
-      "cost": 4,
+      "cost": 1.25,
       "grip": 1.15,
-      "difficultyRate": 0.7,
+      "difficultyRate": 0.8,
       "hillScale": 2.8,
       "hillPeriod": 3.2,
       "hillGrowth": 1.8,
       "signatureHeight": 0,
-      "fuelSpacing": 1.45,
+      "fuelSpacing": 1.25,
       "fuelGrowthMeters": 1.3,
       "maxFuelSpacing": 1.4,
-      "checkpointSpacing": 1.4,
-      "firstFuelDistance": 1.25
+      "checkpointSpacing": 1.25,
+      "firstFuelDistance": 1.25,
+      "gravity": 1,
+      "drag": 0.95,
+      "terrainAmplitude": 0.65,
+      "terrainRoughness": 0.35,
+      "obstacleDensity": 0.4,
+      "rampFrequency": 0.45,
+      "hazardSeverity": 0.4,
+      "traction": 1,
+      "surfaceDrag": 0.95
     },
     "flags": {
       "freeStarter": false,
@@ -439,7 +472,7 @@ Object.assign(MAP_DEFINITIONS,{
       "edge": "#abb6bb",
       "sub": "#606975"
     },
-    "gripLabel": "Paved \u00b7 high",
+    "gripLabel": "1.15×",
     "terrainLabel": "Smooth endurance climbs"
   },
   "rooftops": {
@@ -447,10 +480,21 @@ Object.assign(MAP_DEFINITIONS,{
     "description": "Accelerate across city roofs and launch from small ramps. Gaps widen with distance; falling between buildings ends the run. Some roofs have steep ramps to a higher deck.",
     "character": "rooftops",
     "multipliers": {
-      "cost": 8,
-      "grip": 1.15,
-      "difficultyRate": 0.85,
-      "signatureHeight": 0
+      "cost": 150,
+      "grip": 1,
+      "difficultyRate": 1.65,
+      "signatureHeight": 0,
+      "gravity": 1,
+      "drag": 0.95,
+      "terrainAmplitude": 1.25,
+      "terrainRoughness": 0.75,
+      "fuelSpacing": 1.05,
+      "checkpointSpacing": 1,
+      "obstacleDensity": 1.2,
+      "rampFrequency": 1.5,
+      "hazardSeverity": 2,
+      "traction": 1,
+      "surfaceDrag": 0.95
     },
     "flags": {
       "freeStarter": false,
@@ -474,7 +518,7 @@ Object.assign(MAP_DEFINITIONS,{
       "edge": "#b9c5cd",
       "sub": "#67768a"
     },
-    "gripLabel": "Roof concrete",
+    "gripLabel": "1.00×",
     "terrainLabel": "Jump ramps \u00b7 fatal gaps"
   },
   "mars": {
@@ -482,16 +526,25 @@ Object.assign(MAP_DEFINITIONS,{
     "description": "Rust-red hills, rocky crater basins, and Mars gravity at 3.71 m/s\u00b2. Carry speed into long jumps and settle carefully onto the dusty slopes.",
     "character": "mars",
     "multipliers": {
-      "cost": 12,
-      "gravity": 0.37857142857142856,
-      "grip": 0.9,
-      "traction": 2.3,
-      "drag": 0.18,
+      "cost": 250,
+      "gravity": 0.4,
+      "grip": 0.8,
+      "traction": 1,
+      "drag": 0.8,
       "pitch": 0.65,
       "bumpScale": 0.6,
       "craterBase": 0.6,
       "craterGrowth": 0.65,
-      "hillPeriod": 1.15
+      "hillPeriod": 1.15,
+      "difficultyRate": 1.05,
+      "terrainAmplitude": 1.3,
+      "terrainRoughness": 1.3,
+      "fuelSpacing": 1.1,
+      "checkpointSpacing": 1.05,
+      "obstacleDensity": 1.1,
+      "rampFrequency": 1.3,
+      "hazardSeverity": 1.2,
+      "surfaceDrag": 0.8
     },
     "flags": {
       "freeStarter": false,
@@ -512,7 +565,7 @@ Object.assign(MAP_DEFINITIONS,{
       "edge": "#d99258",
       "sub": "#ac613b"
     },
-    "gripLabel": "Dusty \u00b7 good traction",
+    "gripLabel": "0.80×",
     "terrainLabel": "Mars gravity \u00b7 crater hills"
   },
   "cave": {
@@ -520,11 +573,22 @@ Object.assign(MAP_DEFINITIONS,{
     "description": "A winding underground trail beneath a solid rock ceiling. Progression is 20% slower; keep jumps low and protect your head through tight passages.",
     "character": "cave",
     "multipliers": {
-      "cost": 5,
+      "cost": 80,
       "difficultyRate": 0.8,
-      "grip": 1.05,
+      "grip": 0.95,
       "bumpScale": 0.65,
-      "signatureHeight": 0.6
+      "signatureHeight": 0.6,
+      "gravity": 1,
+      "drag": 1,
+      "terrainAmplitude": 1.2,
+      "terrainRoughness": 1.2,
+      "fuelSpacing": 1,
+      "checkpointSpacing": 1,
+      "obstacleDensity": 1.2,
+      "rampFrequency": 0.95,
+      "hazardSeverity": 1.4,
+      "traction": 1,
+      "surfaceDrag": 1
     },
     "flags": {
       "freeStarter": false,
@@ -545,7 +609,7 @@ Object.assign(MAP_DEFINITIONS,{
       "edge": "#8faaa3",
       "sub": "#616d6e"
     },
-    "gripLabel": "Firm stone",
+    "gripLabel": "0.95×",
     "terrainLabel": "Overhead collision \u00b7 tight tunnels"
   }
 });
@@ -556,15 +620,27 @@ Object.assign(MAP_DEFINITIONS,{
     "character": "desert",
     "description": "Sweeping dunes and steep sandy drops. Deep sand adds resistance on climbs; carry momentum into jumps.",
     "multipliers": {
-      "cost": 6.0,
-      "grip": 0.85,
+      "cost": 3.75,
+      "grip": 0.8,
       "signatureHeight": 0,
       "hillPeriod": 1.8,
       "hillScale": 1.7,
       "ridgeGrowth": 0.35,
       "trenchScale": 1.3,
       "trenchPeriod": 1.8,
-      "bumpScale": 0.2
+      "bumpScale": 0.2,
+      "gravity": 1,
+      "drag": 1,
+      "difficultyRate": 0.95,
+      "terrainAmplitude": 1.2,
+      "terrainRoughness": 1.1,
+      "fuelSpacing": 1.05,
+      "checkpointSpacing": 1,
+      "obstacleDensity": 0.7,
+      "rampFrequency": 1.1,
+      "hazardSeverity": 0.7,
+      "traction": 1,
+      "surfaceDrag": 1
     },
     "flags": {
       "freeStarter": false
@@ -584,7 +660,7 @@ Object.assign(MAP_DEFINITIONS,{
       "edge": "#ffe093",
       "sub": "#eab660"
     },
-    "gripLabel": "0.85\u00d7 baseline",
+    "gripLabel": "0.80×",
     "terrainLabel": "Sweeping dunes and steep sandy drops"
   },
   "arctic": {
@@ -592,14 +668,25 @@ Object.assign(MAP_DEFINITIONS,{
     "character": "arctic",
     "description": "Slick ice and widening crevasses. Build speed on the flats, then leap the blue chasms.",
     "multipliers": {
-      "cost": 12.5,
-      "grip": 0.35,
+      "cost": 37.5,
+      "grip": 0.55,
       "signatureHeight": 0,
       "hillPeriod": 1.45,
       "hillScale": 0.85,
       "bumpScale": 0.35,
       "ridgeGrowth": 0.6,
-      "difficultyRate": 0.85
+      "difficultyRate": 1.05,
+      "gravity": 1,
+      "drag": 0.95,
+      "terrainAmplitude": 1.15,
+      "terrainRoughness": 1.05,
+      "fuelSpacing": 1.05,
+      "checkpointSpacing": 1,
+      "obstacleDensity": 0.9,
+      "rampFrequency": 1.1,
+      "hazardSeverity": 1.2,
+      "traction": 1,
+      "surfaceDrag": 0.95
     },
     "flags": {
       "freeStarter": false
@@ -619,7 +706,7 @@ Object.assign(MAP_DEFINITIONS,{
       "edge": "#d9f9ff",
       "sub": "#8cdbec"
     },
-    "gripLabel": "0.35\u00d7 baseline",
+    "gripLabel": "0.55×",
     "terrainLabel": "Slick ice and widening crevasses"
   },
   "volcano": {
@@ -627,14 +714,26 @@ Object.assign(MAP_DEFINITIONS,{
     "character": "volcano",
     "description": "Jagged high-grip basalt climbs above lava. Pulsing thermal vents boost airborne vehicles near crater jumps.",
     "multipliers": {
-      "cost": 30.0,
-      "grip": 1.4,
+      "cost": 110,
+      "grip": 0.9,
       "signatureHeight": 0,
       "hillScale": 1.3,
       "ridgeGrowth": 1.5,
       "trenchScale": 1.4,
       "rampGrowth": 1.2,
-      "bumpScale": 1.1
+      "bumpScale": 1.1,
+      "gravity": 1,
+      "drag": 1.05,
+      "difficultyRate": 1.15,
+      "terrainAmplitude": 1.45,
+      "terrainRoughness": 1.35,
+      "fuelSpacing": 1,
+      "checkpointSpacing": 1,
+      "obstacleDensity": 1.35,
+      "rampFrequency": 1.2,
+      "hazardSeverity": 1.7,
+      "traction": 1,
+      "surfaceDrag": 1.05
     },
     "flags": {
       "freeStarter": false,
@@ -656,7 +755,7 @@ Object.assign(MAP_DEFINITIONS,{
       "edge": "#ae6251",
       "sub": "#51404a"
     },
-    "gripLabel": "1.4\u00d7 baseline",
+    "gripLabel": "0.90×",
     "terrainLabel": "Jagged high-grip basalt climbs above lava"
   },
   "jungle": {
@@ -664,12 +763,24 @@ Object.assign(MAP_DEFINITIONS,{
     "character": "deep",
     "description": "Muddy valleys and flexible wooden bridges across rivers. Keep momentum in bogs and expect the bridges to bounce.",
     "multipliers": {
-      "cost": 62.5,
-      "grip": 1.05,
+      "cost": 55,
+      "grip": 0.8,
       "signatureHeight": 0,
       "hillPeriod": 1.25,
       "hillScale": 1.1,
-      "bumpScale": 0.65
+      "bumpScale": 0.65,
+      "gravity": 1,
+      "drag": 1.2,
+      "difficultyRate": 1.1,
+      "terrainAmplitude": 1.25,
+      "terrainRoughness": 1.4,
+      "fuelSpacing": 1,
+      "checkpointSpacing": 1,
+      "obstacleDensity": 1.45,
+      "rampFrequency": 1.15,
+      "hazardSeverity": 1.2,
+      "traction": 1,
+      "surfaceDrag": 1.2
     },
     "flags": {
       "freeStarter": false
@@ -689,7 +800,7 @@ Object.assign(MAP_DEFINITIONS,{
       "edge": "#96b963",
       "sub": "#707447"
     },
-    "gripLabel": "1.05\u00d7 baseline",
+    "gripLabel": "0.80×",
     "terrainLabel": "Muddy valleys and flexible wooden bridges across rivers"
   },
   "wasteland": {
@@ -697,13 +808,24 @@ Object.assign(MAP_DEFINITIONS,{
     "character": "toxic",
     "description": "Rusted pipe ramps and glowing slime springs. Hit a green pad to launch into the lower-gravity sky.",
     "multipliers": {
-      "cost": 150.0,
-      "grip": 1.05,
+      "cost": 200,
+      "grip": 0.8,
       "signatureHeight": 0,
-      "gravity": 0.8367346938775508,
+      "gravity": 1,
       "hillScale": 0.9,
       "ridgeGrowth": 1.35,
-      "bumpScale": 0.5
+      "bumpScale": 0.5,
+      "drag": 1.1,
+      "difficultyRate": 1.15,
+      "terrainAmplitude": 1.2,
+      "terrainRoughness": 1.3,
+      "fuelSpacing": 1.05,
+      "checkpointSpacing": 1.05,
+      "obstacleDensity": 1.4,
+      "rampFrequency": 1.1,
+      "hazardSeverity": 1.7,
+      "traction": 1,
+      "surfaceDrag": 1.1
     },
     "flags": {
       "freeStarter": false,
@@ -724,7 +846,7 @@ Object.assign(MAP_DEFINITIONS,{
       "edge": "#c6b875",
       "sub": "#777b57"
     },
-    "gripLabel": "1.05\u00d7 baseline",
+    "gripLabel": "0.80×",
     "terrainLabel": "Rusted pipe ramps and glowing slime springs"
   }
 });
@@ -735,15 +857,24 @@ Object.assign(MAP_DEFINITIONS,{
     "description": "Float over coral ridges in 4.5 m/s\u00b2 effective gravity. Water resistance slows motion; bubble plumes lift you over undersea ramps.",
     "character": "underwater",
     "multipliers": {
-      "cost": 250.0,
+      "cost": 425,
       "signatureHeight": 0,
-      "gravity": 0.4591836734693877,
-      "drag": 1.5,
-      "traction": 1.65,
-      "grip": 0.95,
+      "gravity": 0.45,
+      "drag": 1.7,
+      "traction": 1,
+      "grip": 0.8,
       "hillPeriod": 1.3,
       "hillScale": 1.2,
-      "bumpScale": 0.5
+      "bumpScale": 0.5,
+      "difficultyRate": 1.1,
+      "terrainAmplitude": 1.2,
+      "terrainRoughness": 1.15,
+      "fuelSpacing": 1,
+      "checkpointSpacing": 1,
+      "obstacleDensity": 1.2,
+      "rampFrequency": 0.9,
+      "hazardSeverity": 1.5,
+      "surfaceDrag": 1.7
     },
     "flags": {
       "freeStarter": false
@@ -763,7 +894,7 @@ Object.assign(MAP_DEFINITIONS,{
       "edge": "#70c9c1",
       "sub": "#3b8494"
     },
-    "gripLabel": "Seabed \u00b7 0.95\u00d7",
+    "gripLabel": "0.80×",
     "terrainLabel": "Float over coral ridges in 4"
   },
   "construction": {
@@ -771,12 +902,24 @@ Object.assign(MAP_DEFINITIONS,{
     "description": "High-grip steel ramps alternate with loose dirt and harsh concrete drops. Bring strong suspension for the landings.",
     "character": "construction",
     "multipliers": {
-      "cost": 400.0,
+      "cost": 25,
       "signatureHeight": 0,
-      "grip": 0.75,
+      "grip": 1,
       "hillScale": 0.8,
       "bumpScale": 0.7,
-      "rampGrowth": 1.2
+      "rampGrowth": 1.2,
+      "gravity": 1,
+      "drag": 1,
+      "difficultyRate": 1.575,
+      "terrainAmplitude": 1.2,
+      "terrainRoughness": 1.25,
+      "fuelSpacing": 1,
+      "checkpointSpacing": 1,
+      "obstacleDensity": 1.5,
+      "rampFrequency": 1.35,
+      "hazardSeverity": 1.1,
+      "traction": 1,
+      "surfaceDrag": 1
     },
     "flags": {
       "freeStarter": false,
@@ -797,7 +940,7 @@ Object.assign(MAP_DEFINITIONS,{
       "edge": "#d0a46f",
       "sub": "#988566"
     },
-    "gripLabel": "Steel 1.50\u00d7 \u00b7 dirt 0.75\u00d7",
+    "gripLabel": "Steel 1.50× / dirt 0.75×",
     "terrainLabel": "High-grip steel ramps alternate with loose dirt and harsh concrete drops"
   },
   "haunted": {
@@ -805,11 +948,23 @@ Object.assign(MAP_DEFINITIONS,{
     "description": "Slick graveyard mud and wide haunted trenches. Land on the glowing spectral platforms to leap safely across.",
     "character": "haunted",
     "multipliers": {
-      "cost": 600.0,
+      "cost": 312.5,
       "signatureHeight": 0,
-      "grip": 0.6,
+      "grip": 0.75,
       "hillScale": 1.1,
-      "bumpScale": 0.4
+      "bumpScale": 0.4,
+      "gravity": 0.95,
+      "drag": 1.05,
+      "difficultyRate": 1.1,
+      "terrainAmplitude": 1.15,
+      "terrainRoughness": 1.2,
+      "fuelSpacing": 1.05,
+      "checkpointSpacing": 1,
+      "obstacleDensity": 1.3,
+      "rampFrequency": 1,
+      "hazardSeverity": 1.5,
+      "traction": 1,
+      "surfaceDrag": 1.05
     },
     "flags": {
       "freeStarter": false
@@ -829,7 +984,7 @@ Object.assign(MAP_DEFINITIONS,{
       "edge": "#938190",
       "sub": "#62566d"
     },
-    "gripLabel": "Spooky mud \u00b7 0.60\u00d7",
+    "gripLabel": "0.75×",
     "terrainLabel": "Slick graveyard mud and wide haunted trenches"
   },
   "neon": {
@@ -837,12 +992,24 @@ Object.assign(MAP_DEFINITIONS,{
     "description": "Smooth synthetic hills with 1.20\u00d7 traction. Roll over neon arrows for an instant forward speed boost.",
     "character": "cyberpunk",
     "multipliers": {
-      "cost": 900.0,
+      "cost": 462.5,
       "signatureHeight": 0,
       "grip": 1.2,
       "hillPeriod": 1.8,
       "hillScale": 1.35,
-      "bumpScale": 0
+      "bumpScale": 0,
+      "gravity": 1,
+      "drag": 0.9,
+      "difficultyRate": 1.3,
+      "terrainAmplitude": 0.8,
+      "terrainRoughness": 0.55,
+      "fuelSpacing": 1.15,
+      "checkpointSpacing": 1.1,
+      "obstacleDensity": 1.15,
+      "rampFrequency": 1.3,
+      "hazardSeverity": 1.3,
+      "traction": 1,
+      "surfaceDrag": 0.9
     },
     "flags": {
       "freeStarter": false,
@@ -865,7 +1032,7 @@ Object.assign(MAP_DEFINITIONS,{
       "edge": "#48f1fa",
       "sub": "#cc62e9"
     },
-    "gripLabel": "Synthetic \u00b7 1.20\u00d7",
+    "gripLabel": "1.20×",
     "terrainLabel": "Smooth synthetic hills with 1"
   },
   "alien": {
@@ -873,14 +1040,23 @@ Object.assign(MAP_DEFINITIONS,{
     "description": "Low gravity pulses gently around 3.8 m/s\u00b2. Strike glowing spring crystals for high-altitude launches beneath twin moons.",
     "character": "alien",
     "multipliers": {
-      "cost": 1250.0,
+      "cost": 500,
       "signatureHeight": 0,
-      "gravity": 0.38775510204081626,
-      "traction": 1.6,
+      "gravity": 0.55,
+      "traction": 1,
       "grip": 0.9,
       "hillPeriod": 1.3,
-      "drag": 0.3,
-      "bumpScale": 0.5
+      "drag": 0.85,
+      "bumpScale": 0.5,
+      "difficultyRate": 1.3,
+      "terrainAmplitude": 1.4,
+      "terrainRoughness": 1.4,
+      "fuelSpacing": 1.15,
+      "checkpointSpacing": 1.1,
+      "obstacleDensity": 1.5,
+      "rampFrequency": 1.4,
+      "hazardSeverity": 1.8,
+      "surfaceDrag": 0.85
     },
     "flags": {
       "freeStarter": false,
@@ -902,300 +1078,51 @@ Object.assign(MAP_DEFINITIONS,{
       "edge": "#c885dc",
       "sub": "#855897"
     },
-    "gripLabel": "Alien soil \u00b7 0.90\u00d7",
+    "gripLabel": "0.90×",
     "terrainLabel": "Low gravity pulses gently around 3"
   }
 });
 
 const MAP_CATALOG=[
- ['countryside',0,1],['highway',2500,1],['desert',7500,1],['bootcamp',15000,1],
- ['seasons',30000,2],['construction',50000,2],['arctic',75000,2],['jungle',110000,2],['cave',160000,2],
- ['volcano',220000,3],['rooftops',300000,3],['wasteland',400000,3],['mars',500000,3],['haunted',625000,3],
- ['moon',750000,4],['underwater',850000,4],['neon',925000,4],['alien',1000000,4]
-];
+ ['countryside',1],
+ ['highway',1],
+ ['desert',1],
+ ['bootcamp',1],
+ ['seasons',2],
+ ['construction',2],
+ ['arctic',2],
+ ['jungle',2],
+ ['cave',2],
+ ['volcano',3],
+ ['rooftops',3],
+ ['wasteland',3],
+ ['mars',3],
+ ['haunted',3],
+ ['moon',4],
+ ['underwater',4],
+ ['neon',4],
+ ['alien',4]
+].map(([id,tier])=>[
+ id,
+ MAP_DEFINITIONS[id].flags?.freeStarter?0:Math.round(BASE_MAP_TRAITS.cost*MAP_DEFINITIONS[id].multipliers.cost),
+ tier
+]);
 
 const MAP_TIERS=['Starter & Standard Terrain','Dynamic Environments & Physical Obstacles','Environmental Hazards & Low Gravity','Wild & Sci-Fi Environments'];
 
-for(const [id,price] of MAP_CATALOG){
-  if(id!=='countryside')
-  MAP_DEFINITIONS[id].multipliers.cost=price/BASE_MAP_TRAITS.cost;
-}
 
-const MAP_STAT_TABLE={
-  "countryside": {
-    "price": 0.0,
-    "gravity": 1.0,
-    "grip": 1.0,
-    "drag": 1.0,
-    "difficultyRate": 1.0,
-    "terrainAmplitude": 1.0,
-    "terrainRoughness": 1.0,
-    "fuelSpacing": 1.0,
-    "checkpointSpacing": 1.0,
-    "obstacleDensity": 1.0,
-    "rampFrequency": 1.0,
-    "hazardSeverity": 0.5
-  },
-  "highway": {
-    "price": 2500.0,
-    "gravity": 1.0,
-    "grip": 1.15,
-    "drag": 0.95,
-    "difficultyRate": 0.8,
-    "terrainAmplitude": 0.65,
-    "terrainRoughness": 0.35,
-    "fuelSpacing": 1.25,
-    "checkpointSpacing": 1.25,
-    "obstacleDensity": 0.4,
-    "rampFrequency": 0.45,
-    "hazardSeverity": 0.4
-  },
-  "desert": {
-    "price": 7500.0,
-    "gravity": 1.0,
-    "grip": 0.8,
-    "drag": 1.0,
-    "difficultyRate": 0.95,
-    "terrainAmplitude": 1.2,
-    "terrainRoughness": 1.1,
-    "fuelSpacing": 1.05,
-    "checkpointSpacing": 1.0,
-    "obstacleDensity": 0.7,
-    "rampFrequency": 1.1,
-    "hazardSeverity": 0.7
-  },
-  "bootcamp": {
-    "price": 15000.0,
-    "gravity": 1.0,
-    "grip": 0.85,
-    "drag": 1.05,
-    "difficultyRate": 1.05,
-    "terrainAmplitude": 1.1,
-    "terrainRoughness": 1.3,
-    "fuelSpacing": 1.0,
-    "checkpointSpacing": 0.95,
-    "obstacleDensity": 1.35,
-    "rampFrequency": 1.2,
-    "hazardSeverity": 1.0
-  },
-  "seasons": {
-    "price": 30000.0,
-    "gravity": 1.0,
-    "grip": 1.0,
-    "drag": 1.0,
-    "difficultyRate": 1.05,
-    "terrainAmplitude": 1.1,
-    "terrainRoughness": 1.1,
-    "fuelSpacing": 1.0,
-    "checkpointSpacing": 1.0,
-    "obstacleDensity": 1.0,
-    "rampFrequency": 1.0,
-    "hazardSeverity": 0.9
-  },
-  "construction": {
-    "price": 50000.0,
-    "gravity": 1.0,
-    "grip": 1.0,
-    "drag": 1.0,
-    "difficultyRate": 1.575,
-    "terrainAmplitude": 1.2,
-    "terrainRoughness": 1.25,
-    "fuelSpacing": 1.0,
-    "checkpointSpacing": 1.0,
-    "obstacleDensity": 1.5,
-    "rampFrequency": 1.35,
-    "hazardSeverity": 1.1
-  },
-  "arctic": {
-    "price": 75000.0,
-    "gravity": 1.0,
-    "grip": 0.55,
-    "drag": 0.95,
-    "difficultyRate": 1.05,
-    "terrainAmplitude": 1.15,
-    "terrainRoughness": 1.05,
-    "fuelSpacing": 1.05,
-    "checkpointSpacing": 1.0,
-    "obstacleDensity": 0.9,
-    "rampFrequency": 1.1,
-    "hazardSeverity": 1.2
-  },
-  "jungle": {
-    "price": 110000.0,
-    "gravity": 1.0,
-    "grip": 0.8,
-    "drag": 1.2,
-    "difficultyRate": 1.1,
-    "terrainAmplitude": 1.25,
-    "terrainRoughness": 1.4,
-    "fuelSpacing": 1.0,
-    "checkpointSpacing": 1.0,
-    "obstacleDensity": 1.45,
-    "rampFrequency": 1.15,
-    "hazardSeverity": 1.2
-  },
-  "cave": {
-    "price": 160000.0,
-    "gravity": 1.0,
-    "grip": 0.95,
-    "drag": 1.0,
-    "difficultyRate": 0.8,
-    "terrainAmplitude": 1.2,
-    "terrainRoughness": 1.2,
-    "fuelSpacing": 1.0,
-    "checkpointSpacing": 1.0,
-    "obstacleDensity": 1.2,
-    "rampFrequency": 0.95,
-    "hazardSeverity": 1.4
-  },
-  "volcano": {
-    "price": 220000.0,
-    "gravity": 1.0,
-    "grip": 0.9,
-    "drag": 1.05,
-    "difficultyRate": 1.15,
-    "terrainAmplitude": 1.45,
-    "terrainRoughness": 1.35,
-    "fuelSpacing": 1.0,
-    "checkpointSpacing": 1.0,
-    "obstacleDensity": 1.35,
-    "rampFrequency": 1.2,
-    "hazardSeverity": 1.7
-  },
-  "rooftops": {
-    "price": 300000.0,
-    "gravity": 1.0,
-    "grip": 1.0,
-    "drag": 0.95,
-    "difficultyRate": 1.65,
-    "terrainAmplitude": 1.25,
-    "terrainRoughness": 0.75,
-    "fuelSpacing": 1.05,
-    "checkpointSpacing": 1.0,
-    "obstacleDensity": 1.2,
-    "rampFrequency": 1.5,
-    "hazardSeverity": 2.0
-  },
-  "wasteland": {
-    "price": 400000.0,
-    "gravity": 1.0,
-    "grip": 0.8,
-    "drag": 1.1,
-    "difficultyRate": 1.15,
-    "terrainAmplitude": 1.2,
-    "terrainRoughness": 1.3,
-    "fuelSpacing": 1.05,
-    "checkpointSpacing": 1.05,
-    "obstacleDensity": 1.4,
-    "rampFrequency": 1.1,
-    "hazardSeverity": 1.7
-  },
-  "mars": {
-    "price": 500000.0,
-    "gravity": 0.4,
-    "grip": 0.8,
-    "drag": 0.8,
-    "difficultyRate": 1.05,
-    "terrainAmplitude": 1.3,
-    "terrainRoughness": 1.3,
-    "fuelSpacing": 1.1,
-    "checkpointSpacing": 1.05,
-    "obstacleDensity": 1.1,
-    "rampFrequency": 1.3,
-    "hazardSeverity": 1.2
-  },
-  "haunted": {
-    "price": 625000.0,
-    "gravity": 0.95,
-    "grip": 0.75,
-    "drag": 1.05,
-    "difficultyRate": 1.1,
-    "terrainAmplitude": 1.15,
-    "terrainRoughness": 1.2,
-    "fuelSpacing": 1.05,
-    "checkpointSpacing": 1.0,
-    "obstacleDensity": 1.3,
-    "rampFrequency": 1.0,
-    "hazardSeverity": 1.5
-  },
-  "moon": {
-    "price": 750000.0,
-    "gravity": 0.17,
-    "grip": 0.65,
-    "drag": 0.6,
-    "difficultyRate": 1.2,
-    "terrainAmplitude": 1.35,
-    "terrainRoughness": 1.35,
-    "fuelSpacing": 1.1,
-    "checkpointSpacing": 1.05,
-    "obstacleDensity": 1.2,
-    "rampFrequency": 1.4,
-    "hazardSeverity": 1.3
-  },
-  "underwater": {
-    "price": 850000.0,
-    "gravity": 0.45,
-    "grip": 0.8,
-    "drag": 1.7,
-    "difficultyRate": 1.1,
-    "terrainAmplitude": 1.2,
-    "terrainRoughness": 1.15,
-    "fuelSpacing": 1.0,
-    "checkpointSpacing": 1.0,
-    "obstacleDensity": 1.2,
-    "rampFrequency": 0.9,
-    "hazardSeverity": 1.5
-  },
-  "neon": {
-    "price": 925000.0,
-    "gravity": 1.0,
-    "grip": 1.2,
-    "drag": 0.9,
-    "difficultyRate": 1.3,
-    "terrainAmplitude": 0.8,
-    "terrainRoughness": 0.55,
-    "fuelSpacing": 1.15,
-    "checkpointSpacing": 1.1,
-    "obstacleDensity": 1.15,
-    "rampFrequency": 1.3,
-    "hazardSeverity": 1.3
-  },
-  "alien": {
-    "price": 1000000.0,
-    "gravity": 0.55,
-    "grip": 0.9,
-    "drag": 0.85,
-    "difficultyRate": 1.3,
-    "terrainAmplitude": 1.4,
-    "terrainRoughness": 1.4,
-    "fuelSpacing": 1.15,
-    "checkpointSpacing": 1.1,
-    "obstacleDensity": 1.5,
-    "rampFrequency": 1.4,
-    "hazardSeverity": 1.8
-  }
-};
 
-const PREVIOUS_CHECKPOINT_SPACING=Object.fromEntries(Object.entries(MAP_DEFINITIONS).map(([id,d])=>[id,(d.multipliers.checkpointSpacing??1)*BASE_MAP_TRAITS.checkpointSpacing]));
+// Map definitions above are the single source of gameplay tuning.
+// Preserve the existing stat-table export as a computed compatibility view.
+const MAP_STAT_KEYS=["gravity","grip","drag","difficultyRate","terrainAmplitude","terrainRoughness","fuelSpacing","checkpointSpacing","obstacleDensity","rampFrequency","hazardSeverity"];
+const MAP_STAT_TABLE=Object.fromEntries(MAP_CATALOG.map(([id,price])=>{
+ const multipliers=MAP_DEFINITIONS[id].multipliers;
+ return [id,{price,...Object.fromEntries(MAP_STAT_KEYS.map(key=>[key,multipliers[key]??1]))}];
+}));
 
-for(const [id,row] of Object.entries(MAP_STAT_TABLE)){
-
-  const d=MAP_DEFINITIONS[id],m=d.multipliers;
-
-  for(const [key,value] of Object.entries(row))
-  if(key!=='price')
-  m[key]=value;
-
-  if(id!=='countryside')
-  m.cost=row.price/BASE_MAP_TRAITS.cost;
- // Grip enters the contact solver once. No hidden old traction boost.
-
-  m.traction=1;
-  m.surfaceDrag=row.drag;
-
-  d.gripLabel=id==='construction'?'Steel 1.50× / dirt 0.75×':row.grip.toFixed(2)+'×'+(id==='seasons'?' · seasonal changes':'');
-
-}
+// Historical checkpoint spacing used when migrating older saved progress.
+// Highway's old 1.4 spacing must not be replaced by the active 1.25 value.
+const PREVIOUS_CHECKPOINT_SPACING=Object.fromEntries(MAP_CATALOG.map(([id])=>[id,id==='highway'?1.4:1]));
 
 function mapTraits(id){
   const d=MAP_DEFINITIONS[id]||MAP_DEFINITIONS.countryside,traits=Object.fromEntries(Object.entries(BASE_MAP_TRAITS).map(([key,value])=>[key,value*(d.multipliers[key]??1)])),flags={...BASE_MAP_FLAGS,...d.flags};
