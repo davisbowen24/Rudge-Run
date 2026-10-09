@@ -1,6 +1,6 @@
 const BASE_MAP_TRAITS=Object.freeze({
   "terrainAmplitude":1,"terrainRoughness":1,"obstacleDensity":1,"rampFrequency":1,"hazardSeverity":1,
-  "gravity": 9.8,
+  "gravity": 9.2,
   "grip": 1,
   "traction": 1,
   "drag": 1,
