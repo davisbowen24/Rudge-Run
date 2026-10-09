@@ -2,11 +2,15 @@ import { $ } from './utils.js';
 import { VEHICLES } from './vehicles.js';
 import { MAPS } from './maps.js';
 import { MULTIPLAYER_CONFIG } from './multiplayerConfig.js';
+import { CONFIG } from './config.js';
+import { createChaseMode } from './chaseMode.js';
 
 export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
   let active=false,finished=false,serverOffset=0,countdownKey='',countdownTimer=null;
   let lastPush=0,lastRefresh=0,pushInFlight=false,refreshInFlight=false;
   const targets=new Map(),displayed=new Map();
+  const chaseMode=createChaseMode();
+
 
   function nowServer(){return Date.now()+serverOffset;}
   function updateClock(room){
@@ -15,6 +19,50 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
   }
   function distanceNow(){
     return state.furthest===undefined?0:Math.max(0,economy.runMeters(state.furthest));
+  }
+
+  // Chase Mode must use LIVE chassis position, not the farthest-distance score.
+  function livePositionNow(){
+    return state.car?Math.max(0,economy.runMeters(state.car.x)):0;
+  }
+  function liveVelocityNow(){
+    const velocity=(state.car?.vx??0)/CONFIG.world.pixelsPerMeter;
+    return Math.max(-200,Math.min(200,Number.isFinite(velocity)?velocity:0));
+  }
+  function clearChase(){
+    chaseMode.setEnabled(false);
+    chaseMode.reset();
+    state.chaseModeSnapshot=null;
+    state.chaseModeProximity=null;
+  }
+  function updateChase(dt,room=multiplayer.room()){
+    const enabled=Boolean(active&&!finished&&room?.status==='racing'&&room.chaseModeEnabled===true);
+    chaseMode.setEnabled(enabled);
+    if(!enabled){
+      state.chaseModeSnapshot=null;
+      state.chaseModeProximity=null;
+      return;
+    }
+    const now=performance.now(),selfId=multiplayer.session()?.memberId;
+    const racers=participantMembers(room).map(member=>{
+      // Convert server sample timestamps into this client's monotonic clock.
+      // The server stamps the sample; a repeated room poll doesn't refresh it.
+      const stamp=Date.parse(member.liveSampledAt||'');
+      const useLocal=member.id===selfId&&!finished&&state.playing;
+      const sampledAtMs=useLocal?now:Number.isFinite(stamp)?now-Math.max(0,nowServer()-stamp):null;
+      return {
+        id:member.id,
+        raceActive:member.raceActive,
+        raceStatus:member.raceStatus,
+        positionMeters:useLocal?livePositionNow():member.livePosition,
+        velocityMetersPerSecond:useLocal?liveVelocityNow():member.liveVelocity,
+        sampledAtMs
+      };
+    });
+    chaseMode.setParticipants(racers);
+    state.chaseModeSnapshot=chaseMode.update(dt,now);
+    // Display-only proximity. Damage must be confirmed by the backend later.
+    state.chaseModeProximity=chaseMode.proximity(livePositionNow());
   }
   function participantMembers(room=multiplayer.room()){
     return (room?.members||[]).filter(member=>member.raceActive);
@@ -39,6 +87,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     clearCountdown();
     active=true;
     finished=false;
+    clearChase();
     state.multiplayerRaceActive=true;
     state.multiplayerRaceNumber=room.raceNumber;
     $('multiplayerRaceEnd').hidden=true;
@@ -72,6 +121,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     finished=true;
     state.multiplayerRaceActive=false;
     state.playing=false;
+    clearChase();
     $('multiplayerProgress').hidden=true;
     $('multiplayerRaceEnd').hidden=true;
     const rows=resultsRows(room),selfId=multiplayer.session()?.memberId;
@@ -102,6 +152,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     state.playing=false;
     targets.clear();
     displayed.clear();
+    clearChase();
     $('multiplayerProgress').hidden=true;
     $('multiplayerRaceEnd').hidden=true;
 
@@ -117,7 +168,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
   }
 
   function syncFromRoom(room=multiplayer.room()){
-    if(!room)return;
+    if(!room){clearChase();return;}
     updateClock(room);
     updateTargets(room);
     if(room.status==='lobby'&&state.screen==='multiplayerResults'){
@@ -162,7 +213,11 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     if(pushInFlight||!active||finished||!state.playing)return;
     pushInFlight=true;
     try{
-      await multiplayer.progress(distanceNow());
+      if(multiplayer.room()?.chaseModeEnabled===true){
+        await multiplayer.progressLive(distanceNow(),livePositionNow(),liveVelocityNow());
+      }else{
+        await multiplayer.progress(distanceNow());
+      }
     }catch(error){
       if(error?.status===409)await multiplayer.refresh();
     }finally{
@@ -179,6 +234,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
 
   function update(dt){
     renderProgress(dt);
+    updateChase(dt);
     if(!active)return;
     const now=performance.now();
     if(!finished&&state.playing&&now-lastPush>=MULTIPLAYER_CONFIG.raceProgressMs){
@@ -193,6 +249,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
   async function finish(reason,status='dead'){
     if(!active||finished)return;
     finished=true;
+    clearChase();
     const distance=distanceNow();
     $('multiplayerRaceEndReason').textContent=reason||'Run complete';
     $('multiplayerRaceEndDistance').textContent=Math.round(distance).toLocaleString('en-US')+' m';
@@ -212,7 +269,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
       $('multiplayerResultsLeave').disabled=true;
       try{await multiplayer.leave();}
       finally{
-        active=false;finished=false;state.multiplayerRaceActive=false;clearCountdown();
+        active=false;finished=false;state.multiplayerRaceActive=false;clearCountdown();clearChase();
         $('multiplayerProgress').hidden=true;$('multiplayerRaceEnd').hidden=true;
         ui.showScreen('start');
         $('multiplayerResultsLeave').disabled=false;
