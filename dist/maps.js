@@ -1,6 +1,6 @@
 const BASE_MAP_TRAITS=Object.freeze({
   "terrainAmplitude":1,"terrainRoughness":1,"obstacleDensity":1,"rampFrequency":1,"hazardSeverity":1,
-  "gravity": 9.2,
+  "gravity": 9.8,
   "grip": 1,
   "traction": 1,
   "drag": 1,
@@ -76,7 +76,7 @@ const MAP_DEFINITIONS={
  countryside:{
   "character": "meadow",
   "name": "Countryside",
-  "description": "Rolling green hills, dependable grip, and a gentle introduction to the open road.",
+  "description": "Rolling green hills, dependable grip, and occasional flexible wooden bridges that sway under the vehicle.",
   "multipliers": {
     "obstacleSpacing": 1,
     "obstacleHeight": 1,
@@ -152,7 +152,7 @@ const MAP_DEFINITIONS={
     "sub": "#71864d"
   },
   "gripLabel": "Medium",
-  "terrainLabel": "Classic rolling hills"
+  "terrainLabel": "Classic rolling hills with swinging wooden bridges"
 },
  seasons:{
   "character": "grove",

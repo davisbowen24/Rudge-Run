@@ -80,7 +80,7 @@ export function createPhysics({ stats, moments, state, terrain, ui, save, input,
   }
 
   function updateBridgeMotion(dt){
-    if(state.activeMap!=='jungle')
+    if(!['jungle','countryside'].includes(state.activeMap))
     return;
 
     for(const f of terrain.biomeNear(state.activeMap,state.car.x)){
@@ -90,7 +90,7 @@ export function createPhysics({ stats, moments, state, terrain, ui, save, input,
 
       const loaded=state.car.grounded&&state.car.x>f.a&&state.car.x<f.b;
 
-      const target=loaded?MAPS.jungle.hazardSeverity*Math.min(32,10+CONFIG.vehicle.mass*.6)*Math.sin((state.car.x-f.a)/(f.b-f.a)*Math.PI):0;
+      const target=loaded?MAPS[state.activeMap].hazardSeverity*Math.min(32,10+CONFIG.vehicle.mass*.6)*Math.sin((state.car.x-f.a)/(f.b-f.a)*Math.PI):0;
 
       b.v+=((target-b.y)*45-b.v*4)*dt;
       b.y=clamp(b.y+b.v*dt,-12,40);

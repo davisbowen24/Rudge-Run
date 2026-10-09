@@ -347,7 +347,7 @@ export function createTerrain({ state, economy, upgrades, physics }) {
 
   function biomeFeature(id,cell){
 
-    if(id==='construction'||!BIOMES.has(id)||cell<1)
+    if(id==='construction'||(!BIOMES.has(id)&&id!=='countryside')||cell<1)
     return null;
 
     const key=id+':'+cell;
@@ -355,6 +355,16 @@ export function createTerrain({ state, economy, upgrades, physics }) {
     return state.biomeCache.get(key);
 
     let x=140+cell*biomeCellSpacing(id)+350*roadHash(cell+81)/MAPS[id].obstacleDensity,g=difficultyAt(x,id).growth,kind,width;
+
+    if(id==='countryside'){
+      // Match Jungle's bridge spacing/width progression while leaving alternating cells as open hills.
+      if(cell%2===0){
+        state.biomeCache.set(key,null);
+        return null;
+      }
+      kind='bridge';
+      width=180+180*g;
+    }
 
     if(id==='desert'){
       kind='sand';

@@ -78,6 +78,8 @@ export function createRender({ moments, effects, state, terrain, economy, physic
   }
 
   function drawLandmarks(left,right){
+    if(state.activeMap==='countryside')
+    drawBiomeFeatures(left,right);
     if(BIOMES.has(state.activeMap)){
       drawBiomeFeatures(left,right);
       return;
