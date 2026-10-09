@@ -415,7 +415,8 @@ export function createTerrain({ state, economy, upgrades, physics }) {
 
     if(id==='haunted'){
       kind='spectral';
-      width=210+180*g;
+      // Short early crossings; quadratic growth preserves demanding late trenches.
+      width=120+270*g*g;
     }
 
     if(id==='neon'){
@@ -435,6 +436,12 @@ export function createTerrain({ state, economy, upgrades, physics }) {
 
     f.ya=baseTerrainHeight(id,f.a);
     f.yb=baseTerrainHeight(id,f.b);
+    if(kind==='spectral'){
+      // Canvas Y grows downward. Every platform and the far bank descend.
+      f.yb=f.ya+60+100*g;
+      f.platformHalfWidth=60-22*g;
+      f.bankBlend=240;
+    }
 
     state.biomeCache.set(key,f);
     if(state.biomeCache.size>600)
@@ -455,7 +462,7 @@ export function createTerrain({ state, economy, upgrades, physics }) {
   function spectralPlatforms(f){
     return [.25,.5,.75].map((u,i)=>{
       const x=f.a+(f.b-f.a)*u;
-      return {a:x-48,b:x+48,y:f.ya+(f.yb-f.ya)*u-25-(i===1?25:0)};
+      return {a:x-f.platformHalfWidth,b:x+f.platformHalfWidth,y:f.ya+(f.yb-f.ya)*u};
     });
   }
 
@@ -463,6 +470,21 @@ export function createTerrain({ state, economy, upgrades, physics }) {
     const amplitude=MAPS[id].terrainAmplitude,roughness=MAPS[id].terrainRoughness,severity=MAPS[id].hazardSeverity;
 
     for(const f of biomeNear(id,x)){
+
+      if(f.kind==='spectral'){
+        // Ease into a level takeoff and out of a level landing with no vertical seams.
+        const blend=f.bankBlend;
+        if(x>=f.a-blend&&x<f.a){
+          const u=(x-f.a+blend)/blend,t=u*u*(3-2*u);
+          return y*(1-t)+f.ya*t;
+        }
+        if(x>f.b&&x<=f.b+blend){
+          const u=(x-f.b)/blend,t=u*u*(3-2*u);
+          return f.yb*(1-t)+y*t;
+        }
+        if(x===f.a)return f.ya;
+        if(x===f.b)return f.yb;
+      }
 
       if(x>=f.a&&x<=f.b){
         const u=(x-f.a)/(f.b-f.a),line=f.ya+(f.yb-f.ya)*u;
@@ -492,7 +514,7 @@ export function createTerrain({ state, economy, upgrades, physics }) {
 
       }
 
-      if((f.kind==='crevasse'||f.kind==='lava'||f.kind==='spectral')&&x>f.a-150&&x<f.a)
+      if((f.kind==='crevasse'||f.kind==='lava')&&x>f.a-150&&x<f.a)
       y-=(x-(f.a-150))/150*(25+25*f.g)*amplitude;
 
       if(id==='wasteland'&&x>f.b+140&&x<f.b+470){
@@ -625,10 +647,18 @@ export function createTerrain({ state, economy, upgrades, physics }) {
     if(MAPS[id].flags.rooftops)
     return roofGround(x);
     let y=biomeTerrain(id,x,baseTerrainHeight(id,x));
+    // Fade random bumps out on the approach and back in beyond the landing.
+    let featureGain=1;
+    if(id==='haunted')for(const f of biomeNear(id,x)){
+      if(f.kind!=='spectral')continue;
+      if(x>=f.a&&x<=f.b)return y;
+      if(x>=f.a-f.bankBlend&&x<f.a){const u=(x-f.a+f.bankBlend)/f.bankBlend;featureGain=1-u*u*(3-2*u);}
+      if(x>f.b&&x<=f.b+f.bankBlend){const u=(x-f.b)/f.bankBlend;featureGain=u*u*(3-2*u);}
+    }
     for(const f of featuresNear(id,x)){
       const u=Math.abs(x-f.x)/f.width;
       if(u<1&&f.height)
-      y-=f.height*Math.pow(Math.cos(u*Math.PI/2),2);
+      y-=featureGain*f.height*Math.pow(Math.cos(u*Math.PI/2),2);
     }
     return y;
   }
