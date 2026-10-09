@@ -33,7 +33,7 @@ const BASE_VEHICLE_TRAITS=Object.freeze({
   "upgradeCost2": 400,
   "upgradeCost3": 1800,
   "upgradeCost4": 7500,
-  "upgradeCost5": 30000
+  "upgradeCost5": 20000
 });
 
 const BASE_VEHICLE=BASE_VEHICLE_TRAITS;
