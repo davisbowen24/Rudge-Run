@@ -9,6 +9,21 @@ function close(actual,expected,label){
   assert.ok(Math.abs(actual-expected)<=tolerance,`${label}: expected ${expected}, got ${actual}`);
 }
 
+test('shared vehicle baseline raises torque 10 percent and power 5 percent for every vehicle',()=>{
+  const previousTorque=135000;
+  const previousPower=850000;
+
+  close(BASE_VEHICLE_TRAITS.motorTorque,previousTorque*1.10,'shared base motor torque');
+  close(BASE_VEHICLE_TRAITS.enginePower,previousPower*1.05,'shared base engine power');
+
+  for(const id of VEHICLE_ORDER){
+    const row=VEHICLE_STAT_TABLE[id];
+    const vehicle=vehicleBase(id);
+    close(vehicle.engineTorque,previousTorque*1.10*row.motorTorque,id+' absolute motor torque');
+    close(vehicle.enginePower,previousPower*1.05*row.enginePower,id+' absolute engine power');
+  }
+});
+
 test('vehicle performance table maps cleanly into runtime physics traits',()=>{
   assert.equal(VEHICLE_ORDER.length,20);
   const jeep=vehicleBase('base');
