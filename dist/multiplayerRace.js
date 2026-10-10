@@ -330,8 +330,10 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     $('multiplayerResultsList').innerHTML=rows.map((member,index)=>{
       const distance=Math.round(Number(member.finalDistance??member.distance??0));
       const result=member.raceStatus==='finished'?'FINISHED':'OUT';
-      const wins=Number(member.roomWins||0);
-      return '<div class="multiplayer-result-row'+(member.id===selfId?' is-you':'')+(index===0?' is-winner':'')+'"><strong>#'+(index+1)+' '+escapeHtml(member.displayName)+'</strong><span>'+escapeHtml(VEHICLES[member.vehicleId]?.name||member.vehicleId)+' · '+distance.toLocaleString('en-US')+' m · '+result+' · 🏆 '+wins+' win'+(wins===1?'':'s')+'</span></div>';
+      const roomPoints=Number(member.roomPoints||0);
+      const earned=Number(member.racePoints||0);
+      const leading=roomPoints>0&&roomPoints===Math.max(0,...rows.map(m=>Number(m.roomPoints||0)));
+      return '<div class="multiplayer-result-row'+(member.id===selfId?' is-you':'')+(leading?' is-winner':'')+'"><strong>#'+(index+1)+' '+escapeHtml(member.displayName)+'</strong><span>'+escapeHtml(VEHICLES[member.vehicleId]?.name||member.vehicleId)+' · '+distance.toLocaleString('en-US')+' m · '+result+' · +'+earned+' pts this race · ★ '+roomPoints+' total pts</span></div>';
     }).join('');
     $('multiplayerResultsRematch').disabled=!me?.isHost;
     $('multiplayerResultsRematch').textContent=me?.isHost?'Rematch':'Waiting for Host';
