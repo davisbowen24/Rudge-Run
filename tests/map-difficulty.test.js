@@ -34,7 +34,7 @@ test('all maps receive a 30 percent slower difficulty increase rate',()=>{
 
   for(const [id,multiplier] of Object.entries(originalMultipliers)){
     const special=id==='construction'||id==='rooftops';
-    const expected=originalBaseRate*multiplier*.70*(special?1.5:1);
+    const expected=originalBaseRate*multiplier*.70*(special?1.5:1)*(id==='volcano'?.8:1);
     close(MAPS[id].difficultyRate,expected,id+' difficulty rate');
   }
 });
@@ -53,4 +53,19 @@ test('Construction Site and Rooftops get a 50 percent boost after the global red
     originalBaseRate*originalMultipliers.rooftops*.70*1.5,
     'Rooftops final rate'
   );
+});
+
+test('Volcano Ridge difficulty ramps up 20 percent more slowly without changing the starting terrain',()=>{
+  const previousRate=originalBaseRate*originalMultipliers.volcano*.70;
+  close(MAP_STAT_TABLE.volcano.difficultyRate,originalMultipliers.volcano*.8,
+    'Volcano Ridge 20% lower difficulty multiplier');
+  close(MAPS.volcano.difficultyRate,previousRate*.8,
+    'Volcano Ridge new effective difficulty rate');
+  // Slower difficulty affects stage timing, ridge and ramp growth, and lava widths.
+  // Unchanged non-rate properties preserve the starting character of the map.
+  close(MAPS.volcano.ridgeGrowth,1.5*115/115,'volcano ridge growth remains unchanged');
+  close(MAPS.volcano.rampGrowth,110*1.2,'volcano ramp growth remains unchanged');
+  close(MAPS.volcano.hazardSeverity,1.7,'volcano lava severity remains unchanged');
+  close(MAPS.countryside.difficultyRate,originalBaseRate*.70,
+    'Countryside stays unchanged');
 });
