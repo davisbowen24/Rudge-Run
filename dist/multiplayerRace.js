@@ -5,12 +5,14 @@ import { MULTIPLAYER_CONFIG } from './multiplayerConfig.js';
 import { CONFIG } from './config.js';
 import { createChaseMode } from './chaseMode.js';
 import { chaseHazardForMap, chaseWarningFor } from './chaseVisuals.js';
+import { chaseWarningVisualForMap } from './chaseWarningIcons.js';
 
 export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
   let active=false,finished=false,serverOffset=0,countdownKey='',countdownTimer=null;
   let lastPush=0,lastRefresh=0,pushInFlight=false,refreshInFlight=false;
   const targets=new Map(),displayed=new Map();
   const chaseMode=createChaseMode();
+  let lastWarningMapId=null;
 
 
   function nowServer(){return Date.now()+serverOffset;}
@@ -33,6 +35,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
   function clearChase(){
     $('chaseHealthHud').hidden=true;
     $('chaseWarning').hidden=true;
+    lastWarningMapId=null;
     chaseMode.setEnabled(false);
     chaseMode.reset();
     state.chaseModeSnapshot=null;
@@ -44,6 +47,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     if(!enabled){
       $('chaseHealthHud').hidden=true;
       $('chaseWarning').hidden=true;
+      lastWarningMapId=null;
       state.chaseModeSnapshot=null;
       state.chaseModeProximity=null;
       return;
@@ -75,15 +79,32 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     // Warning and front rendering share the exact same predicted boundary.
     // This remains informational; the server alone applies health loss.
     state.chaseModeProximity=chaseMode.proximity(livePositionNow());
-    const warning=chaseWarningFor(room.selectedMap||state.activeMap,
+    const mapId=room.selectedMap||state.activeMap;
+    const warning=chaseWarningFor(mapId,
       state.chaseModeProximity,state.chaseModeSnapshot?.predictionStale);
     const box=$('chaseWarning');
     box.hidden=!warning;
     if(warning){
-      if($('chaseWarningText').textContent!==warning.label)
-        $('chaseWarningText').textContent=warning.label;
-      $('chaseWarningDistance').textContent=warning.level==='caught'
-        ? 'ESCAPE TO STOP DAMAGE' : warning.distanceMeters+' m behind';
+      // Change the SVG and theme only when the selected map changes. Distance
+      // updates are plain text, avoiding SVG re-parsing on every animation frame.
+      if(lastWarningMapId!==mapId){
+        const theme=chaseWarningVisualForMap(mapId);
+        $('chaseWarningIcon').innerHTML=theme.svg;
+        box.style.cssText='--chase-accent:'+theme.color
+          +';--chase-bg:'+theme.background
+          +';--chase-border:'+theme.border+';';
+        box.classList.toggle('is-disco',theme.type==='disco');
+        lastWarningMapId=mapId;
+      }
+      const remaining=Math.max(0,Math.ceil(warning.distanceMeters));
+      const text=remaining+' m';
+      if($('chaseWarningDistance').textContent!==text)
+        $('chaseWarningDistance').textContent=text;
+      // The interface shows only the icon and distance. A full, descriptive
+      // name is available to assistive technologies without visual clutter.
+      const name=chaseHazardForMap(mapId).name;
+      box.setAttribute('aria-label',name+': '+remaining+' meters until caught'
+        +(warning.level==='caught'?'. Health draining.':''));
       box.classList.toggle('is-caught',warning.level==='caught');
     }else{
       box.classList.remove('is-caught');
