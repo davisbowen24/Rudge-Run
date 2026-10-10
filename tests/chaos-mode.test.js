@@ -72,6 +72,9 @@ test('combined modifiers derive from base once and preserve original values',()=
   const giant=chaosVehicleFor(base,['giant','ice']);
   assert.equal(giant.size,1.5);
   assert.equal(giant.vehicle.wheels[0].r,28.5);
+  assert.equal(giant.vehicle.wheels[0].y,9*1.5+19*.5,
+    'Giant Cars lower wheel mounts slightly beyond pure uniform scaling');
+  assert.equal(giant.vehicle.wheels[1].y,9*1.5+19*.5);
   assert.equal(giant.vehicle.head.y,-45);
   assert.equal(giant.vehicle.pickupPolygon[0][0],-15);
   assert.equal(giant.vehicle.staticGrip,.6);
@@ -82,6 +85,8 @@ test('combined modifiers derive from base once and preserve original values',()=
   assert.equal(base.wheels[0].r,19);
   const tiny=chaosVehicleFor(base,['tiny','wind']);
   assert.equal(tiny.size,.6);
+  assert.equal(tiny.vehicle.wheels[0].y,9*.6,
+    'Tiny Cars remains proportional without extra giant-specific clearance');
   assert.equal(tiny.vehicle.wheels[0].x,-24);
   assert.equal(tiny.windAcceleration,-280);
   assert.equal(chaosVehicleFor(base,['heavy','spring']).gravityMultiplier,1.75);
