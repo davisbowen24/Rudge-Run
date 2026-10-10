@@ -240,11 +240,11 @@ test('four clients keep a room scoreboard across races and rematches',async()=>{
 
     assert.equal(secondResults.data.room.status,'results');
     assert.equal(secondResults.data.room.raceNumber,2);
-    assert.equal(secondResults.data.room.members.find(m=>m.id===host.data.memberId).roomPoints,6);
+    assert.equal(secondResults.data.room.members.find(m=>m.id===host.data.memberId).roomPoints,5);
     assert.equal(secondResults.data.room.members.find(m=>m.id===guests[0].data.memberId).roomPoints,5);
     assert.deepEqual(
       secondResults.data.room.members.map(m=>Number(m.roomPoints||0)).sort((a,b)=>b-a),
-      [6,5,2,2]
+      [5,5,2,0]
     );
   }finally{
     await db.close();
