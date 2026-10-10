@@ -19,6 +19,7 @@ test('multiplayer rooms support guests, accounts, ownership, ready state, host t
     await db.exec(await readFile(new URL('../supabase/migrations/202610100002_chase_damage.sql',import.meta.url),'utf8'));
     await db.exec(await readFile(new URL('../supabase/migrations/202610100003_chaos_gravity.sql',import.meta.url),'utf8'));
     await db.exec(await readFile(new URL('../supabase/migrations/202610100004_chaos_pairs.sql',import.meta.url),'utf8'));
+    await db.exec(await readFile(new URL('../supabase/migrations/202610100005_losers_assist.sql',import.meta.url),'utf8'));
     const rawA='a'.repeat(64),rawB='b'.repeat(64),hashA=await sha(rawA),hashB=await sha(rawB);
     await db.query('select public.ridge_auth($1,$2,$3,$4)',[true,'Driver_A','Password-testing-123',hashA]);
     await db.query('select public.ridge_auth($1,$2,$3,$4)',[true,'Driver_B','Password-testing-456',hashB]);
@@ -68,6 +69,25 @@ test('multiplayer rooms support guests, accounts, ownership, ready state, host t
     assert.equal(bothOff.data.room.chaosModeEnabled,true);
     const chaosOff=await send('chaos_mode',{enabled:false},guestHeaders);
     assert.equal(chaosOff.data.room.chaosModeEnabled,false);
+    assert.equal(guest.data.room.losersAssistEnabled,false,'Losers Assist defaults OFF');
+    const assistInvalid=await send('losers_assist',{enabled:'true'},guestHeaders);
+    assert.equal(assistInvalid.status,400);
+    const assistDenied=await send('losers_assist',{enabled:true},{'X-Ridge-Multiplayer':a.data.memberToken});
+    assert.equal(assistDenied.status,403);
+    const assistOn=await send('losers_assist',{enabled:true},guestHeaders);
+    assert.equal(assistOn.status,200);
+    assert.equal(assistOn.data.room.losersAssistEnabled,true);
+    assert.equal(assistOn.data.room.chaseModeEnabled,false,'Chase still OFF');
+    assert.equal(assistOn.data.room.chaosModeEnabled,false,'Chaos still OFF');
+    const assistChase=await send('chase_mode',{enabled:true},guestHeaders);
+    const assistChaos=await send('chaos_mode',{enabled:true},guestHeaders);
+    assert.equal(assistChaos.data.room.losersAssistEnabled,true,'all three modes stack');
+    assert.equal(assistChaos.data.room.chaseModeEnabled,true);
+    assert.equal(assistChaos.data.room.chaosModeEnabled,true);
+    await send('chase_mode',{enabled:false},guestHeaders);
+    await send('chaos_mode',{enabled:false},guestHeaders);
+    const assistOff=await send('losers_assist',{enabled:false},guestHeaders);
+    assert.equal(assistOff.data.room.losersAssistEnabled,false);
     const ready=await send('ready',{ready:true},{'X-Ridge-Multiplayer':a.data.memberToken});assert.equal(ready.status,200);assert.equal(ready.data.room.members.find(m=>m.id===a.data.memberId).ready,true);
     const badVehicle=await send('vehicle',{vehicleId:'bike'},{'X-Ridge-Multiplayer':b.data.memberToken});assert.equal(badVehicle.status,403);
     await send('leave',{},guestHeaders);
@@ -87,6 +107,8 @@ test('multiplayer rooms support guests, accounts, ownership, ready state, host t
     // is covered elsewhere and must not require wall-clock waits in this test.
     await db.query("update ridge_private.multiplayer_rooms set status='racing',selected_map='countryside' where id=$1",[accountHost.data.room.id]);
     await db.query("update ridge_private.multiplayer_members set race_active=true,race_status='racing' where room_id=$1",[accountHost.data.room.id]);
+    const assistTooLate=await send('losers_assist',{enabled:true},accountHeaders);
+    assert.equal(assistTooLate.status,409,'Losers Assist locks when race starts');
     const chaosTooLate=await send('chaos_mode',{enabled:true},accountHeaders);
     assert.equal(chaosTooLate.status,409,'Chaos settings lock when race starts');
     const firstLive=await send('progress_live',{distance:300,position:300,velocity:18},accountHeaders);

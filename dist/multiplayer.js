@@ -193,6 +193,11 @@ export function createMultiplayer({auth,cloudSave,state}){
     return applyRoom(await request('chaos_mode',{enabled:Boolean(enabled)}));
   }
 
+  async function setLosersAssist(enabled){
+    if(!session)throw new Error('Join a room first.');
+    return applyRoom(await request('losers_assist',{enabled:Boolean(enabled)}));
+  }
+
   async function startRace(){
     if(!session)throw new Error('Join a room first.');
     return applyRoom(await request('start'));
@@ -244,7 +249,7 @@ export function createMultiplayer({auth,cloudSave,state}){
   }
 
   return {
-    create,join,refresh,resume,updateVehicle,setReady,setChaseMode,setChaosMode,startRace,vote,progress,progressLive,finish,rematch,leave,start,startPolling,stopPolling,
+    create,join,refresh,resume,updateVehicle,setReady,setChaseMode,setChaosMode,setLosersAssist,startRace,vote,progress,progressLive,finish,rematch,leave,start,startPolling,stopPolling,
     room:()=>room,
     member,
     session:()=>session,

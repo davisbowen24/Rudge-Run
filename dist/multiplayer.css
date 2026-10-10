@@ -182,3 +182,13 @@ body[data-screen="multiplayerResults"] .menu-status{display:none}
 .chaos-gravity-hud.is-warning{border-color:#ffd48a;color:#fff3d8;background:#3b2c1fec}
 .chaos-gravity-hud strong{min-width:0}
 @media(max-width:560px){.chaos-gravity-hud{width:max-content;max-width:86vw;top:255px}}
+
+/* Multiplayer-only catch-up indicator. Separate from Chase and Chaos warnings. */
+.losers-assist-hud{position:fixed;z-index:22;top:200px;left:15px;display:flex;align-items:center;gap:9px;
+  max-width:min(320px,46vw);padding:8px 11px;border-radius:10px;border:1px solid #9fe8b0a6;
+  background:#142c29ed;color:#d8ffdf;pointer-events:none;box-shadow:0 3px 12px #0008;font-size:11px}
+.losers-assist-hud strong{font-weight:900}
+.losers-assist-hud span{color:#a8f5ad;font-weight:900;font-variant-numeric:tabular-nums;white-space:nowrap}
+.losers-assist-hud[hidden]{display:none!important}
+@media(max-width:560px){.losers-assist-hud{top:205px;left:7px;max-width:47vw;display:block;padding:6px 8px;font-size:9px}
+  .losers-assist-hud span{display:block;margin-top:3px}}

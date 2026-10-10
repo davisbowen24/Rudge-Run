@@ -276,3 +276,43 @@ test('Chaos checkbox rolls back if the server rejects a change',async()=>{
     assert.equal(dom.get('multiplayerError').textContent,'Unable to save Chaos Mode');
   }finally{globalThis.document=previous;}
 });
+
+test("Loser's Assist is an independent, host-only lobby toggle",async()=>{
+  const previous=globalThis.document;
+  const dom=fakeDom();globalThis.document=dom.document;
+  try{
+    const host={id:'host',displayName:'Host',vehicleId:'base',connected:true,isHost:true,ready:false};
+    const room={code:'ABCDE',status:'lobby',members:[host],chaseModeEnabled:true,chaosModeEnabled:true,losersAssistEnabled:false};
+    const calls=[];
+    const multiplayer={room:()=>room,member:()=>host,session:()=>({memberId:'host'}),status:()=> 'Connected',subscribe(){},
+      async setLosersAssist(enabled){calls.push(enabled);room.losersAssistEnabled=enabled;}};
+    const lobby=createLobbyUi({multiplayer,cloudSave:{user:()=>null},state:{progression:{selected:'base',owned:['base']}},ui:{showScreen(){}},race:{syncFromRoom(){}}});
+    lobby.bindEvents();lobby.renderLobby();
+    const option=dom.get('lobbyLosersAssist');
+    assert.equal(option.disabled,false);
+    option.checked=true;await option.dispatch('change');
+    assert.deepEqual(calls,[true]);assert.equal(option.checked,true);
+    assert.equal(room.chaseModeEnabled,true);assert.equal(room.chaosModeEnabled,true);
+    option.checked=false;await option.dispatch('change');
+    assert.deepEqual(calls,[true,false]);assert.equal(option.checked,false);
+    host.isHost=false;lobby.renderLobby();assert.equal(option.disabled,true);
+    host.isHost=true;room.status='racing';lobby.renderLobby();assert.equal(option.disabled,true);
+  }finally{globalThis.document=previous;}
+});
+
+test("Loser's Assist toggle restores server setting when request fails",async()=>{
+  const previous=globalThis.document;
+  const dom=fakeDom();globalThis.document=dom.document;
+  try{
+    const host={id:'host',displayName:'Host',vehicleId:'base',connected:true,isHost:true,ready:false};
+    const room={code:'ABCDE',status:'lobby',members:[host],losersAssistEnabled:false};
+    const multiplayer={room:()=>room,member:()=>host,session:()=>({memberId:'host'}),status:()=> 'Connected',subscribe(){},
+      async setLosersAssist(enabled){assert.equal(enabled,true);throw new Error('Unable to enable assist');}};
+    const lobby=createLobbyUi({multiplayer,cloudSave:{user:()=>null},state:{progression:{selected:'base',owned:['base']}},ui:{showScreen(){}},race:{syncFromRoom(){}}});
+    lobby.bindEvents();lobby.renderLobby();
+    const option=dom.get('lobbyLosersAssist');
+    option.checked=true;await option.dispatch('change');
+    assert.equal(option.checked,false);
+    assert.equal(dom.get('multiplayerError').textContent,'Unable to enable assist');
+  }finally{globalThis.document=previous;}
+});

@@ -116,6 +116,10 @@ export function createLobbyUi({multiplayer,cloudSave,state,ui,race}){
     chaosToggle.checked=room.chaosModeEnabled===true;
     chaosToggle.disabled=busy||!inLobby||!me?.isHost;
     $('lobbyChaosModeStatus').textContent=chaosToggle.checked?'ON · 1 effect, 25% chance of 2 · 6s on / 6s off':'OFF · Normal gravity';
+    const assistToggle=$('lobbyLosersAssist');
+    assistToggle.checked=room.losersAssistEnabled===true;
+    assistToggle.disabled=busy||!inLobby||!me?.isHost;
+    $('lobbyLosersAssistStatus').textContent=assistToggle.checked?'ON · Bottom half catch-up power':'OFF · Equal vehicle power';
     $('lobbyLeave').disabled=busy;
     $('lobbyCopy').disabled=busy;
 
@@ -244,6 +248,11 @@ export function createLobbyUi({multiplayer,cloudSave,state,ui,race}){
       // Capture before action() redraws the checkbox using the old server value.
       const enabled=e.currentTarget.checked;
       return action(()=>multiplayer.setChaosMode(enabled));
+    });
+    $('lobbyLosersAssist').addEventListener('change',e=>{
+      // Preserve the user-selected value through action()'s server-state redraw.
+      const enabled=e.currentTarget.checked;
+      return action(()=>multiplayer.setLosersAssist(enabled));
     });
     $('lobbyReady').addEventListener('click',()=>action(()=>multiplayer.setReady(!multiplayer.member()?.ready)));
     $('lobbyStart').addEventListener('click',()=>action(()=>multiplayer.startRace()));
