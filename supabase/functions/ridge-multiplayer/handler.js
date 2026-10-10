@@ -58,7 +58,7 @@ export function createHandler({rpc,origins,pepper}){
         return reply({...result,memberToken});
       }
 
-      if(!['state','vehicle','ready','start','vote','progress','progress_live','finish','rematch','leave'].includes(action))return reply({error:'Unknown action'},400);
+      if(!['state','vehicle','ready','chase_mode','start','vote','progress','progress_live','finish','rematch','leave'].includes(action))return reply({error:'Unknown action'},400);
       const memberToken=req.headers.get('x-ridge-multiplayer')||'';
       if(!/^[a-f0-9]{64}$/.test(memberToken))return reply({error:'Join a room first'},401);
       const tokenHash=await digest(memberToken);
@@ -78,6 +78,11 @@ export function createHandler({rpc,origins,pepper}){
       if(action==='ready'){
         if(typeof body.ready!=='boolean')return reply({error:'Invalid ready state'},400);
         result=await rpc('ridge_mp_ready',{p_member_token_hash:tokenHash,p_ready:body.ready});
+      }
+
+      if(action==='chase_mode'){
+        if(typeof body.enabled!=='boolean')return reply({error:'Invalid Chase Mode setting'},400);
+        result=await rpc('ridge_mp_chase_mode',{p_member_token_hash:tokenHash,p_enabled:body.enabled});
       }
 
       if(action==='start')result=await rpc('ridge_mp_start',{p_member_token_hash:tokenHash});
