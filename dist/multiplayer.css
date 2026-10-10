@@ -111,7 +111,7 @@ body[data-screen="multiplayerResults"] .menu-status{display:none}
 @media(max-width:560px){.chase-health-hud{top:150px;left:8px;width:125px;padding:7px}.chase-health-head{font-size:10px}}
 
 /* Shared, noninteractive Chase warnings; per-map copy comes from chaseVisuals.js. */
-.chase-warning{position:fixed;z-index:24;top:88px;left:50%;transform:translateX(-50%);
+.chase-warning{position:fixed;z-index:24;top:154px;left:50%;transform:translateX(-50%);
   width:max-content;max-width:min(410px,72vw);padding:9px 17px;text-align:center;
   color:#ffefc4;background:rgba(77,47,20,.93);border:2px solid #ffc16a;
   border-radius:12px;box-shadow:0 8px 28px #070c11aa;pointer-events:none}
@@ -123,7 +123,7 @@ body[data-screen="multiplayerResults"] .menu-status{display:none}
   animation:chase-warning-pulse .65s ease-in-out infinite alternate}
 @keyframes chase-warning-pulse{from{box-shadow:0 0 12px #ff766e40}to{box-shadow:0 0 28px #ff766eaa}}
 @media(prefers-reduced-motion:reduce){.chase-warning.is-caught{animation:none}}
-@media(max-width:560px){.chase-warning{top:102px;max-width:70vw;padding:6px 10px}
+@media(max-width:560px){.chase-warning{top:195px;max-width:70vw;padding:6px 10px}
   .chase-warning strong{font-size:11px}.chase-warning small{font-size:10px}}
 /* The hazard uses the same race distance scale as every racer. */
 .race-marker.chase-hazard-marker{width:5px;height:22px;border-radius:3px;
