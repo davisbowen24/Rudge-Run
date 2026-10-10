@@ -106,7 +106,14 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
       const factor=newSize/appliedChaosSize;
       state.car.wheelLengths=state.car.wheelLengths.map(length=>length*factor);
       // Avoid instantly burying enlarged tires and chassis in the ground.
-      if(factor>1)state.car.y-=(factor-1)*Math.max(20,baseChaosVehicle.wheelRadius+baseChaosVehicle.suspensionTravel);
+      if(factor>1){
+        // Lift the chassis enough for both the larger tires and the added
+        // suspension clearance, avoiding an instant collision with the road.
+        const extraClearance=Math.max(0,newSize-1)*baseChaosVehicle.wheelRadius
+          -Math.max(0,appliedChaosSize-1)*baseChaosVehicle.wheelRadius;
+        state.car.y-=(factor-1)*Math.max(20,baseChaosVehicle.wheelRadius+baseChaosVehicle.suspensionTravel)
+          +Math.max(0,extraClearance);
+      }
     }
     Object.assign(CONFIG.vehicle,tuned.vehicle);
     // Chaos installs stats derived from the original car, not from an
