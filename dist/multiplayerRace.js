@@ -9,6 +9,7 @@ import { losersAssistTarget, smoothLosersAssist } from './losersAssist.js';
 import { stuntBonusForLanding, stuntAndLoserMultipliers, STUNT_ASSIST_SECONDS } from './stuntAssist.js';
 import { chaseHazardForMap, chaseWarningFor } from './chaseVisuals.js';
 import { chaseWarningVisualForMap } from './chaseWarningIcons.js';
+import { spectatorStandings } from './spectator.js';
 
 export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
   let active=false,finished=false,serverOffset=0,countdownKey='',countdownTimer=null;
@@ -253,6 +254,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     state.multiplayerRaceActive=true;
     state.multiplayerRaceNumber=room.raceNumber;
     $('multiplayerRaceEnd').hidden=true;
+    $('multiplayerSpectator').hidden=true;
     $('multiplayerProgress').hidden=false;
     main.reset({mapId:room.selectedMap,vehicleId:me.vehicleId,multiplayer:true});
     baseChaosVehicle=structuredClone(CONFIG.vehicle);
@@ -283,6 +285,35 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     });
   }
 
+  function renderSpectator(room=multiplayer.room()){
+    const panel=$('multiplayerSpectator');
+    if(!finished||room?.status!=='racing'){
+      panel.hidden=true;
+      return;
+    }
+    // Always use the same authoritative furthest-distance score as results.
+    // The display updates on each incoming room snapshot; no new RPC needed.
+    const {leader,activeCount,racers}=spectatorStandings(room);
+    panel.hidden=false;
+    $('spectatorLeader').textContent=leader?.name||'Waiting for racers';
+    $('spectatorLeaderDistance').textContent=
+      Math.round(leader?.distance||0).toLocaleString('en-US')+' m';
+    $('spectatorStatus').textContent=activeCount
+      ?activeCount+' driver'+(activeCount===1?'':'s')+' still racing · live distances'
+      :'All drivers are out · waiting for final results';
+    const selfId=multiplayer.session()?.memberId;
+    $('spectatorStandings').innerHTML=racers.map(racer=>{
+      const label=racer.racing?'RACING':'OUT';
+      const connection=!racer.connected?' · DISCONNECTED':'';
+      const you=racer.id===selfId?' · YOU':'';
+      return '<div class="spectator-row'+(racer.rank===1?' is-leading':'')
+        +(racer.id===selfId?' is-you':'')+'">'
+        +'<span class="spectator-name">#'+racer.rank+' '+escapeHtml(racer.name)+'</span>'
+        +'<span class="spectator-distance">'+Math.round(racer.distance).toLocaleString('en-US')+' m</span>'
+        +'<small>'+label+you+connection+'</small></div>';
+    }).join('');
+  }
+
   function renderResults(room){
     clearCountdown();
     active=false;
@@ -292,6 +323,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     clearChase();
     $('multiplayerProgress').hidden=true;
     $('multiplayerRaceEnd').hidden=true;
+    $('multiplayerSpectator').hidden=true;
     const rows=resultsRows(room),selfId=multiplayer.session()?.memberId;
     const me=room.members?.find(member=>member.id===selfId);
     $('multiplayerResultsMap').textContent=(MAPS[room.selectedMap]?.name||room.selectedMap||'Unknown map')+' · Race '+room.raceNumber+' · Room '+room.code;
@@ -323,6 +355,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     clearChase();
     $('multiplayerProgress').hidden=true;
     $('multiplayerRaceEnd').hidden=true;
+    $('multiplayerSpectator').hidden=true;
 
     const transition=$('multiplayerRematchTransition');
     $('multiplayerRematchTransitionText').textContent=message;
@@ -336,7 +369,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
   }
 
   function syncFromRoom(room=multiplayer.room()){
-    if(!room){clearChase();return;}
+    if(!room){clearChase();$('multiplayerSpectator').hidden=true;return;}
     updateClock(room);
     updateChaos(room);
     updateTargets(room);
@@ -361,12 +394,13 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
         $('multiplayerRaceEnd').hidden=false;
         $('multiplayerProgress').hidden=true;
       }
+      if(finished)renderSpectator(room);
     }
     if(room.status==='results')renderResults(room);
   }
 
   function renderProgress(dt){
-    if(!active)return;
+    if(!active||finished)return;
     const room=multiplayer.room();
     if(!room)return;
     const members=participantMembers(room);
@@ -453,6 +487,8 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     $('multiplayerRaceEndReason').textContent=reason||'Run complete';
     $('multiplayerRaceEndDistance').textContent=Math.round(distance).toLocaleString('en-US')+' m';
     $('multiplayerRaceEnd').hidden=false;
+    $('multiplayerProgress').hidden=true;
+    renderSpectator(multiplayer.room());
     try{
       await multiplayer.finish(distance,status);
     }catch{
@@ -470,6 +506,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
       finally{
         active=false;finished=false;state.multiplayerRaceActive=false;clearCountdown();clearChase();
         $('multiplayerProgress').hidden=true;$('multiplayerRaceEnd').hidden=true;
+        $('multiplayerSpectator').hidden=true;
         ui.showScreen('start');
         $('multiplayerResultsLeave').disabled=false;
       }
