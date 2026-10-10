@@ -5,16 +5,19 @@ import {
   chaseWarningFor,drawChaseHazard
 } from '../dist/chaseVisuals.js';
 
-test('six configured maps have distinct, reusable Chase hazard presets',()=>{
+test('nine configured maps have distinct, reusable Chase hazard presets',()=>{
   assert.deepEqual(Object.keys(CHASE_HAZARD_THEMES).sort(),
-    ['arctic','desert','haunted','jungle','underwater','volcano']);
+    ['arctic','countryside','desert','haunted','jungle','mars','rooftops','underwater','volcano']);
   assert.equal(chaseHazardForMap('arctic').type,'avalanche');
   assert.equal(chaseHazardForMap('desert').type,'sandstorm');
   assert.equal(chaseHazardForMap('jungle').type,'flood');
   assert.equal(chaseHazardForMap('volcano').type,'lava');
   assert.equal(chaseHazardForMap('haunted').type,'ghosts');
   assert.equal(chaseHazardForMap('underwater').type,'piranhas');
-  assert.equal(chaseHazardForMap('countryside'),DEFAULT_CHASE_HAZARD);
+  assert.equal(chaseHazardForMap('countryside').type,'cows');
+  assert.equal(chaseHazardForMap('mars').type,'lava');
+  assert.equal(chaseHazardForMap('rooftops').type,'grandmas');
+  assert.equal(chaseHazardForMap('highway'),DEFAULT_CHASE_HAZARD);
   for(const id of Object.keys(CHASE_HAZARD_THEMES)){
     assert.notEqual(chaseHazardForMap(id).approaching,DEFAULT_CHASE_HAZARD.approaching);
     assert.ok(chaseHazardForMap(id).caught.length>10);
@@ -31,9 +34,15 @@ test('warnings appear within 200 meters, intensify when caught and clear when sa
   assert.match(chaseWarningFor('volcano',{distanceMeters:199}).label,/Lava surge/);
   assert.match(chaseWarningFor('haunted',{distanceMeters:199}).label,/Ghosts/);
   assert.match(chaseWarningFor('underwater',{distanceMeters:199}).label,/Piranhas/);
+  assert.match(chaseWarningFor('countryside',{distanceMeters:199}).label,/cows/i);
+  assert.match(chaseWarningFor('mars',{distanceMeters:199}).label,/Martian lava/);
+  assert.match(chaseWarningFor('rooftops',{distanceMeters:199}).label,/grandmothers/i);
   assert.match(chaseWarningFor('volcano',{distanceMeters:-1}).label,/LAVA/);
   assert.match(chaseWarningFor('haunted',{distanceMeters:-1}).label,/GHOSTS/);
   assert.match(chaseWarningFor('underwater',{distanceMeters:-1}).label,/PIRANHAS/);
+  assert.match(chaseWarningFor('countryside',{distanceMeters:-1}).label,/HERD/);
+  assert.match(chaseWarningFor('mars',{distanceMeters:-1}).label,/MARTIAN LAVA/);
+  assert.match(chaseWarningFor('rooftops',{distanceMeters:-1}).label,/GRANDMAS/);
   assert.match(chaseWarningFor('jungle',{distanceMeters:-25}).label,/FLOOD/);
   assert.equal(chaseWarningFor('arctic',{distanceMeters:50},true),null);
   assert.equal(chaseWarningFor('arctic',null),null);
@@ -46,16 +55,18 @@ function context(){
     beginPath(){calls.push('begin')},moveTo(x,y){calls.push(['moveTo',x,y])},
     lineTo(x,y){calls.push(['lineTo',x,y])},closePath(){},
     fill(){calls.push('fill')},stroke(){calls.push('stroke')},
-    arc(){calls.push('arc')},ellipse(){calls.push('ellipse')}};
+    arc(){calls.push('arc')},ellipse(){calls.push('ellipse')},
+    translate(x,y){calls.push(['translate',x,y])},scale(){calls.push('scale')},
+    quadraticCurveTo(){calls.push('quad')}};
   return ctx;
 }
-test('all six hazards render safely with the same camera and live boundary',()=>{
+test('all nine hazards render safely with the same camera and live boundary',()=>{
   for(const mapId of Object.keys(CHASE_HAZARD_THEMES)){
     const ctx=context();
     drawChaseHazard(ctx,{
       mapId,snapshot:{enabled:true,positionMeters:100},
       pixelsPerMeter:10,viewLeft:500,viewRight:1700,
-      viewTop:-100,viewBottom:700,timeMs:1500
+      viewTop:-100,viewBottom:700,timeMs:1500,groundAt:()=>350
     });
     assert.ok(ctx.calls.includes('save'),mapId);
     assert.ok(ctx.calls.includes('restore'),mapId);
@@ -84,6 +95,36 @@ test('batch-two hazards draw distinct molten glob, ghost and fish silhouettes',(
   assert.ok(counts.haunted.ellipses>20,'ghosts have visible eyes and mouths');
   assert.ok(counts.underwater.ellipses>20,'piranhas have fish bodies and bellies');
   assert.ok(counts.underwater.arcs>20,'piranhas have visible eyes');
+});
+
+test('batch-three hazards reuse lava rendering and animate grounded animal/people sprites',()=>{
+  const volcano=context(),mars=context();
+  const options={
+    snapshot:{enabled:true,positionMeters:100},
+    viewLeft:500,viewRight:1700,viewTop:-100,viewBottom:700,
+    timeMs:1500,pixelsPerMeter:10,groundAt:()=>350
+  };
+  drawChaseHazard(volcano,{...options,mapId:'volcano'});
+  drawChaseHazard(mars,{...options,mapId:'mars'});
+  assert.equal(volcano.calls.filter(c=>c==='arc').length,
+    mars.calls.filter(c=>c==='arc').length,'Mars reuses the lava-glob drawing path');
+
+  for(const id of ['countryside','rooftops']){
+    const ctx=context(),samples=[];
+    drawChaseHazard(ctx,{...options,mapId:id,groundAt:x=>{
+      samples.push(x);return 350;
+    }});
+    assert.ok(samples.length>10,id+' queries the local surface');
+    assert.ok(ctx.calls.filter(c=>Array.isArray(c)&&c[0]==='translate').length>10,
+      id+' renders a herd/crowd of grounded characters');
+    assert.ok(ctx.calls.filter(c=>c==='scale').length>10,id+' scales the character sprites');
+    assert.ok(ctx.calls.filter(c=>c==='arc').length>30,id+' draws animated faces');
+    assert.ok(ctx.calls.includes('restore'),id+' restores canvas state');
+  }
+  const gap=context();
+  drawChaseHazard(gap,{...options,mapId:'rooftops',groundAt:()=>3000});
+  assert.equal(gap.calls.filter(c=>c==='scale').length,0,
+    'grandmothers never hover over rooftop gaps');
 });
 
 test('hazards never draw outside Chase Mode or when fully off camera',()=>{
