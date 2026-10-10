@@ -95,11 +95,23 @@ body[data-screen="multiplayerResults"] .menu-status{display:none}
 }
 
 /* Room-wide, host-only Chase Mode control. */
-.lobby-chase-option{grid-column:1/-1;display:flex!important;align-items:center;gap:12px;padding:12px;border:1px solid #ffffff35;border-radius:10px;background:#17313b;cursor:pointer}
-.lobby-chase-option input{width:22px;height:22px;margin:0;flex:none;accent-color:var(--text-reward)}
-.lobby-chase-option span,.lobby-chase-option small{display:block}
-.lobby-chase-option small{font-size:12px;margin-top:4px;color:var(--text-secondary)}
-.lobby-chase-option:has(input:disabled){cursor:default;opacity:.8}
+/* Two compact mode cards per row, in the same lobby controls position. */
+.lobby-controls .lobby-mode-grid{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;min-width:0}
+.lobby-controls .lobby-mode-grid .lobby-chase-option{grid-column:auto;display:flex!important;align-items:center;gap:8px;min-width:0;min-height:64px;margin:0;padding:8px 9px;box-sizing:border-box;border:1px solid #ffffff35;border-radius:10px;background:#17313b;cursor:pointer}
+.lobby-mode-grid .lobby-chase-option input{width:17px;height:17px;flex:0 0 17px;margin:0;accent-color:var(--text-reward)}
+.lobby-mode-grid .lobby-mode-details{display:block;flex:1 1 0;min-width:0}
+.lobby-mode-grid .lobby-mode-title{display:flex;align-items:flex-start;justify-content:space-between;gap:4px;min-width:0}
+.lobby-mode-grid .lobby-mode-title strong{font-size:12px;line-height:1.15;color:var(--text-primary);overflow-wrap:anywhere}
+.lobby-mode-grid .lobby-mode-title .lobby-mode-state{display:block;flex:none;font-size:9px;line-height:1.1;font-weight:900;color:var(--text-reward);margin:1px 0 0}
+.lobby-mode-grid .lobby-mode-description{display:block;font-size:10px;line-height:1.25;margin-top:4px;color:var(--text-secondary);font-weight:500}
+.lobby-mode-grid .lobby-chase-option:has(input:checked){border-color:var(--text-reward);background:#223b40}
+.lobby-mode-grid .lobby-chase-option:has(input:disabled){cursor:default;opacity:.8}
+@media(max-width:390px){
+  .lobby-controls .lobby-mode-grid{gap:6px}
+  .lobby-controls .lobby-mode-grid .lobby-chase-option{gap:6px;padding:7px 6px;min-height:68px}
+  .lobby-mode-grid .lobby-mode-title strong{font-size:11px}
+  .lobby-mode-grid .lobby-mode-description{font-size:9px}
+}
 
 /* Chase Mode health is shown only in an enabled multiplayer race. */
 .chase-health-hud{position:fixed;z-index:22;top:108px;left:16px;width:min(200px,32vw);padding:9px 11px;background:#0b1f29e8;border:1px solid #ffffff45;border-radius:10px;pointer-events:none;color:var(--text-primary)}
