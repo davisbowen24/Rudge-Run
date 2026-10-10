@@ -1,14 +1,14 @@
 /** Pure Loser's Assist rules. Operates on room progress snapshots; it never
  * depends on frame-by-frame opponents' positions or modifies server race state.
  */
-export const LOSERS_ASSIST_MAX_MULTIPLIER=4;
+export const LOSERS_ASSIST_MAX_MULTIPLIER=2;
 export const LOSERS_ASSIST_DISTANCE_SCALE=400;
 const finiteDistance=value=>Number.isFinite(Number(value))?Math.max(0,Number(value)):0;
 
 /**
  * Only the bottom ceil(N / 2) of currently competing drivers may receive help.
  * Single-driver races and tied leaders never receive a boost.
- * A 400 m gap yields 2.5x engine power and torque, with an asymptotic 4x cap.
+ * A 400 m gap yields 1.5x engine power and torque, with an asymptotic 2x cap.
  */
 export function losersAssistTarget(room,selfId,selfDistance){
   const off={eligible:false,rank:0,eligibleCount:0,racerCount:0,gapMeters:0,multiplier:1};
@@ -29,7 +29,7 @@ export function losersAssistTarget(room,selfId,selfDistance){
 
 /** Exponential easing prevents abrupt engine changes as rank/lead changes. */
 export function smoothLosersAssist(current,target,dt){
-  const from=Number.isFinite(current)?Math.max(1,current):1;
+  const from=Number.isFinite(current)?Math.min(LOSERS_ASSIST_MAX_MULTIPLIER,Math.max(1,current)):1;
   const to=Number.isFinite(target)?Math.min(LOSERS_ASSIST_MAX_MULTIPLIER,Math.max(1,target)):1;
   const seconds=Number.isFinite(dt)?Math.max(0,Math.min(0.25,dt)):0;
   return from+(to-from)*(1-Math.exp(-seconds*2));

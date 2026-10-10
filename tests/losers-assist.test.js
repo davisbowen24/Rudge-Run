@@ -28,10 +28,13 @@ test('2-player race helps second place; 3-player race helps second and third',()
   assert.ok(losersAssistTarget(three,'2',800).multiplier>1);
   assert.ok(losersAssistTarget(three,'3',300).multiplier>losersAssistTarget(three,'2',800).multiplier);
 });
-test('power grows with leader gap, is capped, and never rewards a tied leader',()=>{
+test('power grows with leader gap, approaches a 2x cap, and never rewards a tied leader',()=>{
   const r=room([1000,950,500,50]);
   assert.equal(losersAssistTarget(r,'1',1000).multiplier,1);
   assert.equal(losersAssistTarget(r,'2',950).multiplier,1);
+  assert.equal(LOSERS_ASSIST_MAX_MULTIPLIER,2);
+  assert.equal(losersAssistTarget(room([500,0]),'2',0).multiplier,1+500/900);
+  assert.equal(losersAssistTarget(room([400,0]),'2',0).multiplier,1.5);
   assert.ok(losersAssistTarget(r,'4',50).multiplier>losersAssistTarget(r,'3',500).multiplier);
   assert.ok(losersAssistTarget(room([100000000,0]),'2',0).multiplier<=LOSERS_ASSIST_MAX_MULTIPLIER);
   assert.equal(losersAssistTarget(room([400,400]),'2',400).multiplier,1);
@@ -50,10 +53,10 @@ test('assist uses live local progress and removes bonuses from eliminated/solo p
 });
 test('boost transitions smoothly without stat compounding or spikes',()=>{
   let current=1;
-  for(let i=0;i<50;i++)current=smoothLosersAssist(current,4,0.016);
-  assert.ok(current>1&&current<4);
+  for(let i=0;i<50;i++)current=smoothLosersAssist(current,2,0.016);
+  assert.ok(current>1&&current<2);
   for(let i=0;i<500;i++)current=smoothLosersAssist(current,1,0.016);
   assert.ok(Math.abs(current-1)<0.001);
-  assert.equal(smoothLosersAssist(1,4,0),1);
-  assert.ok(smoothLosersAssist(3,100,0.016)<=4);
+  assert.equal(smoothLosersAssist(1,2,0),1);
+  assert.ok(smoothLosersAssist(3,100,0.016)<=2);
 });
