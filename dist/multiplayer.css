@@ -207,3 +207,26 @@ body[data-screen="multiplayerResults"] .menu-status{display:none}
 /* Extra stunt detail wraps on narrow displays rather than clipping. */
 .stunt-assist-hud{flex-wrap:wrap;justify-content:center;text-align:center}
 .stunt-assist-hud span{white-space:normal}
+
+/* After elimination, keep the distance standings visible and updating without
+   swapping to another driver's car or allowing an eliminated player to drive. */
+.multiplayer-race-end .card{width:min(540px,94vw);max-height:90dvh;overflow:auto;box-sizing:border-box}
+.multiplayer-spectator{margin-top:18px;padding-top:15px;border-top:1px solid #ffffff30;text-align:left}
+.multiplayer-spectator[hidden]{display:none!important}
+.spectator-head{display:flex;gap:8px;align-items:baseline;justify-content:space-between;flex-wrap:wrap}
+.spectator-head span{font-size:11px;letter-spacing:.13em;color:var(--text-reward);font-weight:900}
+.spectator-head strong{font-size:18px;color:var(--text-primary);overflow-wrap:anywhere}
+.spectator-leading-distance{font-size:30px;font-weight:950;color:var(--text-reward);margin:5px 0;font-variant-numeric:tabular-nums}
+.spectator-status{margin:0 0 10px;font-size:12px;color:var(--text-secondary)}
+.spectator-standings{display:grid;gap:6px;max-height:38dvh;overflow:auto}
+.spectator-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 12px;padding:8px 10px;background:#15313dee;border-radius:8px;border:1px solid #ffffff20}
+.spectator-row.is-leading{border-color:#e5bb67a6}
+.spectator-row.is-you{background:#284052}
+.spectator-name{font-size:12px;font-weight:800;overflow-wrap:anywhere}
+.spectator-distance{font-size:13px;font-weight:900;white-space:nowrap;font-variant-numeric:tabular-nums}
+.spectator-row small{grid-column:1/-1;color:var(--text-secondary);font-size:10px}
+.multiplayer-spectator>small{display:block;color:var(--text-muted);font-size:10px;margin-top:10px;line-height:1.4}
+@media(max-width:560px){
+  .spectator-standings{max-height:32dvh}
+  .spectator-leading-distance{font-size:26px}
+}
