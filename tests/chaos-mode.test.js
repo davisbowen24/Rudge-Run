@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {CHAOS_CYCLE_MS,CHAOS_EFFECT_MS,CHAOS_WARNING_MS,CHAOS_MODIFIERS,chaosPair,chaosStateAt,chaosVehicleFor} from '../dist/chaosMode.js';
+import {CHAOS_CYCLE_MS,CHAOS_EFFECT_MS,CHAOS_WARNING_MS,CHAOS_MODIFIERS,CHAOS_WIND_ACCELERATION,chaosWindGust,chaosPair,chaosStateAt,chaosVehicleFor} from '../dist/chaosMode.js';
 const start='2026-10-10T12:00:00.000Z';
 const room={status:'racing',chaosModeEnabled:true,chaseModeEnabled:true,chaosSeed:123456789,raceNumber:2,raceStartAt:start};
 const at=t=>chaosStateAt(room,Date.parse(start)+t);
@@ -83,8 +83,23 @@ test('combined modifiers derive from base once and preserve original values',()=
   const tiny=chaosVehicleFor(base,['tiny','wind']);
   assert.equal(tiny.size,.6);
   assert.equal(tiny.vehicle.wheels[0].x,-24);
-  assert.equal(tiny.windAcceleration,-130);
+  assert.equal(tiny.windAcceleration,-280);
   assert.equal(chaosVehicleFor(base,['heavy','spring']).gravityMultiplier,1.75);
   assert.equal(chaosVehicleFor(base,['spin']).vehicle.airTilt,9);
   assert.equal(chaosVehicleFor(base,['trouble']).vehicle.acceleration,36);
+});
+
+test('Windstorm creates a clearly stronger six-second pulsing headwind',()=>{
+  assert.equal(CHAOS_WIND_ACCELERATION,-280);
+  const breeze=chaosVehicleFor(base,['wind']);
+  assert.equal(breeze.windAcceleration,CHAOS_WIND_ACCELERATION);
+  assert.equal(chaosVehicleFor(base,[]).windAcceleration,0);
+  assert.equal(chaosVehicleFor(base,['ice']).windAcceleration,0);
+  assert.equal(chaosWindGust(0,false),1);
+  assert.ok(Math.abs(chaosWindGust(Math.PI/9,false)-1.28)<1e-10);
+  assert.ok(Math.abs(chaosWindGust(Math.PI/3,false)-.72)<1e-10);
+  assert.ok(Math.abs(chaosWindGust(0,true)-1.3)<1e-10);
+  assert.ok(chaosWindGust(Math.PI/9,true)>chaosWindGust(Math.PI/9,false));
+  assert.equal(chaosVehicleFor(base,['wind','turbo']).vehicle.enginePower,2000,
+    'wind must preserve unrelated Chaos upgrades');
 });
