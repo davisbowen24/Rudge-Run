@@ -1324,6 +1324,7 @@ else {
     drawMapHorizon(state.ctx,state.activeMap,state.W,state.H,state.camera.x);
     drawBiomeBackdrop();
     effects.drawAtmosphere(state.ctx,'back');
+    effects.drawWindstorm(state.ctx,'back');
     state.ctx.save();
     const cameraEffect=moments.camera();
     state.ctx.translate(state.W/2+cameraEffect.x,state.H/2+cameraEffect.y);
@@ -1453,6 +1454,8 @@ else {
     }
     state.ctx.restore();
 
+    // Windstorm grit moves across the viewport, including in front of the car.
+    effects.drawWindstorm(state.ctx,'front');
     effects.drawSpeed(state.ctx);
     moments.drawOverlay(state.ctx);
 
