@@ -724,7 +724,7 @@ Object.assign(MAP_DEFINITIONS,{
       "bumpScale": 1.1,
       "gravity": 1,
       "drag": 1.05,
-      "difficultyRate": 1.15,
+      "difficultyRate": 0.92,
       "terrainAmplitude": 1.45,
       "terrainRoughness": 1.35,
       "fuelSpacing": 1,
