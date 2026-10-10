@@ -10,7 +10,9 @@ test('Chase Mode uses live positions and original multiplayer scoring remains un
   const element=id=>{
     if(!nodes.has(id))nodes.set(id,{
       hidden:false,textContent:'',innerHTML:'',
-      classList:{add(){},remove(){}},
+      style:{width:'',cssText:''},
+      setAttribute(){},
+      classList:{add(){},remove(){},toggle(){}},
       addEventListener(){},focus(){}
     });
     return nodes.get(id);
@@ -33,7 +35,8 @@ test('Chase Mode uses live positions and original multiplayer scoring remains un
       room:()=>room,session:()=>({memberId:'self'}),
       renderRoomScoreboard(){},subscribe(){},
       async progress(distance){calls.push(['legacy',distance]);},
-      async progressLive(distance,position,velocity){calls.push(['live',distance,position,velocity]);}
+      async progressLive(distance,position,velocity){calls.push(['live',distance,position,velocity]);},
+      async refresh(){}
     };
     const race=createMultiplayerRace({
       multiplayer,state,
