@@ -1427,7 +1427,8 @@ else {
         viewLeft:left,viewRight:right,
         viewTop:state.camera.y-50,
         viewBottom:state.camera.y+state.H/state.scale+100,
-        pixelsPerMeter:CONFIG.world.pixelsPerMeter,timeMs:performance.now()
+        pixelsPerMeter:CONFIG.world.pixelsPerMeter,timeMs:performance.now(),
+        groundAt:x=>terrain.ground(x)
       });
     }
     effects.drawParticles(state.ctx);
