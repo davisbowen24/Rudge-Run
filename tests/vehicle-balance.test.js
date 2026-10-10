@@ -78,6 +78,32 @@ test('Dune Buggy and Hovercraft power tuning matches requested balance pass',()=
   close(VEHICLE_STAT_TABLE.hovercraft.enginePower,2.0825,'Hovercraft power');
 });
 
+test('shared base traction is 10 percent lower for all 20 cars at every tire level',()=>{
+  const previousBaseGrip=1.1;
+  close(BASE_VEHICLE_TRAITS.tireGrip,previousBaseGrip*.9,'shared base tire grip');
+  const upgradeSystem=createUpgrades({
+    state:{progression:{selected:'base'}},
+    save:{levelsFor:()=>({engine:0,suspension:0,tires:0,fuel:0})}
+  });
+  for(const id of VEHICLE_ORDER){
+    const vehicle=vehicleBase(id);
+    const row=VEHICLE_STAT_TABLE[id];
+    close(vehicle.tireGrip,previousBaseGrip*.9*row.tireGrip,id+' original traction -10%');
+    for(const level of [0,1,3,5]){
+      const stats=upgradeSystem.vehicleStats({engine:0,suspension:0,tires:level,fuel:0},id);
+      const tireLevel=vehicle.tiresUpgrade==='downforce'?0:level;
+      const stockGain=UPGRADE_CURVES.grip[0]*upgradeScale(id,'grip',0);
+      const rawGain=UPGRADE_CURVES.grip[tireLevel]*upgradeScale(id,'grip',tireLevel);
+      const actualGain=stockGain+(rawGain-stockGain)*.75;
+      const previousGrip=previousBaseGrip*row.tireGrip*actualGain;
+      close(stats.tireGrip,previousGrip*.9,id+' grip level '+level);
+      close(stats.staticGrip,previousGrip*.9,id+' static grip level '+level);
+      close(stats.dynamicGrip,previousGrip*.9*UPGRADE_CURVES.dynamic[tireLevel],
+        id+' dynamic grip level '+level);
+    }
+  }
+});
+
 test('Traction upgrades keep stock grip unchanged and reduce upgrade gain by 25 percent',()=>{
   const upgradeSystem=createUpgrades({
     state:{progression:{selected:'base'}},
