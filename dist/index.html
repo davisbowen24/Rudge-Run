@@ -8,6 +8,10 @@
 <body>
 <button id="soundButton" aria-pressed="false">Sound: Off</button><button id="pauseButton" aria-label="Pause game and open menu">Ⅱ Menu</button><canvas id="game" aria-label="Hill climbing driving game. Use right arrow or D for gas, left arrow or A for brake and reverse."></canvas>
 <header><div><div class="brand">RIDGE RUN<span style="color:var(--text-warning)">.</span></div><div class="phase">THE OPEN TRAIL</div></div><div class="hud"><div class="metric"><label>DISTANCE</label><strong id="distance">0</strong> <small>m</small></div><div class="metric"><label>COINS</label><strong id="coins" class="coinValue">0</strong></div><div class="fuelbox" id="fuelBox"><div class="fueltext"><span>⛽ FUEL</span><span id="fuelText">100%</span></div><div class="track" role="progressbar" aria-label="Fuel" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" id="fuelTrack"><div id="fuelFill"></div></div></div></div></header><div id="menuStatus" class="menu-status" aria-label="Menu status"><span>◇ <b id="menuStatusCoins">0</b> coins</span><span id="menuProfile">Guest</span></div>
+<div id="chaseHealthHud" class="chase-health-hud" hidden role="status" aria-label="Chase Mode health">
+  <div class="chase-health-head"><strong>CHASE HEALTH</strong><span id="chaseHealthPercent">100%</span></div>
+  <div class="chase-health-track"><div id="chaseHealthFill" class="chase-health-fill"></div></div>
+</div>
 <div id="multiplayerProgress" class="multiplayer-progress" hidden aria-label="Multiplayer race progress">
   <div class="multiplayer-progress-track"><div id="multiplayerProgressMarkers" class="multiplayer-progress-markers"></div></div>
   <small id="multiplayerProgressScale">0 — 500 m</small>
