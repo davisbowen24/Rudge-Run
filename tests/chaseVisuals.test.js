@@ -5,9 +5,9 @@ import {
   chaseWarningFor,drawChaseHazard
 } from '../dist/chaseVisuals.js';
 
-test('nine configured maps have distinct, reusable Chase hazard presets',()=>{
+test('twelve configured maps have distinct, reusable Chase hazard presets',()=>{
   assert.deepEqual(Object.keys(CHASE_HAZARD_THEMES).sort(),
-    ['arctic','countryside','desert','haunted','jungle','mars','rooftops','underwater','volcano']);
+    ['arctic','cave','countryside','desert','haunted','highway','jungle','mars','moon','rooftops','underwater','volcano']);
   assert.equal(chaseHazardForMap('arctic').type,'avalanche');
   assert.equal(chaseHazardForMap('desert').type,'sandstorm');
   assert.equal(chaseHazardForMap('jungle').type,'flood');
@@ -17,7 +17,10 @@ test('nine configured maps have distinct, reusable Chase hazard presets',()=>{
   assert.equal(chaseHazardForMap('countryside').type,'cows');
   assert.equal(chaseHazardForMap('mars').type,'lava');
   assert.equal(chaseHazardForMap('rooftops').type,'grandmas');
-  assert.equal(chaseHazardForMap('highway'),DEFAULT_CHASE_HAZARD);
+  assert.equal(chaseHazardForMap('highway').type,'semi');
+  assert.equal(chaseHazardForMap('cave').type,'spiders');
+  assert.equal(chaseHazardForMap('moon').type,'ufos');
+  assert.equal(chaseHazardForMap('bootcamp'),DEFAULT_CHASE_HAZARD);
   for(const id of Object.keys(CHASE_HAZARD_THEMES)){
     assert.notEqual(chaseHazardForMap(id).approaching,DEFAULT_CHASE_HAZARD.approaching);
     assert.ok(chaseHazardForMap(id).caught.length>10);
@@ -37,12 +40,18 @@ test('warnings appear within 200 meters, intensify when caught and clear when sa
   assert.match(chaseWarningFor('countryside',{distanceMeters:199}).label,/cows/i);
   assert.match(chaseWarningFor('mars',{distanceMeters:199}).label,/Martian lava/);
   assert.match(chaseWarningFor('rooftops',{distanceMeters:199}).label,/grandmothers/i);
+  assert.match(chaseWarningFor('highway',{distanceMeters:199}).label,/semi/i);
+  assert.match(chaseWarningFor('cave',{distanceMeters:199}).label,/spiders/i);
+  assert.match(chaseWarningFor('moon',{distanceMeters:199}).label,/UFOs/i);
   assert.match(chaseWarningFor('volcano',{distanceMeters:-1}).label,/LAVA/);
   assert.match(chaseWarningFor('haunted',{distanceMeters:-1}).label,/GHOSTS/);
   assert.match(chaseWarningFor('underwater',{distanceMeters:-1}).label,/PIRANHAS/);
   assert.match(chaseWarningFor('countryside',{distanceMeters:-1}).label,/HERD/);
   assert.match(chaseWarningFor('mars',{distanceMeters:-1}).label,/MARTIAN LAVA/);
   assert.match(chaseWarningFor('rooftops',{distanceMeters:-1}).label,/GRANDMAS/);
+  assert.match(chaseWarningFor('highway',{distanceMeters:-1}).label,/SEMI/);
+  assert.match(chaseWarningFor('cave',{distanceMeters:-1}).label,/SPIDERS/);
+  assert.match(chaseWarningFor('moon',{distanceMeters:-1}).label,/UFO/);
   assert.match(chaseWarningFor('jungle',{distanceMeters:-25}).label,/FLOOD/);
   assert.equal(chaseWarningFor('arctic',{distanceMeters:50},true),null);
   assert.equal(chaseWarningFor('arctic',null),null);
@@ -57,10 +66,11 @@ function context(){
     fill(){calls.push('fill')},stroke(){calls.push('stroke')},
     arc(){calls.push('arc')},ellipse(){calls.push('ellipse')},
     translate(x,y){calls.push(['translate',x,y])},scale(){calls.push('scale')},
-    quadraticCurveTo(){calls.push('quad')}};
+    quadraticCurveTo(){calls.push('quad')},
+    fillRect(x,y,w,h){calls.push(['fillRect',x,y,w,h])}};
   return ctx;
 }
-test('all nine hazards render safely with the same camera and live boundary',()=>{
+test('all twelve hazards render safely with the same camera and live boundary',()=>{
   for(const mapId of Object.keys(CHASE_HAZARD_THEMES)){
     const ctx=context();
     drawChaseHazard(ctx,{
@@ -125,6 +135,28 @@ test('batch-three hazards reuse lava rendering and animate grounded animal/peopl
   drawChaseHazard(gap,{...options,mapId:'rooftops',groundAt:()=>3000});
   assert.equal(gap.calls.filter(c=>c==='scale').length,0,
     'grandmothers never hover over rooftop gaps');
+});
+
+test('batch-four semi rides the road, spiders crawl on cave floor, and UFOs scan from above',()=>{
+  const opts={
+    snapshot:{enabled:true,positionMeters:100},viewLeft:500,viewRight:1700,
+    viewTop:-100,viewBottom:700,pixelsPerMeter:10,timeMs:1500,groundAt:()=>400
+  };
+  const road=context();
+  drawChaseHazard(road,{...opts,mapId:'highway'});
+  assert.ok(road.calls.some(c=>Array.isArray(c)&&c[0]==='fillRect'),'semi cab and trailer are visible');
+  assert.ok(road.calls.some(c=>Array.isArray(c)&&c[0]==='translate'),'semi is anchored at ground level');
+  const cave=context();
+  drawChaseHazard(cave,{...opts,mapId:'cave'});
+  assert.ok(cave.calls.filter(c=>Array.isArray(c)&&c[0]==='fillRect').length>25,'angular spider bodies render');
+  assert.ok(cave.calls.filter(c=>Array.isArray(c)&&c[0]==='translate').length>15,'spider swarm crawls on ground');
+  const moon=context();
+  drawChaseHazard(moon,{...opts,mapId:'moon'});
+  assert.ok(moon.calls.filter(c=>c==='ellipse').length>20,'UFO discs and lights render');
+  assert.ok(moon.calls.filter(c=>Array.isArray(c)&&c[0]==='translate').length>3,'UFO formation is airborne');
+  const off=context();
+  drawChaseHazard(off,{...opts,mapId:'highway',snapshot:{enabled:false,positionMeters:100}});
+  assert.equal(off.calls.length,0,'classic multiplayer does not render a semi');
 });
 
 test('hazards never draw outside Chase Mode or when fully off camera',()=>{
