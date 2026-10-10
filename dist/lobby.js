@@ -22,15 +22,15 @@ export function createLobbyUi({multiplayer,cloudSave,state,ui,race}){
     list.innerHTML='';
     for(const member of room?.members||[]){
       const card=document.createElement('div');
-      const maxWins=Math.max(0,...(room?.members||[]).map(driver=>Number(driver.roomWins||0)));
-      const roomLeader=maxWins>0&&Number(member.roomWins||0)===maxWins;
+      const maxPoints=Math.max(0,...(room?.members||[]).map(driver=>Number(driver.roomPoints||0)));
+      const roomLeader=maxPoints>0&&Number(member.roomPoints||0)===maxPoints;
       card.className='lobby-member'+(member.id===multiplayer.session()?.memberId?' is-you':'')+(member.connected?'':' is-disconnected')+(roomLeader?' is-room-leader':'');
       const main=document.createElement('div');
       const name=document.createElement('strong');
       name.textContent=member.displayName+(member.id===multiplayer.session()?.memberId?' (You)':'');
       const meta=document.createElement('small');
       const raceLabel=member.raceActive&&room.status!=='lobby'?' · '+String(member.raceStatus||'waiting').toUpperCase():'';
-      meta.textContent=(VEHICLES[member.vehicleId]?.name||member.vehicleId)+' · '+(member.connected?'Connected':'Reconnecting')+' · '+Number(member.roomWins||0)+' win'+(Number(member.roomWins||0)===1?'':'s')+raceLabel;
+      meta.textContent=(VEHICLES[member.vehicleId]?.name||member.vehicleId)+' · '+(member.connected?'Connected':'Reconnecting')+' · '+Number(member.roomPoints||0)+' pts'+raceLabel;
       main.append(name,meta);
       const badges=document.createElement('div');
       badges.className='lobby-badges';
@@ -44,11 +44,11 @@ export function createLobbyUi({multiplayer,cloudSave,state,ui,race}){
       ready.className=member.ready?'lobby-ready':'lobby-not-ready';
       ready.textContent=member.ready?'READY':'NOT READY';
       badges.append(ready);
-      const wins=document.createElement('span');
-      wins.className='lobby-wins';
-      wins.textContent='🏆 '+Number(member.roomWins||0);
-      wins.title=(Number(member.roomWins||0)===1?'1 race win':Number(member.roomWins||0)+' race wins')+' in this room';
-      badges.append(wins);
+      const points=document.createElement('span');
+      points.className='lobby-wins';
+      points.textContent='★ '+Number(member.roomPoints||0)+' pts';
+      points.title=Number(member.roomPoints||0)+' points earned in this room';
+      badges.append(points);
       card.append(main,badges);
       list.append(card);
     }
