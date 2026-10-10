@@ -120,6 +120,10 @@ export function createLobbyUi({multiplayer,cloudSave,state,ui,race}){
     assistToggle.checked=room.losersAssistEnabled===true;
     assistToggle.disabled=busy||!inLobby||!me?.isHost;
     $('lobbyLosersAssistStatus').textContent=assistToggle.checked?'ON · Bottom half catch-up power':'OFF · Equal vehicle power';
+    const stuntToggle=$('lobbyStuntAssist');
+    stuntToggle.checked=room.stuntAssistEnabled===true;
+    stuntToggle.disabled=busy||!inLobby||!me?.isHost;
+    $('lobbyStuntAssistStatus').textContent=stuntToggle.checked?'ON · 6s engine boosts after safe stunts':'OFF · No stunt boosts';
     $('lobbyLeave').disabled=busy;
     $('lobbyCopy').disabled=busy;
 
@@ -253,6 +257,10 @@ export function createLobbyUi({multiplayer,cloudSave,state,ui,race}){
       // Preserve the user-selected value through action()'s server-state redraw.
       const enabled=e.currentTarget.checked;
       return action(()=>multiplayer.setLosersAssist(enabled));
+    });
+    $('lobbyStuntAssist').addEventListener('change',e=>{
+      const enabled=e.currentTarget.checked;
+      return action(()=>multiplayer.setStuntAssist(enabled));
     });
     $('lobbyReady').addEventListener('click',()=>action(()=>multiplayer.setReady(!multiplayer.member()?.ready)));
     $('lobbyStart').addEventListener('click',()=>action(()=>multiplayer.startRace()));
