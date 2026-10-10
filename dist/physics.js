@@ -1,6 +1,7 @@
 import { MAPS, SEASONS } from './maps.js';
 import { CONFIG, GRAVITY_SCALE, MAX_LEVEL } from './config.js';
 import { $, clamp } from './utils.js';
+import { chaosWindGust } from './chaosMode.js';
 
 export function createPhysics({ stats, moments, state, terrain, ui, save, input, economy }) {
 
@@ -466,7 +467,9 @@ export function createPhysics({ stats, moments, state, terrain, ui, save, input,
 
 // Quadratic air drag and rolling resistance produce a natural terminal speed, never a hard cap.
 
-    fx+=v.mass*(state.chaosWindAcceleration||0);
+    // Windstorm is a pulsing headwind. It pushes every vehicle, with
+    // stronger gusts when no wheels are supported; no wind when disabled.
+    fx+=v.mass*(state.chaosWindAcceleration||0)*chaosWindGust(state.time,contacts===0);
     fx-=v.aeroDrag*(MAPS[state.activeMap].drag??1)*state.car.vx*Math.abs(state.car.vx);
     fy-=v.aeroDrag*(MAPS[state.activeMap].drag??1)*.12*state.car.vy*Math.abs(state.car.vy);
     state.car.vx+=fx/v.mass*dt;
