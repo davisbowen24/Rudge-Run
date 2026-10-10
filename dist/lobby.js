@@ -225,7 +225,12 @@ export function createLobbyUi({multiplayer,cloudSave,state,ui,race}){
       if(!state.progression.owned.includes(id))throw new Error('That vehicle is not owned.');
       await multiplayer.updateVehicle(id);
     }));
-    $('lobbyChaseMode').addEventListener('change',e=>action(()=>multiplayer.setChaseMode(e.target.checked)));
+    $('lobbyChaseMode').addEventListener('change',e=>{
+      // action() re-renders the lobby before invoking its callback, resetting
+      // the checkbox to the server's OLD value. Capture the click first.
+      const enabled=e.currentTarget.checked;
+      return action(()=>multiplayer.setChaseMode(enabled));
+    });
     $('lobbyReady').addEventListener('click',()=>action(()=>multiplayer.setReady(!multiplayer.member()?.ready)));
     $('lobbyStart').addEventListener('click',()=>action(()=>multiplayer.startRace()));
     $('lobbyVoteGrid').addEventListener('click',e=>{
