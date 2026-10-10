@@ -6,6 +6,7 @@ import { CONFIG } from './config.js';
 import { createChaseMode } from './chaseMode.js';
 import { chaosStateAt, chaosVehicleFor } from './chaosMode.js';
 import { losersAssistTarget, smoothLosersAssist } from './losersAssist.js';
+import { stuntBonusForLanding, stuntAndLoserMultipliers, STUNT_ASSIST_SECONDS } from './stuntAssist.js';
 import { chaseHazardForMap, chaseWarningFor } from './chaseVisuals.js';
 import { chaseWarningVisualForMap } from './chaseWarningIcons.js';
 
@@ -15,19 +16,54 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
   const targets=new Map(),displayed=new Map();
   const chaseMode=createChaseMode();
   let lastWarningMapId=null,baseChaosVehicle=null,appliedChaosKey='',appliedChaosSize=1;
-  let appliedAssistMultiplier=1;
-  const assistFields=['enginePower','engineTorque','acceleration'];
-  function applyAssistMultiplier(next){
+  let appliedAssistMultiplier=1,appliedStuntBonus=0,stuntBonus=0,stuntSeconds=0,stuntLabel='';
+  function applyAssistMultiplier(nextAssist,nextStunt=0){
     if(!baseChaosVehicle)return;
-    for(const key of assistFields){
-      CONFIG.vehicle[key]=CONFIG.vehicle[key]/appliedAssistMultiplier*next;
-    }
-    appliedAssistMultiplier=next;
+    const previous=stuntAndLoserMultipliers(appliedAssistMultiplier,appliedStuntBonus);
+    const desired=stuntAndLoserMultipliers(nextAssist,nextStunt);
+    for(const key of ['enginePower','engineTorque','acceleration'])
+      CONFIG.vehicle[key]=CONFIG.vehicle[key]/previous[key]*desired[key];
+    appliedAssistMultiplier=nextAssist;
+    appliedStuntBonus=nextStunt;
   }
   function clearAssist(){
-    applyAssistMultiplier(1);
+    applyAssistMultiplier(1,0);
     appliedAssistMultiplier=1;
+    appliedStuntBonus=0;
     $('losersAssistHud').hidden=true;
+  }
+  function clearStunt(){
+    stuntBonus=0;
+    stuntSeconds=0;
+    stuntLabel='';
+    state.stuntLanding=null;
+    $('stuntAssistHud').hidden=true;
+  }
+  function updateStunt(dt,room=multiplayer.room()){
+    if(!baseChaosVehicle||!active||finished||!state.playing||room?.stuntAssistEnabled!==true){
+      clearStunt();
+      return;
+    }
+    const landing=state.stuntLanding;
+    state.stuntLanding=null;
+    if(landing){
+      const reward=stuntBonusForLanding(landing);
+      if(reward){
+        stuntBonus=reward.bonus;
+        stuntLabel=reward.label;
+        stuntSeconds=STUNT_ASSIST_SECONDS;
+      }
+    }
+    if(!state.paused&&stuntSeconds>0){
+      stuntSeconds=Math.max(0,stuntSeconds-Math.max(0,dt));
+      if(stuntSeconds===0)stuntBonus=0;
+    }
+    const hud=$('stuntAssistHud');
+    hud.hidden=stuntBonus===0;
+    if(stuntBonus>0){
+      $('stuntAssistPower').textContent='+'+Math.round(stuntBonus*100)+'% POWER · '+Math.ceil(stuntSeconds)+'s';
+      $('stuntAssistLabel').textContent=stuntLabel;
+    }
   }
   function updateAssist(dt,room=multiplayer.room()){
     if(!baseChaosVehicle||!active||finished||!state.playing){
@@ -36,11 +72,11 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     }
     const ranking=losersAssistTarget(room,multiplayer.session()?.memberId,distanceNow());
     const value=smoothLosersAssist(appliedAssistMultiplier,ranking.multiplier,dt);
-    applyAssistMultiplier(value);
+    // Stunt power adds to catch-up rather than multiplying with it.
+    applyAssistMultiplier(value,stuntBonus);
     $('losersAssistHud').hidden=value<1.02;
     if(value>=1.02)$('losersAssistPower').textContent='×'+value.toFixed(2)+' POWER';
   }
-
 
   function nowServer(){return Date.now()+serverOffset;}
   function updateClock(room){
@@ -75,6 +111,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     // Chaos installs stats derived from the original car, not from an
     // already assisted engine. The next update reapplies the eased bonus.
     appliedAssistMultiplier=1;
+    appliedStuntBonus=0;
     state.chaosGravityMultiplier=tuned.gravityMultiplier;
     state.chaosWindAcceleration=tuned.windAcceleration;
     state.chaosVehicleScale=newSize;
@@ -110,6 +147,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     }
   }
   function clearChase(){
+    clearStunt();
     clearChaos();
     $('chaseHealthHud').hidden=true;
     $('chaseWarning').hidden=true;
@@ -219,6 +257,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     main.reset({mapId:room.selectedMap,vehicleId:me.vehicleId,multiplayer:true});
     baseChaosVehicle=structuredClone(CONFIG.vehicle);
     appliedAssistMultiplier=1;
+    appliedStuntBonus=0;
     appliedChaosKey='';
     appliedChaosSize=1;
     updateChaos(room);
@@ -389,6 +428,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     renderProgress(dt);
     updateChase(dt);
     updateChaos();
+    updateStunt(dt);
     updateAssist(dt);
     if(!active)return;
     const now=performance.now();
