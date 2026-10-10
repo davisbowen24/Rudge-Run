@@ -508,9 +508,11 @@ export function createPhysics({ stats, moments, state, terrain, ui, save, input,
       return;
     }
 
+    // Complete a wheel-first landing flip before the landing observers clear
+    // their per-jump counters. This also gives Stuntman's Assist the final flip.
+    economy.updateTricks(state.car.a-angleBefore,state.car.grounded,dt);
     stats.afterStep(dt);
     moments.afterStep(dt);
-    economy.updateTricks(state.car.a-angleBefore,state.car.grounded,dt);
     state.furthest=Math.max(state.furthest,state.car.x);
     const best=Math.floor(economy.runMeters(state.furthest));
     if(best>state.progression.best[state.activeMap]){
