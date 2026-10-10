@@ -235,10 +235,13 @@ export function createPhysics({ stats, moments, state, terrain, ui, save, input,
     if(Math.hypot(lx-v.head.x,ly-v.head.y)<=12*(state.chaosVehicleScale||1)+r)
     return true;
 
-    const poly=v.pickupPolygon??(v.visualType==='bike'?[[-26,-22],[5,-22],[26,-10],[31,12],[-31,10]]:v.visualType==='tractor'?[[-57,9],[-57,-17],[-27,-20],[3,-23],[51,-16],[58,11]]:v.tracked?[[-95,-12],[-84,7],[61,-4],[86,-17],[85,-28],[49,-21]]:[[-v.halfWidth,-7],[-38,-20],[20,-20],[30,-10],[v.halfWidth,-7],[v.halfWidth,13],[-v.halfWidth,13]]);
+    const size=state.chaosVehicleScale||1;
+    const baseWidth=v.halfWidth/size;
+    const defaultPolygon=(v.visualType==='bike'?[[-26,-22],[5,-22],[26,-10],[31,12],[-31,10]]:v.visualType==='tractor'?[[-57,9],[-57,-17],[-27,-20],[3,-23],[51,-16],[58,11]]:v.tracked?[[-95,-12],[-84,7],[61,-4],[86,-17],[85,-28],[49,-21]]:[[-baseWidth,-7],[-38,-20],[20,-20],[30,-10],[baseWidth,-7],[baseWidth,13],[-baseWidth,13]]);
+    const poly=v.pickupPolygon??defaultPolygon.map(([px,py])=>[px*size,py*size]);
 
     const cab=v.visualType==='tractor'?[-40,-55,3,-18]:v.tracked?null:v.visualType==='base'?[-28,-37,13,-18]:v.visualType==='monster'?[-28,-51,13,-18]:null;
-    if(cab&&Math.hypot(lx-clamp(lx,cab[0],cab[2]),ly-clamp(ly,cab[1],cab[3]))<=r)
+    if(cab&&Math.hypot(lx-clamp(lx,cab[0]*size,cab[2]*size),ly-clamp(ly,cab[1]*size,cab[3]*size))<=r)
     return true;
 
     let inside=false;
@@ -261,7 +264,8 @@ export function createPhysics({ stats, moments, state, terrain, ui, save, input,
       candidates.push({p,n:terrainNormal(p.x,w.r),depth:p.y-wheelFloor(p.x,w.r),radius:w.r});
     }
     // Sample the existing visible frame perimeter, not a larger invisible drive zone.
-    const frame=[[-22,4],[-24,-30],[18,-32],[24,4]];
+    const size=state.chaosVehicleScale||1;
+    const frame=[[-22,4],[-24,-30],[18,-32],[24,4]].map(pair=>pair.map(n=>n*size));
     for(let i=0;i<frame.length;i++){
       const a=frame[i],b=frame[(i+1)%frame.length];
       for(let j=0;j<=8;j++){

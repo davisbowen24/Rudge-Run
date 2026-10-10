@@ -10,6 +10,11 @@ test('six seconds ON then six OFF, with three-second next-event warning',()=>{
   assert.equal(CHAOS_EFFECT_MS,6000);
   assert.equal(CHAOS_WARNING_MS,3000);
   assert.equal(at(0).active,true);
+  assert.equal(chaosStateAt({...room,status:'countdown'},Date.parse(start)-3001).warning,false);
+  assert.equal(chaosStateAt({...room,status:'countdown'},Date.parse(start)-3000).warning,true);
+  assert.equal(chaosStateAt({...room,status:'countdown'},Date.parse(start)-1000).remainingMs,1000);
+  assert.deepEqual(chaosStateAt({...room,status:'countdown'},Date.parse(start)-1000).effects,at(0).effects);
+  assert.equal(chaosStateAt({...room,status:'countdown'},Date.parse(start)).active,true);
   assert.equal(at(5999).active,true);
   assert.equal(at(6000).active,false);
   assert.equal(at(8999).warning,false);

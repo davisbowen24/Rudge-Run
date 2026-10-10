@@ -67,7 +67,8 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     $('chaosGravityHud').hidden=true;
   }
   function updateChaos(room=multiplayer.room()){
-    const phase=chaosStateAt(room,nowServer(),active&&!finished&&state.playing);
+    const phase=chaosStateAt(room,nowServer(),!finished&&
+      (room?.status==='countdown'||(active&&state.playing)));
     installChaosEffects(phase.active?phase.effects:[]);
     const hud=$('chaosGravityHud');
     hud.hidden=!phase.active&&!phase.warning;

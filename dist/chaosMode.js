@@ -37,11 +37,19 @@ export function chaosPair(seed,raceNumber,cycle){
 
 export function chaosStateAt(room,serverNowMs,live=true){
   const inactive={active:false,warning:false,effects:[],cycle:-1,remainingMs:0};
-  if(!live||room?.status!=='racing'||room?.chaosModeEnabled!==true)return inactive;
+  if(!live||!['racing','countdown'].includes(room?.status)||room?.chaosModeEnabled!==true)return inactive;
   const start=Date.parse(room.raceStartAt||'');
   const seed=room.chaosSeed;
-  if(!Number.isFinite(start)||!Number.isFinite(serverNowMs)||serverNowMs<start
+  if(!Number.isFinite(start)||!Number.isFinite(serverNowMs)
     ||!Number.isSafeInteger(seed))return inactive;
+  if(serverNowMs<start){
+    const until=start-serverNowMs;
+    if(room.status==='countdown'&&until<=CHAOS_WARNING_MS)return {
+      active:false,warning:true,effects:chaosPair(seed,room.raceNumber||0,0),
+      cycle:0,remainingMs:until
+    };
+    return inactive;
+  }
   const elapsed=serverNowMs-start,cycle=Math.floor(elapsed/CHAOS_CYCLE_MS),phase=elapsed%CHAOS_CYCLE_MS;
   const active=phase<CHAOS_EFFECT_MS;
   const warning=phase>=CHAOS_CYCLE_MS-CHAOS_WARNING_MS;
