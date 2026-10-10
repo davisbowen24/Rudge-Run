@@ -4,6 +4,27 @@
  * Every themed map shares this single canvas renderer and warning logic.
  */
 export const CHASE_HAZARD_THEMES = Object.freeze({
+  seasons: Object.freeze({
+    type:'tornadoes', name:'TORNADO SWARM',
+    approaching:'Tornadoes are closing in!',
+    caught:'CAUGHT IN THE TORNADOES · HEALTH DRAINING',
+    tint:'rgba(91,103,108,0.2)', front:'#c8d1d4', accent:'#788995', particle:'#e1e2ce',
+    pace:1.08
+  }),
+  wasteland: Object.freeze({
+    type:'sludge', name:'TOXIC SLUDGE',
+    approaching:'Toxic sludge is rolling toward you!',
+    caught:'ENGULFED IN TOXIC SLUDGE · HEALTH DRAINING',
+    tint:'rgba(43,125,34,0.26)', front:'#b7ff54', accent:'#4ace35', particle:'#dfff9e',
+    pace:0.93
+  }),
+  neon: Object.freeze({
+    type:'disco', name:'DISCO DANCE PARTY',
+    approaching:'A disco dance party is gaining on you!',
+    caught:'CAUGHT BY THE DISCO PARTY · HEALTH DRAINING',
+    tint:'rgba(116,47,151,0.16)', front:'#ff79d5', accent:'#52eafb', particle:'#fcfb8e',
+    pace:1.28
+  }),
   alien: Object.freeze({
     type:'aliens', name:'ALIEN MOB',
     approaching:'Funny green aliens are closing in!',
@@ -493,6 +514,137 @@ function drawMudGlob(ctx,x,y,r,time,i){
 }
 
 /**
+ * A brightly dressed member of the pursuing disco party.
+ * Feet are grounded while shoulders, hands and legs swing to the beat.
+ */
+function drawDiscoDancer(ctx,x,groundY,scale,time,i){
+  const beat=Math.sin(time*8+i*1.4),step=Math.cos(time*8+i*1.4);
+  ctx.save();ctx.translate(x,groundY);ctx.scale(scale,scale);
+  const colors=['#ff62cc','#60e9ef','#ffca65','#ac8afb','#99ff7d'];
+  const color=colors[i%colors.length];
+  // Dancing legs and bright shoes.
+  ctx.lineCap='round';ctx.strokeStyle='#28394b';ctx.lineWidth=5;
+  for(const [dx,m] of [[-7,step],[7,-step]]){
+    ctx.beginPath();ctx.moveTo(dx,-16);ctx.lineTo(dx+m*8,-1-Math.max(0,m)*6);ctx.stroke();
+    ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(dx+m*8+3,-1-Math.max(0,m)*6,6,3,0,0,Math.PI*2);ctx.fill();
+  }
+  // Loose-fitting party jacket with sparkly front.
+  ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(-15,-53);
+  ctx.lineTo(14,-53);ctx.lineTo(18,-17);ctx.lineTo(-17,-17);ctx.closePath();ctx.fill();
+  ctx.strokeStyle='#ffefef';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(0,-48);ctx.lineTo(0,-21);ctx.stroke();
+  // Both arms wave out of phase, yielding recognizably dancing silhouettes.
+  ctx.strokeStyle='#ffd9ba';ctx.lineWidth=5;
+  for(const side of [-1,1]){
+    const handY=-73+beat*13*side;
+    ctx.beginPath();ctx.moveTo(side*14,-48);ctx.lineTo(side*26,handY);ctx.stroke();
+    ctx.fillStyle='#ffd9ba';ctx.beginPath();ctx.arc(side*26,handY,4,0,Math.PI*2);ctx.fill();
+  }
+  ctx.fillStyle='#f1b98f';ctx.beginPath();ctx.arc(0,-63,12,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=i%2?'#283047':'#43244e';
+  ctx.beginPath();ctx.arc(0,-67,12,Math.PI,Math.PI*2);ctx.fill();
+  // Dark oversized sunglasses add personality to the little parade.
+  ctx.fillStyle='#253c52';
+  ctx.fillRect(-9,-66,7,5);ctx.fillRect(3,-66,7,5);ctx.fillRect(-2,-65,5,2);
+  ctx.restore();
+}
+
+/** Floating mirrored disco ball and its rotating spotlights. */
+function drawDiscoBall(ctx,x,y,time){
+  ctx.save();ctx.translate(x,y);
+  const beamColors=['#ff63c7','#55e8ff','#f7ec73','#8effac'];
+  for(let k=0;k<4;k++){
+    const a=time*.8+k*Math.PI/2;
+    ctx.globalAlpha=.15;
+    ctx.fillStyle=beamColors[k];
+    ctx.beginPath();ctx.moveTo(0,0);
+    ctx.lineTo(Math.cos(a-.17)*175,Math.sin(a-.17)*175);
+    ctx.lineTo(Math.cos(a+.17)*175,Math.sin(a+.17)*175);
+    ctx.closePath();ctx.fill();
+  }
+  ctx.globalAlpha=1;
+  ctx.fillStyle='#dbe3fa';ctx.beginPath();ctx.arc(0,0,28,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#667f9e';ctx.lineWidth=1.6;
+  for(let row=-2;row<=2;row++){
+    const width=Math.sqrt(Math.max(0,28*28-(row*10)*(row*10)));
+    ctx.beginPath();ctx.moveTo(-width,row*10);ctx.lineTo(width,row*10);ctx.stroke();
+  }
+  for(let col=-2;col<=2;col++){
+    ctx.beginPath();ctx.moveTo(col*9,-Math.sqrt(Math.max(0,28*28-(col*9)*(col*9))));
+    ctx.lineTo(col*9,Math.sqrt(Math.max(0,28*28-(col*9)*(col*9))));ctx.stroke();
+  }
+  const sparkleX=Math.sin(time*2)*12,sparkleY=Math.cos(time*2)*10;
+  ctx.fillStyle='#fffdf0';ctx.beginPath();ctx.arc(sparkleX,sparkleY,6,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+
+/** Thick green rolling blobs with glowing edges and poisonous bubbles. */
+function drawToxicGlob(ctx,x,y,r,time,i){
+  const wobble=Math.sin(time*3.2+i*1.4)*r*.16;
+  ctx.globalAlpha=.86;
+  ctx.fillStyle='#18391b';ctx.beginPath();
+  ctx.ellipse(x,y+wobble,r*1.7,r*1.35,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#4fb938';ctx.beginPath();
+  ctx.ellipse(x-2,y-2+wobble,r*1.45,r*1.16,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#b7ff4b';ctx.beginPath();
+  ctx.ellipse(x+r*.15,y-r*.25+wobble,r*.95,r*.76,0,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=.7;
+  ctx.fillStyle='#f1ffae';ctx.beginPath();
+  ctx.ellipse(x-r*.35,y-r*.52+wobble,r*.38,r*.2,-.3,0,Math.PI*2);ctx.fill();
+  // Rising poisonous bubbles plus one dark internal pocket.
+  ctx.globalAlpha=.88;
+  ctx.fillStyle='#27552a';ctx.beginPath();
+  ctx.arc(x+r*.55,y+r*.22,r*.24,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#d5ff82';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(x-r*1.2,y-r*.9-wobble,Math.max(2,r*.24),0,Math.PI*2);ctx.stroke();
+}
+
+/**
+ * Tapered spinning tornado drawn from ground to sky; variations form a small
+ * chasing group. No terrain forces or networking are involved.
+ */
+function drawTornado(ctx,x,groundY,height,width,time,i){
+  ctx.save();
+  const top=groundY-height,phase=time*(2.1+i*.14)+i*1.8;
+  ctx.globalAlpha=.58;
+  ctx.fillStyle=i===0?'#9aadb6':'#aeb0aa';
+  ctx.beginPath();
+  for(let n=0;n<=16;n++){
+    const u=n/16,yy=groundY-height*u;
+    const half=5+width*Math.pow(u,.8);
+    const swing=Math.sin(phase+u*8)*width*.23;
+    if(n===0)ctx.moveTo(x+half+swing,yy);else ctx.lineTo(x+half+swing,yy);
+  }
+  for(let n=16;n>=0;n--){
+    const u=n/16,yy=groundY-height*u;
+    const half=5+width*Math.pow(u,.8);
+    const swing=Math.sin(phase+u*8)*width*.23;
+    ctx.lineTo(x-half+swing,yy);
+  }
+  ctx.closePath();ctx.fill();
+  // Bright spiraling bands make the funnel visibly spin.
+  ctx.globalAlpha=.72;ctx.strokeStyle='#ecf2ed';ctx.lineWidth=3;
+  for(let band=0;band<4;band++){
+    ctx.beginPath();
+    for(let step=0;step<=18;step++){
+      const u=(band+step/18)/4,yy=groundY-height*u;
+      const rad=5+width*Math.pow(u,.8);
+      const xx=x+Math.sin(phase+u*23)*rad;
+      if(step===0)ctx.moveTo(xx,yy);else ctx.lineTo(xx,yy);
+    }
+    ctx.stroke();
+  }
+  // Dust swirling at the touchdown point.
+  ctx.globalAlpha=.46;ctx.fillStyle='#c7c7b6';
+  for(let j=0;j<5;j++){
+    const a=time*3+j*1.3+i;
+    const bx=x+Math.cos(a)*(18+j*4),by=groundY-3-Math.abs(Math.sin(a))*8;
+    ctx.beginPath();ctx.arc(bx,by,3+j%3,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+}
+
+/**
  * World-space hazard, rendered under the vehicle after terrain; never collides.
  * The camera transform has already been applied by render.js.
  *
@@ -517,7 +669,8 @@ export function drawChaseHazard(ctx,{
     theme.type==='lava'?35:theme.type==='ghosts'?45:theme.type==='piranhas'?31:
     theme.type==='cows'?34:theme.type==='grandmas'?29:
     theme.type==='semi'?20:theme.type==='spiders'?29:theme.type==='ufos'?37:
-    theme.type==='aliens'?36:theme.type==='pipes'?42:theme.type==='mud'?39:50;
+    theme.type==='aliens'?36:theme.type==='pipes'?42:theme.type==='mud'?39:
+    theme.type==='disco'?33:theme.type==='sludge'?40:theme.type==='tornadoes'?48:50;
   const edge=y=>boundaryX+
     Math.sin(y*0.022+time*theme.pace*2.4)*amplitude+
     Math.sin(y*0.051-time*theme.pace*1.2)*amplitude*.32;
@@ -546,7 +699,8 @@ export function drawChaseHazard(ctx,{
     theme.type==='ghosts'?12:theme.type==='piranhas'?9:theme.type==='lava'?29:
     theme.type==='cows'?8:theme.type==='grandmas'?8:
     theme.type==='semi'?8:theme.type==='spiders'?12:theme.type==='ufos'?10:
-    theme.type==='aliens'?10:theme.type==='pipes'?15:theme.type==='mud'?28:28;
+    theme.type==='aliens'?10:theme.type==='pipes'?15:theme.type==='mud'?28:
+    theme.type==='disco'?8:theme.type==='sludge'?29:theme.type==='tornadoes'?14:28;
   ctx.globalAlpha=.8;
   ctx.stroke();
   ctx.globalAlpha=1;
@@ -556,7 +710,8 @@ export function drawChaseHazard(ctx,{
   const particleCount=theme.type==='ghosts'?32:theme.type==='piranhas'?38:
     theme.type==='cows'?30:theme.type==='grandmas'?30:
     theme.type==='semi'?12:theme.type==='spiders'?26:theme.type==='ufos'?12:
-    theme.type==='aliens'?28:theme.type==='pipes'?23:theme.type==='mud'?44:48;
+    theme.type==='aliens'?28:theme.type==='pipes'?23:theme.type==='mud'?44:
+    theme.type==='disco'?26:theme.type==='sludge'?44:theme.type==='tornadoes'?35:48;
   for(let i=0;i<particleCount;i++){
     const seed=i*73.37;
     const y=top+((seed*3.23+time*(theme.type==='flood'?-90:65)*theme.pace)%height+height)%height;
@@ -567,7 +722,23 @@ export function drawChaseHazard(ctx,{
     ctx.globalAlpha=.24+(i%5)*.11;
     ctx.strokeStyle=theme.particle;
     ctx.fillStyle=theme.particle;
-    if(theme.type==='aliens'){
+    if(theme.type==='disco'){
+      const surface=typeof groundAt==='function'?groundAt(x):bottom-28;
+      if(Number.isFinite(surface)&&surface>=viewTop-110&&surface<=viewBottom+30)
+        drawDiscoDancer(ctx,x,surface,.73+(i%4)*.07,time,i);
+    }else if(theme.type==='sludge'){
+      if(i%2===0)drawToxicGlob(ctx,x,y,12+(i%4)*5,time,i);
+      else{
+        // Small suspended glowing bubbles keep the slurry feeling alive.
+        ctx.globalAlpha=.62;ctx.strokeStyle='#d7ff99';ctx.lineWidth=2;
+        ctx.beginPath();ctx.arc(x,y,2+(i%4)*1.5,0,Math.PI*2);ctx.stroke();
+      }
+    }else if(theme.type==='tornadoes'){
+      // Windborne debris runs around the funnels. Funnels themselves render
+      // as a bounded group below, not one expensive vortex per particle.
+      ctx.globalAlpha=.4;ctx.strokeStyle='#e1e7df';ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(x-14,y+3);ctx.lineTo(x+8,y-4);ctx.stroke();
+    }else if(theme.type==='aliens'){
       const surface=typeof groundAt==='function'?groundAt(x):bottom-28;
       if(Number.isFinite(surface)&&surface>=viewTop-110&&surface<=viewBottom+30)
         drawFunnyAlien(ctx,x,surface,.7+(i%4)*.06,time,i);
@@ -643,6 +814,21 @@ export function drawChaseHazard(ctx,{
   ctx.strokeStyle=theme.accent;
   ctx.lineWidth=3;
   ctx.stroke();
+  if(theme.type==='disco'){
+    const discoX=boundaryX-65,discoY=Math.max(viewTop+55,viewTop+Math.min(height*.24,170));
+    if(discoX>viewLeft-100&&discoX<viewRight+100)
+      drawDiscoBall(ctx,discoX,discoY,time);
+  }else if(theme.type==='tornadoes'){
+    // Three funnels share the moving front and are ground anchored. A single
+    // tornado design repeats at different sizes rather than needing a new map.
+    for(let i=0;i<3;i++){
+      const vortexX=boundaryX-25-i*95+Math.sin(time*.8+i*2)*13;
+      const surface=typeof groundAt==='function'?groundAt(vortexX):bottom-22;
+      if(Number.isFinite(surface)&&surface>=viewTop+30&&surface<=viewBottom+45 &&
+          vortexX>viewLeft-90&&vortexX<viewRight+90)
+        drawTornado(ctx,vortexX,surface,175-i*30,28-i*4,time,i);
+    }
+  }
   if(theme.type==='semi'){
     // Keep the semi's bumper close to the predicted hazard front.
     const truckX=boundaryX-34;
