@@ -100,3 +100,12 @@ body[data-screen="multiplayerResults"] .menu-status{display:none}
 .lobby-chase-option span,.lobby-chase-option small{display:block}
 .lobby-chase-option small{font-size:12px;margin-top:4px;color:var(--text-secondary)}
 .lobby-chase-option:has(input:disabled){cursor:default;opacity:.8}
+
+/* Chase Mode health is shown only in an enabled multiplayer race. */
+.chase-health-hud{position:fixed;z-index:22;top:108px;left:16px;width:min(200px,32vw);padding:9px 11px;background:#0b1f29e8;border:1px solid #ffffff45;border-radius:10px;pointer-events:none;color:var(--text-primary)}
+.chase-health-hud[hidden]{display:none!important}
+.chase-health-head{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;letter-spacing:.04em}
+.chase-health-track{margin-top:7px;height:8px;background:#0008;border-radius:999px;overflow:hidden}
+.chase-health-fill{width:100%;height:100%;background:#62c793;transition:width .2s linear}
+.chase-health-hud.is-damaged .chase-health-fill{background:#f16a64}
+@media(max-width:560px){.chase-health-hud{top:150px;left:8px;width:125px;padding:7px}.chase-health-head{font-size:10px}}
