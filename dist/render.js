@@ -1,5 +1,6 @@
 import { drawMapHorizon } from './mapPresentation.js';
 import { drawChaseHazard } from './chaseVisuals.js';
+import { chaosPaintWheels } from './chaosVisuals.js';
 import { canvasFont, UI_THEME } from './theme.js';
 import { BIOMES, LATE_BIOMES, MAPS, SEASONS } from './maps.js';
 import { VEHICLES } from './vehicles.js';
@@ -1439,8 +1440,8 @@ else {
       // Scale the entire vehicle illustration around its chassis, including
       // decorative parts that are drawn with hardcoded sizes in paintVehicle.
       // Physics already uses scaled wheel positions/collision geometry.
-      const rawWheels=state.car.wheels.map(w=>({...w,
-        x:x+(w.x-x)/scale,y:y+(w.y-y)/scale,r:w.r/scale}));
+      // Suspension anchors must use the same inverse scale as the wheels.
+      const rawWheels=chaosPaintWheels(state.car.wheels,x,y,scale);
       state.ctx.save();
       state.ctx.translate(x,y);
       state.ctx.scale(scale,scale);
