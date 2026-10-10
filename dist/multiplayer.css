@@ -171,3 +171,9 @@ body[data-screen="multiplayerResults"] .menu-status{display:none}
 .race-marker.chase-hazard-marker span{top:-21px;color:#ffd595;
   font-size:9px;background:rgba(11,31,41,.88);padding:2px 4px;border-radius:4px}
 .race-marker.chase-hazard-marker.is-stale{opacity:.5}
+
+/* Shared Chaos Mode: an unobtrusive temporary gravity alert, visible only in the active window. */
+.chaos-gravity-hud{position:fixed;z-index:23;top:238px;left:50%;transform:translateX(-50%);pointer-events:none;display:flex;align-items:center;gap:12px;padding:8px 15px;border:2px solid #95befe;border-radius:12px;background:#172745ed;color:#dbe9ff;box-shadow:0 4px 18px #0008;font-weight:900;font-size:14px;white-space:nowrap}
+.chaos-gravity-hud span{color:#b5d2ff;font-variant-numeric:tabular-nums}
+.chaos-gravity-hud[hidden]{display:none!important}
+@media(max-width:560px){.chaos-gravity-hud{top:262px;font-size:11px;padding:6px 9px;gap:8px}}

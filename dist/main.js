@@ -12,6 +12,7 @@ export function createMain({ stats, workshop, effects, moments, state, upgrades,
     state.sprayClock=0;
     state.paused=false;
     state.multiplayerRaceActive=Boolean(options.multiplayer);
+    state.chaosGravityMultiplier=1;
     const requestedMap=options.mapId;
     state.activeMap=requestedMap&&MAPS[requestedMap]?requestedMap:(state.progression.ownedMaps.includes(state.progression.selectedMap)?state.progression.selectedMap:'countryside');
     CONFIG.world.gravity=MAPS[state.activeMap].gravity*GRAVITY_SCALE;
@@ -158,6 +159,7 @@ export function createMain({ stats, workshop, effects, moments, state, upgrades,
     state.paused = false;
 
     state.multiplayerRaceActive = false;
+    state.chaosGravityMultiplier = 1;
 
     state.time = 0;
 

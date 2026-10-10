@@ -4,6 +4,7 @@ import { MAPS } from './maps.js';
 import { MULTIPLAYER_CONFIG } from './multiplayerConfig.js';
 import { CONFIG } from './config.js';
 import { createChaseMode } from './chaseMode.js';
+import { chaosGravityAt } from './chaosMode.js';
 import { chaseHazardForMap, chaseWarningFor } from './chaseVisuals.js';
 import { chaseWarningVisualForMap } from './chaseWarningIcons.js';
 
@@ -32,7 +33,19 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     const velocity=(state.car?.vx??0)/CONFIG.world.pixelsPerMeter;
     return Math.max(-200,Math.min(200,Number.isFinite(velocity)?velocity:0));
   }
+  function clearChaos(){
+    state.chaosGravityMultiplier=1;
+    $('chaosGravityHud').hidden=true;
+  }
+  function updateChaos(room=multiplayer.room()){
+    const phase=chaosGravityAt(room,nowServer(),active&&!finished&&state.playing);
+    state.chaosGravityMultiplier=phase.multiplier;
+    const hud=$('chaosGravityHud');
+    hud.hidden=!phase.active;
+    if(phase.active)$('chaosGravitySeconds').textContent=Math.ceil(phase.remainingMs/1000)+'s';
+  }
   function clearChase(){
+    clearChaos();
     $('chaseHealthHud').hidden=true;
     $('chaseWarning').hidden=true;
     lastWarningMapId=null;
@@ -216,6 +229,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
   function syncFromRoom(room=multiplayer.room()){
     if(!room){clearChase();return;}
     updateClock(room);
+    updateChaos(room);
     updateTargets(room);
     if(room.status==='lobby'&&state.screen==='multiplayerResults'){
       prepareRematch('Host started a rematch · returning to the lobby');
@@ -304,6 +318,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
   function update(dt){
     renderProgress(dt);
     updateChase(dt);
+    updateChaos();
     if(!active)return;
     const now=performance.now();
     // Independent race polling is essential: progress submissions can stall,

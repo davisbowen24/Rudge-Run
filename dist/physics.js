@@ -317,7 +317,7 @@ export function createPhysics({ stats, moments, state, terrain, ui, save, input,
     if(gas||brake)
     state.started=true;
     state.time+=dt;
-    CONFIG.world.gravity=effectiveGravity(state.activeMap,state.time);
+    CONFIG.world.gravity=effectiveGravity(state.activeMap,state.time)*(state.chaosGravityMultiplier===0.5?0.5:1);
     state.bonusEvents=state.bonusEvents.filter(e=>(e.age+=dt)<3);
     if(!state.started)
     return;

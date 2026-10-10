@@ -235,3 +235,44 @@ test('failed waiting-room car changes restore previous selection and show an err
     globalThis.document=previous;
   }
 });
+
+test('Chaos Mode toggle sends ON and OFF before redraw, including guest host restrictions',async()=>{
+  const previous=globalThis.document;
+  const dom=fakeDom();globalThis.document=dom.document;
+  try{
+    const host={id:'host',displayName:'Host',vehicleId:'base',connected:true,isHost:true,ready:false};
+    const room={code:'ABCDE',status:'lobby',members:[host],chaosModeEnabled:false,chaseModeEnabled:true};
+    const requests=[];
+    const multiplayer={room:()=>room,member:()=>host,session:()=>({memberId:'host'}),status:()=> 'Connected',subscribe(){},
+      async setChaosMode(enabled){requests.push(enabled);room.chaosModeEnabled=enabled;}};
+    const lobby=createLobbyUi({multiplayer,cloudSave:{user:()=>null},state:{progression:{selected:'base',owned:['base']}},ui:{showScreen(){}},race:{syncFromRoom(){}}});
+    lobby.bindEvents();lobby.renderLobby();
+    const toggle=dom.get('lobbyChaosMode');
+    assert.equal(toggle.disabled,false);assert.equal(toggle.checked,false);
+    toggle.checked=true;await toggle.dispatch('change');
+    assert.deepEqual(requests,[true]);assert.equal(toggle.checked,true);
+    assert.equal(room.chaseModeEnabled,true,'Chaos never changes Chase');
+    toggle.checked=false;await toggle.dispatch('change');
+    assert.deepEqual(requests,[true,false]);assert.equal(toggle.checked,false);
+    host.isHost=false;lobby.renderLobby();
+    assert.equal(toggle.disabled,true);
+    host.isHost=true;room.status='racing';lobby.renderLobby();
+    assert.equal(toggle.disabled,true,'no changes during race');
+  }finally{globalThis.document=previous;}
+});
+test('Chaos checkbox rolls back if the server rejects a change',async()=>{
+  const previous=globalThis.document;
+  const dom=fakeDom();globalThis.document=dom.document;
+  try{
+    const host={id:'host',displayName:'Host',vehicleId:'base',connected:true,isHost:true,ready:false};
+    const room={code:'ABCDE',status:'lobby',members:[host],chaosModeEnabled:false};
+    const multiplayer={room:()=>room,member:()=>host,session:()=>({memberId:'host'}),status:()=> 'Connected',subscribe(){},
+      async setChaosMode(enabled){assert.equal(enabled,true);throw new Error('Unable to save Chaos Mode');}};
+    const lobby=createLobbyUi({multiplayer,cloudSave:{user:()=>null},state:{progression:{selected:'base',owned:['base']}},ui:{showScreen(){}},race:{syncFromRoom(){}}});
+    lobby.bindEvents();lobby.renderLobby();
+    const toggle=dom.get('lobbyChaosMode');
+    toggle.checked=true;await toggle.dispatch('change');
+    assert.equal(toggle.checked,false);
+    assert.equal(dom.get('multiplayerError').textContent,'Unable to save Chaos Mode');
+  }finally{globalThis.document=previous;}
+});

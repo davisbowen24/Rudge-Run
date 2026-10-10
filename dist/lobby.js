@@ -112,6 +112,10 @@ export function createLobbyUi({multiplayer,cloudSave,state,ui,race}){
     chaseToggle.checked=room.chaseModeEnabled===true;
     chaseToggle.disabled=busy||!inLobby||!me?.isHost;
     $('lobbyChaseModeStatus').textContent=chaseToggle.checked?'ON · Hazard follows 750 m behind the leader':'OFF · Classic race';
+    const chaosToggle=$('lobbyChaosMode');
+    chaosToggle.checked=room.chaosModeEnabled===true;
+    chaosToggle.disabled=busy||!inLobby||!me?.isHost;
+    $('lobbyChaosModeStatus').textContent=chaosToggle.checked?'ON · 50% gravity every 30s':'OFF · Normal gravity';
     $('lobbyLeave').disabled=busy;
     $('lobbyCopy').disabled=busy;
 
@@ -235,6 +239,11 @@ export function createLobbyUi({multiplayer,cloudSave,state,ui,race}){
       // the checkbox to the server's OLD value. Capture the click first.
       const enabled=e.currentTarget.checked;
       return action(()=>multiplayer.setChaseMode(enabled));
+    });
+    $('lobbyChaosMode').addEventListener('change',e=>{
+      // Capture before action() redraws the checkbox using the old server value.
+      const enabled=e.currentTarget.checked;
+      return action(()=>multiplayer.setChaosMode(enabled));
     });
     $('lobbyReady').addEventListener('click',()=>action(()=>multiplayer.setReady(!multiplayer.member()?.ready)));
     $('lobbyStart').addEventListener('click',()=>action(()=>multiplayer.startRace()));
