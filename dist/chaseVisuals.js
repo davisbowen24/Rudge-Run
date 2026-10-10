@@ -4,6 +4,27 @@
  * Every themed map shares this single canvas renderer and warning logic.
  */
 export const CHASE_HAZARD_THEMES = Object.freeze({
+  alien: Object.freeze({
+    type:'aliens', name:'ALIEN MOB',
+    approaching:'Funny green aliens are closing in!',
+    caught:'OVERRUN BY ALIENS · HEALTH DRAINING',
+    tint:'rgba(52,129,67,0.17)', front:'#96f66f', accent:'#35ad58', particle:'#d4ff89',
+    pace:1.24
+  }),
+  construction: Object.freeze({
+    type:'pipes', name:'TUMBLING PIPES',
+    approaching:'Giant pipes tumbling toward you!',
+    caught:'CRUSHED BY TUMBLING PIPES · HEALTH DRAINING',
+    tint:'rgba(113,123,128,0.2)', front:'#e2b96f', accent:'#697d85', particle:'#d7e0dd',
+    pace:1.12
+  }),
+  bootcamp: Object.freeze({
+    type:'mud', name:'MUD SURGE',
+    approaching:'A giant wave of mud is approaching!',
+    caught:'ENGULFED IN MUD · HEALTH DRAINING',
+    tint:'rgba(89,58,32,0.32)', front:'#856443', accent:'#473520', particle:'#b79a66',
+    pace:1.0
+  }),
   highway: Object.freeze({
     type:'semi', name:'RUNAWAY SEMI',
     approaching:'Runaway semi closing in!',
@@ -386,6 +407,91 @@ function drawMoonUfo(ctx,x,y,scale,time,i,beamDepth=120){
   ctx.restore();
 }
 
+/** Playful lime-green creatures with wobbly antennas, three eyes and running feet. */
+function drawFunnyAlien(ctx,x,groundY,scale,time,i){
+  const stride=Math.sin(time*10+i*1.7);
+  ctx.save();ctx.translate(x,groundY);ctx.scale(scale,scale);
+  ctx.globalAlpha=.96;
+  ctx.strokeStyle='#29743d';ctx.lineWidth=3.6;ctx.lineCap='round';
+  for(const [leg,phase] of [[-10,stride],[10,-stride]]){
+    ctx.beginPath();ctx.moveTo(leg,-15);ctx.lineTo(leg+phase*9,-2-Math.max(0,phase)*5);ctx.stroke();
+    ctx.fillStyle='#52c65b';ctx.beginPath();
+    ctx.ellipse(leg+phase*9+4,0-Math.max(0,phase)*5,9,3,0,0,Math.PI*2);ctx.fill();
+  }
+  // Squishy, irregular body and silly outstretched waving arms.
+  ctx.fillStyle=['#76ef63','#8cfa61','#53dc78'][i%3];
+  ctx.beginPath();ctx.ellipse(0,-35,20,26,Math.sin(time+i)*.07,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#56ce5c';ctx.lineWidth=5;
+  ctx.beginPath();ctx.moveTo(-16,-43);ctx.lineTo(-27,-56+stride*7);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(16,-43);ctx.lineTo(30,-55-stride*7);ctx.stroke();
+  for(const arm of [-1,1]){
+    ctx.fillStyle='#7ffb64';ctx.beginPath();ctx.arc(arm*30,-56-arm*stride*7,5,0,Math.PI*2);ctx.fill();
+  }
+  // Two bendy stalks. Each creature has a slightly different timing.
+  ctx.strokeStyle='#53b74e';ctx.lineWidth=3;
+  for(const side of [-1,1]){
+    const tipX=side*(10+Math.sin(time*3+i+side)*5);
+    ctx.beginPath();ctx.moveTo(side*9,-56);
+    ctx.quadraticCurveTo(side*16,-78,tipX,-85+Math.sin(time*4+i)*4);ctx.stroke();
+    ctx.fillStyle='#e6fc92';ctx.beginPath();ctx.arc(tipX,-85+Math.sin(time*4+i)*4,5,0,Math.PI*2);ctx.fill();
+  }
+  // Three expressive eyes, large grin and a few small spots.
+  for(const eye of [-11,0,11]){
+    const offset=eye===0?-1:3;
+    ctx.fillStyle='#e9ffde';ctx.beginPath();ctx.ellipse(eye,-47+offset,7,8,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#294a3e';ctx.beginPath();ctx.arc(eye+2,-45+offset,2.6,0,Math.PI*2);ctx.fill();
+  }
+  ctx.strokeStyle='#216b3c';ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.arc(2,-28,10,0,Math.PI*.95);ctx.stroke();
+  ctx.fillStyle='#a5f283';
+  for(const [dotX,dotY] of [[-13,-28],[16,-25],[-7,-16]]){
+    ctx.beginPath();ctx.arc(dotX,dotY,2.2,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+}
+
+/** Rotating hollow steel pipes, each rolling over construction-site terrain. */
+function drawTumblingPipe(ctx,x,groundY,r,time,i){
+  ctx.save();
+  const spin=time*(1.8+(i%4)*.22)+(i*1.71);
+  ctx.translate(x,groundY-r);
+  ctx.rotate(spin);
+  const length=r*2.7,width=r*1.15;
+  // Long cylindrical wall and painted edge stripes.
+  ctx.fillStyle=i%3===0?'#8f9da4':'#a6b5b9';
+  ctx.fillRect(-length/2,-width/2,length,width);
+  ctx.fillStyle='#d6deda';ctx.fillRect(-length/2,-width/2,length,4);
+  ctx.fillStyle='#536b72';ctx.fillRect(-length/2,width/2-5,length,5);
+  for(let k=0;k<3;k++){
+    ctx.fillStyle='#c18e46';ctx.fillRect(-length/3+k*length/3-2,-width/2+1,5,width-2);
+  }
+  // The dark center and metallic ring make them read as open pipes.
+  ctx.fillStyle='#d4ddde';ctx.beginPath();
+  ctx.ellipse(length/2,0,width*.32,width*.52,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#303c43';ctx.beginPath();
+  ctx.ellipse(length/2+1,0,width*.2,width*.36,0,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#c5d2d2';ctx.lineWidth=2;
+  ctx.beginPath();ctx.ellipse(length/2,0,width*.32,width*.52,0,0,Math.PI*2);ctx.stroke();
+  ctx.restore();
+}
+
+/** Heavy viscous globs, blisters and droplets at the rolling mud front. */
+function drawMudGlob(ctx,x,y,r,time,i){
+  const bob=Math.sin(time*2.8+i*.8)*r*.22;
+  ctx.globalAlpha=.89;
+  ctx.fillStyle='#493322';ctx.beginPath();
+  ctx.ellipse(x,y+bob,r*1.5,r*1.25,Math.sin(time+i)*.1,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#765438';ctx.beginPath();
+  ctx.ellipse(x-2,y-3+bob,r*1.13,r*.93,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#a4895b';ctx.beginPath();
+  ctx.ellipse(x-r*.31,y-r*.4+bob,r*.42,r*.21,-.4,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#34281e';
+  ctx.beginPath();ctx.arc(x+r*.5,y-r*.2+bob,r*.16,0,Math.PI*2);ctx.fill();
+  // Splashes trail backward as the glob rolls forward.
+  ctx.fillStyle='#b08c59';
+  ctx.beginPath();ctx.arc(x-r*1.3,y-r*.7+Math.sin(time*4+i)*4,r*.17,0,Math.PI*2);ctx.fill();
+}
+
 /**
  * World-space hazard, rendered under the vehicle after terrain; never collides.
  * The camera transform has already been applied by render.js.
@@ -410,7 +516,8 @@ export function drawChaseHazard(ctx,{
   const amplitude=theme.type==='flood'?25:theme.type==='avalanche'?36:
     theme.type==='lava'?35:theme.type==='ghosts'?45:theme.type==='piranhas'?31:
     theme.type==='cows'?34:theme.type==='grandmas'?29:
-    theme.type==='semi'?20:theme.type==='spiders'?29:theme.type==='ufos'?37:50;
+    theme.type==='semi'?20:theme.type==='spiders'?29:theme.type==='ufos'?37:
+    theme.type==='aliens'?36:theme.type==='pipes'?42:theme.type==='mud'?39:50;
   const edge=y=>boundaryX+
     Math.sin(y*0.022+time*theme.pace*2.4)*amplitude+
     Math.sin(y*0.051-time*theme.pace*1.2)*amplitude*.32;
@@ -438,7 +545,8 @@ export function drawChaseHazard(ctx,{
   ctx.lineWidth=theme.type==='flood'?16:theme.type==='avalanche'?26:
     theme.type==='ghosts'?12:theme.type==='piranhas'?9:theme.type==='lava'?29:
     theme.type==='cows'?8:theme.type==='grandmas'?8:
-    theme.type==='semi'?8:theme.type==='spiders'?12:theme.type==='ufos'?10:28;
+    theme.type==='semi'?8:theme.type==='spiders'?12:theme.type==='ufos'?10:
+    theme.type==='aliens'?10:theme.type==='pipes'?15:theme.type==='mud'?28:28;
   ctx.globalAlpha=.8;
   ctx.stroke();
   ctx.globalAlpha=1;
@@ -447,7 +555,8 @@ export function drawChaseHazard(ctx,{
   // density are bounded for mobile performance, irrespective of map distance.
   const particleCount=theme.type==='ghosts'?32:theme.type==='piranhas'?38:
     theme.type==='cows'?30:theme.type==='grandmas'?30:
-    theme.type==='semi'?12:theme.type==='spiders'?26:theme.type==='ufos'?12:48;
+    theme.type==='semi'?12:theme.type==='spiders'?26:theme.type==='ufos'?12:
+    theme.type==='aliens'?28:theme.type==='pipes'?23:theme.type==='mud'?44:48;
   for(let i=0;i<particleCount;i++){
     const seed=i*73.37;
     const y=top+((seed*3.23+time*(theme.type==='flood'?-90:65)*theme.pace)%height+height)%height;
@@ -458,7 +567,21 @@ export function drawChaseHazard(ctx,{
     ctx.globalAlpha=.24+(i%5)*.11;
     ctx.strokeStyle=theme.particle;
     ctx.fillStyle=theme.particle;
-    if(theme.type==='spiders'){
+    if(theme.type==='aliens'){
+      const surface=typeof groundAt==='function'?groundAt(x):bottom-28;
+      if(Number.isFinite(surface)&&surface>=viewTop-110&&surface<=viewBottom+30)
+        drawFunnyAlien(ctx,x,surface,.7+(i%4)*.06,time,i);
+    }else if(theme.type==='pipes'){
+      const surface=typeof groundAt==='function'?groundAt(x):bottom-28;
+      if(Number.isFinite(surface)&&surface>=viewTop-80&&surface<=viewBottom+30)
+        drawTumblingPipe(ctx,x,surface,15+(i%4)*4,time,i);
+    }else if(theme.type==='mud'){
+      if(i%2===0)drawMudGlob(ctx,x,y,10+(i%4)*7,time,i);
+      else{
+        ctx.fillStyle=theme.particle;ctx.beginPath();
+        ctx.arc(x,y,r*.75,0,Math.PI*2);ctx.fill();
+      }
+    }else if(theme.type==='spiders'){
       const surface=typeof groundAt==='function'?groundAt(x):bottom-28;
       if(Number.isFinite(surface)&&surface>=viewTop-60&&surface<=viewBottom+30)
         drawCaveSpider(ctx,x,surface,.62+(i%4)*.07,time,i);
