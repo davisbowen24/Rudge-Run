@@ -1,5 +1,6 @@
 import { MULTIPLAYER_CONFIG } from './multiplayerConfig.js';
 import { $ } from './utils.js';
+import { shouldApplyRoomSnapshot } from './roomRevision.js';
 
 const SESSION_KEY='ridge-run-multiplayer-session-v1';
 
@@ -117,7 +118,10 @@ export function createMultiplayer({auth,cloudSave,state}){
   }
 
   function applyRoom(data,nextStatus='Connected'){
-    if(data?.room)room=data.room;
+    // Polls and progress requests overlap. Never let a late response roll the
+    // room back to an older revision or revive a previous room after leaving.
+    if(!data?.room || !shouldApplyRoomSnapshot(room,data.room,session?.roomCode))return room;
+    room=data.room;
     status=nextStatus;
     emit();
     return room;
@@ -136,10 +140,14 @@ export function createMultiplayer({auth,cloudSave,state}){
 
   async function refresh(){
     if(!session)return false;
+    const memberToken=session.memberToken;
     try{
-      applyRoom(await request('state'));
+      const data=await request('state');
+      if(session?.memberToken!==memberToken)return false;
+      applyRoom(data);
       return true;
     }catch(error){
+      if(session?.memberToken!==memberToken)return false;
       if([401,404,410].includes(error.status)){clearSession(error.message||'Room ended');return false;}
       status='Reconnecting…';
       emit();
