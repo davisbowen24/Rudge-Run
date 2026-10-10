@@ -4,6 +4,7 @@ import { MAPS } from './maps.js';
 import { MULTIPLAYER_CONFIG } from './multiplayerConfig.js';
 import { CONFIG } from './config.js';
 import { createChaseMode } from './chaseMode.js';
+import { chaseHazardForMap, chaseWarningFor } from './chaseVisuals.js';
 
 export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
   let active=false,finished=false,serverOffset=0,countdownKey='',countdownTimer=null;
@@ -31,6 +32,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
   }
   function clearChase(){
     $('chaseHealthHud').hidden=true;
+    $('chaseWarning').hidden=true;
     chaseMode.setEnabled(false);
     chaseMode.reset();
     state.chaseModeSnapshot=null;
@@ -41,6 +43,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     chaseMode.setEnabled(enabled);
     if(!enabled){
       $('chaseHealthHud').hidden=true;
+      $('chaseWarning').hidden=true;
       state.chaseModeSnapshot=null;
       state.chaseModeProximity=null;
       return;
@@ -69,8 +72,22 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     });
     chaseMode.setParticipants(racers);
     state.chaseModeSnapshot=chaseMode.update(dt,now);
-    // Display-only proximity. Damage must be confirmed by the backend later.
+    // Warning and front rendering share the exact same predicted boundary.
+    // This remains informational; the server alone applies health loss.
     state.chaseModeProximity=chaseMode.proximity(livePositionNow());
+    const warning=chaseWarningFor(room.selectedMap||state.activeMap,
+      state.chaseModeProximity,state.chaseModeSnapshot?.predictionStale);
+    const box=$('chaseWarning');
+    box.hidden=!warning;
+    if(warning){
+      if($('chaseWarningText').textContent!==warning.label)
+        $('chaseWarningText').textContent=warning.label;
+      $('chaseWarningDistance').textContent=warning.level==='caught'
+        ? 'ESCAPE TO STOP DAMAGE' : warning.distanceMeters+' m behind';
+      box.classList.toggle('is-caught',warning.level==='caught');
+    }else{
+      box.classList.remove('is-caught');
+    }
   }
   function participantMembers(room=multiplayer.room()){
     return (room?.members||[]).filter(member=>member.raceActive);
@@ -219,13 +236,24 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
       displayed.set(member.id,current+(target-current)*(1-Math.exp(-dt*8)));
     }
 
-    const scale=Math.max(500,...members.map(member=>Math.max(targets.get(member.id)||0,displayed.get(member.id)||0)))*1.12;
-    $('multiplayerProgressMarkers').innerHTML=members.map(member=>{
+    const boundary=room.chaseModeEnabled===true?state.chaseModeSnapshot:null;
+    const hazardMeters=boundary?.enabled&&Number.isFinite(boundary.positionMeters)
+      ?Math.max(0,boundary.positionMeters):null;
+    const scale=Math.max(500,hazardMeters??0,
+      ...members.map(member=>Math.max(targets.get(member.id)||0,displayed.get(member.id)||0)))*1.12;
+    const driverMarkers=members.map(member=>{
       const distance=displayed.get(member.id)||0;
       const left=Math.max(1,Math.min(99,distance/scale*100));
       const dead=['dead','finished'].includes(member.raceStatus);
       return '<div class="race-marker'+(member.id===selfId?' is-you':'')+(dead?' is-dead':'')+'" style="left:'+left.toFixed(2)+'%" title="'+escapeHtml(member.displayName)+' · '+Math.round(targets.get(member.id)||0)+' m"><span>'+escapeHtml(member.displayName.slice(0,10))+'</span></div>';
     }).join('');
+    const hazardLabel=chaseHazardForMap(room.selectedMap||state.activeMap).name;
+    const hazardMarker=hazardMeters===null?'':('<div class="race-marker chase-hazard-marker'
+      +(boundary.predictionStale?' is-stale':'')+'" style="left:'
+      +Math.max(1,Math.min(99,hazardMeters/scale*100)).toFixed(2)
+      +'%" title="'+escapeHtml(hazardLabel)+' · '+Math.round(hazardMeters)+' m">'
+      +'<span>⚠ '+escapeHtml(hazardLabel)+'</span></div>');
+    $('multiplayerProgressMarkers').innerHTML=driverMarkers+hazardMarker;
     $('multiplayerProgressScale').textContent='0 — '+Math.round(scale).toLocaleString('en-US')+' m';
   }
 
