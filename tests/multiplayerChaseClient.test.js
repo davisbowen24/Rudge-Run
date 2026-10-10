@@ -16,7 +16,7 @@ test('only Chase Mode displays health and server-confirmed catches stop the run'
     const room={id:'r1',code:'ABCDE',status:'racing',raceNumber:1,
       selectedMap:'countryside',chaseModeEnabled:true,members:[player]};
     const state={playing:true,car:{x:9140,vx:0},furthest:9140,screen:'run'};
-    const mp={room:()=>room,session:()=>({memberId:'self'}),renderRoomScoreboard(){},subscribe(){}};
+    const mp={room:()=>room,session:()=>({memberId:'self'}),renderRoomScoreboard(){},subscribe(){},async refresh(){},async progress(){},async progressLive(){}};
     const race=createMultiplayerRace({multiplayer:mp,state,main:{reset(){}},ui:{},
       economy:{runMeters:x=>Math.max(0,(x-140)/10)}});
     race.syncFromRoom(room);
