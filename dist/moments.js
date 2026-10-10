@@ -63,6 +63,7 @@ export function createMoments({workshop,state, terrain, effects}) {
       if(flight){flight.airtime+=dt;const distance=Math.abs(car.x-flight.x)/CONFIG.world.pixelsPerMeter;if(!flight.announced&&((flight.airtime>1.4&&distance>35)||flight.airtime>3.5)){flight.announced=true;emit('jump',{distance});}}
     }else{
       if(flight&&flight.airtime>.12){
+        if(state.multiplayerRaceActive)state.stuntLanding={flips,airtime:flight.airtime};
         let impact=0;
         for(const w of car.wheels){if(!w.normal)continue;const k=terrain.slope(w.x),d=Math.hypot(k,1),vx=prior.vx-prior.av*(w.y-car.y),vy=prior.vy+prior.av*(w.x-car.x);impact=Math.max(impact,(vy-vx*k)/d);}
         const distance=Math.abs(car.x-flight.x)/CONFIG.world.pixelsPerMeter;
