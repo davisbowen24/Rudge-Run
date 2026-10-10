@@ -24,6 +24,7 @@ export function createMain({ stats, workshop, effects, moments, state, upgrades,
     state.seasonIndex=0;
     state.airRotation=0;
     state.airTime=0;
+    economy.resetTricks();
     state.bonusEvents=[];
     $('bonusPopups').innerHTML='';
     const vehicleId=options.vehicleId||state.progression.selected;
