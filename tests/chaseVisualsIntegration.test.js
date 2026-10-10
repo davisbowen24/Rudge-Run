@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createMultiplayerRace} from '../dist/multiplayerRace.js';
 
-test('nine themed maps share Chase tracking but show their own warning copy',()=>{
+test('twelve themed maps share Chase tracking but show their own warning copy',()=>{
   const originalDocument=globalThis.document;
   const elements=new Map();
   globalThis.document={getElementById(id){
@@ -39,7 +39,8 @@ test('nine themed maps share Chase tracking but show their own warning copy',()=
     for(const [mapId,copy] of [
       ['arctic','Avalanche'],['desert','Sandstorm'],['jungle','Flash flood'],
       ['volcano','Lava surge'],['haunted','Ghosts'],['underwater','Piranhas'],
-      ['countryside','cows'],['mars','Martian lava'],['rooftops','grandmothers']
+      ['countryside','cows'],['mars','Martian lava'],['rooftops','grandmothers'],
+      ['highway','semi'],['cave','spiders'],['moon','UFOs']
     ]){
       room.selectedMap=mapId;state.activeMap=mapId;
       race.update(.016);race.update(.016);
