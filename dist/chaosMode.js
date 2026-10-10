@@ -5,6 +5,12 @@
 export const CHAOS_CYCLE_MS=12000;
 export const CHAOS_EFFECT_MS=6000;
 export const CHAOS_WARNING_MS=3000;
+// A forceful six-second headwind, with gusts that are stronger when airborne.
+export const CHAOS_WIND_ACCELERATION=-280;
+export function chaosWindGust(time,airborne=false){
+  const t=Number.isFinite(time)?time:0;
+  return (airborne?1.3:1)*(1+0.28*Math.sin(t*4.5));
+}
 export const CHAOS_MODIFIERS=Object.freeze([
   Object.freeze({id:'moon',name:'Moon Gravity',icon:'🌙'}),
   Object.freeze({id:'heavy',name:'Crushing Gravity',icon:'🪨'}),
@@ -84,7 +90,7 @@ export function chaosVehicleFor(base,effects){
   if(ids.has('spring')){
     v.suspension*=1.8;v.suspensionDamping*=0.25;
   }
-  if(ids.has('wind'))wind=-130;
+  if(ids.has('wind'))wind=CHAOS_WIND_ACCELERATION;
   if(ids.has('spin')){
     v.airTilt*=3;v.maxRotation*=2;v.airBrake*=2;
   }
