@@ -8,7 +8,7 @@ const BASE_VEHICLE_TRAITS=Object.freeze({
   "enginePower": 892500,
   "motorTorque": 148500,
   "wheelSpeedLimit": 21.776711233442143,
-  "tireGrip": 1.1,
+  "tireGrip": 0.99,
   "suspension": 900,
   "suspensionDamping": 110,
   "suspensionTravel": 21.6,
