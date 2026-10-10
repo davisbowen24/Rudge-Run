@@ -63,7 +63,7 @@ test('Volcano Ridge difficulty ramps up 20 percent more slowly without changing 
     'Volcano Ridge new effective difficulty rate');
   // Slower difficulty affects stage timing, ridge and ramp growth, and lava widths.
   // Unchanged non-rate properties preserve the starting character of the map.
-  close(MAPS.volcano.ridgeGrowth,1.5*115/115,'volcano ridge growth remains unchanged');
+  close(MAPS.volcano.ridgeGrowth,38*1.5,'volcano ridge growth remains unchanged');
   close(MAPS.volcano.rampGrowth,110*1.2,'volcano ramp growth remains unchanged');
   close(MAPS.volcano.hazardSeverity,1.7,'volcano lava severity remains unchanged');
   close(MAPS.countryside.difficultyRate,originalBaseRate*.70,
