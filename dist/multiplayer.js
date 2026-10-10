@@ -29,16 +29,16 @@ export function createMultiplayer({auth,cloudSave,state}){
     }
 
     const members=(room.members||[]).slice().sort((a,b)=>{
-      const wins=Number(b.roomWins||0)-Number(a.roomWins||0);
-      if(wins)return wins;
+      const points=Number(b.roomPoints||0)-Number(a.roomPoints||0);
+      if(points)return points;
       return String(a.joinedAt||'').localeCompare(String(b.joinedAt||''))||String(a.displayName||'').localeCompare(String(b.displayName||''));
     });
     const currentRace=Math.max(1,Number(room.raceNumber||0)+(room.status==='lobby'?1:0));
-    const maxWins=members.length?Math.max(...members.map(member=>Number(member.roomWins||0))):0;
-    const leaders=maxWins>0?members.filter(member=>Number(member.roomWins||0)===maxWins):[];
+    const maxPoints=members.length?Math.max(...members.map(member=>Number(member.roomPoints||0))):0;
+    const leaders=maxPoints>0?members.filter(member=>Number(member.roomPoints||0)===maxPoints):[];
     const signature=[
       room.code,room.status,currentRace,room.hostMemberId,
-      ...members.flatMap(member=>[member.id,member.displayName,member.roomWins,member.connected])
+      ...members.flatMap(member=>[member.id,member.displayName,member.roomPoints,member.connected])
     ].join('|');
     if(signature===scoreboardSignature){
       panel.hidden=false;
@@ -49,18 +49,18 @@ export function createMultiplayer({auth,cloudSave,state}){
     $('multiplayerRoomRace').textContent=(room.status==='lobby'?'NEXT · ':'')+'RACE '+currentRace;
     $('multiplayerRoomCode').textContent='ROOM '+room.code;
     $('multiplayerRoomLeader').textContent=!leaders.length
-      ?'First win takes the lead'
+      ?'Earn points by beating other racers'
       :leaders.length===1
         ?'👑 Leader · '+leaders[0].displayName
         :'👑 Leaders · '+leaders.map(member=>member.displayName).join(' · ');
 
     $('multiplayerRoomScoreRows').innerHTML=members.map(member=>{
-      const wins=Number(member.roomWins||0);
-      const isLeader=maxWins>0&&wins===maxWins;
+      const points=Number(member.roomPoints||0);
+      const isLeader=maxPoints>0&&points===maxPoints;
       const isSelf=member.id===session?.memberId;
       return '<div class="room-score-row'+(isLeader?' is-room-leader':'')+(isSelf?' is-you':'')+(member.connected?'':' is-disconnected')+'">'
         +'<span>'+(isLeader?'👑 ':'')+escapeHtml(member.displayName)+(isSelf?' <em>YOU</em>':'')+'</span>'
-        +'<strong>🏆 '+wins+'</strong>'
+        +'<strong>★ '+points+' pts</strong>'
         +'</div>';
     }).join('');
     panel.hidden=false;
