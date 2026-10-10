@@ -111,19 +111,19 @@ export function createLobbyUi({multiplayer,cloudSave,state,ui,race}){
     const chaseToggle=$('lobbyChaseMode');
     chaseToggle.checked=room.chaseModeEnabled===true;
     chaseToggle.disabled=busy||!inLobby||!me?.isHost;
-    $('lobbyChaseModeStatus').textContent=chaseToggle.checked?'ON · Hazard follows 750 m behind the leader':'OFF · Classic race';
+    $('lobbyChaseModeStatus').textContent=chaseToggle.checked?'ON':'OFF';
     const chaosToggle=$('lobbyChaosMode');
     chaosToggle.checked=room.chaosModeEnabled===true;
     chaosToggle.disabled=busy||!inLobby||!me?.isHost;
-    $('lobbyChaosModeStatus').textContent=chaosToggle.checked?'ON · 1 effect, 25% chance of 2 · 6s on / 6s off':'OFF · Normal gravity';
+    $('lobbyChaosModeStatus').textContent=chaosToggle.checked?'ON':'OFF';
     const assistToggle=$('lobbyLosersAssist');
     assistToggle.checked=room.losersAssistEnabled===true;
     assistToggle.disabled=busy||!inLobby||!me?.isHost;
-    $('lobbyLosersAssistStatus').textContent=assistToggle.checked?'ON · Bottom half catch-up power':'OFF · Equal vehicle power';
+    $('lobbyLosersAssistStatus').textContent=assistToggle.checked?'ON':'OFF';
     const stuntToggle=$('lobbyStuntAssist');
     stuntToggle.checked=room.stuntAssistEnabled===true;
     stuntToggle.disabled=busy||!inLobby||!me?.isHost;
-    $('lobbyStuntAssistStatus').textContent=stuntToggle.checked?'ON · 6s engine boosts after safe stunts':'OFF · No stunt boosts';
+    $('lobbyStuntAssistStatus').textContent=stuntToggle.checked?'ON':'OFF';
     $('lobbyLeave').disabled=busy;
     $('lobbyCopy').disabled=busy;
 
