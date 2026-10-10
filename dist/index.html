@@ -46,7 +46,13 @@
     <div class="eyebrow">MULTIPLAYER RUN COMPLETE</div>
     <h1 id="multiplayerRaceEndReason">Run complete</h1>
     <p><strong id="multiplayerRaceEndDistance">0 m</strong></p>
-    <p>Waiting for the other drivers to finish…</p>
+    <section id="multiplayerSpectator" class="multiplayer-spectator" hidden aria-label="Live race spectator leaderboard">
+      <div class="spectator-head"><span>LIVE RACE LEADER</span><strong id="spectatorLeader">Waiting for racers</strong></div>
+      <div class="spectator-leading-distance" id="spectatorLeaderDistance">0 m</div>
+      <p id="spectatorStatus" class="spectator-status">Waiting for the latest race positions…</p>
+      <div id="spectatorStandings" class="spectator-standings" aria-label="Current race standings"></div>
+      <small>Distances update while other drivers race. Final standings appear when the race ends.</small>
+    </section>
   </div>
 </div>
 <section id="startScreen" class="menu home-screen" aria-labelledby="startTitle"><div class="home-shell"><div class="home-topline"><div><div class="eyebrow">THE OPEN TRAIL</div><h1 id="startTitle">Ridge Run<span class="title-dot">.</span></h1><p class="home-tagline">Climb farther. Collect coins. Build a better ride.</p></div><div class="home-balance">◇ <strong id="startBalance">0</strong> coins</div></div><div class="home-main"><div id="homePresentation" class="home-presentation" aria-label="Selected vehicle"></div><div class="home-actions"><div class="run-plan"><span>NEXT RUN</span><strong><span id="selectedStart">Base Vehicle</span> <i>·</i> <span id="homeSelectedMap">Countryside</span></strong><small id="startGoal"></small></div><button class="again home-start" id="startRun">Start Run</button><button class="secondary" id="startMap">Change Map</button><button class="secondary" id="startMultiplayer">Multiplayer</button><div class="home-vehicle-actions"><button class="secondary" id="startGarage">Garage &amp; Upgrades</button><button class="secondary" id="startStore">Vehicle Showroom</button></div><div class="home-utility-row"><button class="utility-button" id="startStats">Records</button><button class="utility-button" id="startAccount">Account</button></div><p class="home-controls-note">D / → Gas · A / ← Brake &amp; reverse · Use the same controls to balance in the air.</p></div></div></div></section>
