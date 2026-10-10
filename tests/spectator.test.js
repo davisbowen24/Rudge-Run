@@ -95,10 +95,17 @@ test('local elimination shows live distance leaderboard until server results, ne
     assert.equal(get('spectatorLeaderDistance').textContent,'1,600 m');
 
     // Existing per-frame polling still refreshes the spectator's race snapshots.
-    race.update(.016);
-    await Promise.resolve();
-    assert.ok(refreshed>0);
-    assert.equal(sent,0);
+    const previousPerformance=Object.getOwnPropertyDescriptor(globalThis,'performance');
+    Object.defineProperty(globalThis,'performance',{configurable:true,value:{now:()=>2000}});
+    try{
+      race.update(.016);
+      await Promise.resolve();
+      assert.ok(refreshed>0,'eliminated player still fetches race updates');
+      assert.equal(sent,0);
+    }finally{
+      if(previousPerformance)Object.defineProperty(globalThis,'performance',previousPerformance);
+      else delete globalThis.performance;
+    }
 
     // Final server outcome replaces the spectator card with normal results.
     room.status='results';
