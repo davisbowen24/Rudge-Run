@@ -16,6 +16,7 @@ export function createMain({ stats, workshop, effects, moments, state, upgrades,
     state.chaosWindAcceleration=0;
     state.chaosVehicleScale=1;
     state.chaosBaseVehicle=null;
+    state.stuntLanding=null;
     const requestedMap=options.mapId;
     state.activeMap=requestedMap&&MAPS[requestedMap]?requestedMap:(state.progression.ownedMaps.includes(state.progression.selectedMap)?state.progression.selectedMap:'countryside');
     CONFIG.world.gravity=MAPS[state.activeMap].gravity*GRAVITY_SCALE;
@@ -166,6 +167,7 @@ export function createMain({ stats, workshop, effects, moments, state, upgrades,
     state.chaosWindAcceleration = 0;
     state.chaosVehicleScale = 1;
     state.chaosBaseVehicle = null;
+    state.stuntLanding = null;
 
     state.time = 0;
 
