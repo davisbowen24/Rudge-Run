@@ -79,7 +79,7 @@ export function chaosVehicleFor(base,effects){
     v.enginePower*=0.4;v.engineTorque*=0.4;v.acceleration*=0.4;
   }
   if(ids.has('ice')){
-    v.staticGrip*=0.4;v.dynamicGrip*=0.4;v.tireGrip*=0.4;
+    v.staticGrip*=0.3;v.dynamicGrip*=0.3;v.tireGrip*=0.3;
   }
   if(ids.has('spring')){
     v.suspension*=1.8;v.suspensionDamping*=0.25;
