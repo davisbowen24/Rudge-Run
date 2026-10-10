@@ -58,7 +58,7 @@ export function createHandler({rpc,origins,pepper}){
         return reply({...result,memberToken});
       }
 
-      if(!['state','vehicle','ready','chase_mode','chaos_mode','losers_assist','start','vote','progress','progress_live','finish','rematch','leave'].includes(action))return reply({error:'Unknown action'},400);
+      if(!['state','vehicle','ready','chase_mode','chaos_mode','losers_assist','stunt_assist','start','vote','progress','progress_live','finish','rematch','leave'].includes(action))return reply({error:'Unknown action'},400);
       const memberToken=req.headers.get('x-ridge-multiplayer')||'';
       if(!/^[a-f0-9]{64}$/.test(memberToken))return reply({error:'Join a room first'},401);
       const tokenHash=await digest(memberToken);
@@ -93,6 +93,11 @@ export function createHandler({rpc,origins,pepper}){
       if(action==='losers_assist'){
         if(typeof body.enabled!=='boolean')return reply({error:"Invalid Loser's Assist setting"},400);
         result=await rpc('ridge_mp_losers_assist',{p_member_token_hash:tokenHash,p_enabled:body.enabled});
+      }
+
+      if(action==='stunt_assist'){
+        if(typeof body.enabled!=='boolean')return reply({error:"Invalid Stuntman's Assist setting"},400);
+        result=await rpc('ridge_mp_stunt_assist',{p_member_token_hash:tokenHash,p_enabled:body.enabled});
       }
 
       if(action==='start')result=await rpc('ridge_mp_start',{p_member_token_hash:tokenHash});
