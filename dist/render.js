@@ -1,4 +1,5 @@
 import { drawMapHorizon } from './mapPresentation.js';
+import { drawChaseHazard } from './chaseVisuals.js';
 import { canvasFont, UI_THEME } from './theme.js';
 import { BIOMES, LATE_BIOMES, MAPS, SEASONS } from './maps.js';
 import { VEHICLES } from './vehicles.js';
@@ -1418,6 +1419,17 @@ else {
       }
     }
 
+    // Shared Chase Mode boundary, behind the driver but above the terrain.
+    // Visual only; authoritative health and elimination remain on the server.
+    if(state.multiplayerRaceActive && state.chaseModeSnapshot?.enabled){
+      drawChaseHazard(state.ctx,{
+        mapId:state.activeMap,snapshot:state.chaseModeSnapshot,
+        viewLeft:left,viewRight:right,
+        viewTop:state.camera.y-50,
+        viewBottom:state.camera.y+state.H/state.scale+100,
+        pixelsPerMeter:CONFIG.world.pixelsPerMeter,timeMs:performance.now()
+      });
+    }
     effects.drawParticles(state.ctx);
     const v=CONFIG.vehicle;
     paintVehicle(state.ctx,v,physics.point(0,0).x,physics.point(0,0).y,state.car.a,state.car.wheels,v.tracked?state.car.trackPhase:state.car.wheelSpin);
