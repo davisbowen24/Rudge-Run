@@ -5,9 +5,9 @@ import {
   chaseWarningFor,drawChaseHazard
 } from '../dist/chaseVisuals.js';
 
-test('fifteen configured maps have reusable Chase hazard presets',()=>{
+test('all eighteen maps have reusable Chase hazard presets',()=>{
   assert.deepEqual(Object.keys(CHASE_HAZARD_THEMES).sort(),
-    ['alien','arctic','bootcamp','cave','construction','countryside','desert','haunted','highway','jungle','mars','moon','rooftops','underwater','volcano']);
+    ['alien','arctic','bootcamp','cave','construction','countryside','desert','haunted','highway','jungle','mars','moon','neon','rooftops','seasons','underwater','volcano','wasteland']);
   assert.equal(chaseHazardForMap('arctic').type,'avalanche');
   assert.equal(chaseHazardForMap('desert').type,'sandstorm');
   assert.equal(chaseHazardForMap('jungle').type,'flood');
@@ -23,7 +23,10 @@ test('fifteen configured maps have reusable Chase hazard presets',()=>{
   assert.equal(chaseHazardForMap('alien').type,'aliens');
   assert.equal(chaseHazardForMap('construction').type,'pipes');
   assert.equal(chaseHazardForMap('bootcamp').type,'mud');
-  assert.equal(chaseHazardForMap('seasons'),DEFAULT_CHASE_HAZARD);
+  assert.equal(chaseHazardForMap('seasons').type,'tornadoes');
+  assert.equal(chaseHazardForMap('wasteland').type,'sludge');
+  assert.equal(chaseHazardForMap('neon').type,'disco');
+  assert.equal(chaseHazardForMap('unknown-map'),DEFAULT_CHASE_HAZARD);
   for(const id of Object.keys(CHASE_HAZARD_THEMES)){
     assert.notEqual(chaseHazardForMap(id).approaching,DEFAULT_CHASE_HAZARD.approaching);
     assert.ok(chaseHazardForMap(id).caught.length>10);
@@ -49,6 +52,9 @@ test('warnings appear within 200 meters, intensify when caught and clear when sa
   assert.match(chaseWarningFor('alien',{distanceMeters:199}).label,/green aliens/i);
   assert.match(chaseWarningFor('construction',{distanceMeters:199}).label,/pipes/i);
   assert.match(chaseWarningFor('bootcamp',{distanceMeters:199}).label,/mud/i);
+  assert.match(chaseWarningFor('seasons',{distanceMeters:199}).label,/tornadoes/i);
+  assert.match(chaseWarningFor('wasteland',{distanceMeters:199}).label,/toxic sludge/i);
+  assert.match(chaseWarningFor('neon',{distanceMeters:199}).label,/disco dance party/i);
   assert.match(chaseWarningFor('volcano',{distanceMeters:-1}).label,/LAVA/);
   assert.match(chaseWarningFor('haunted',{distanceMeters:-1}).label,/GHOSTS/);
   assert.match(chaseWarningFor('underwater',{distanceMeters:-1}).label,/PIRANHAS/);
@@ -61,6 +67,9 @@ test('warnings appear within 200 meters, intensify when caught and clear when sa
   assert.match(chaseWarningFor('alien',{distanceMeters:-1}).label,/ALIENS/);
   assert.match(chaseWarningFor('construction',{distanceMeters:-1}).label,/PIPES/);
   assert.match(chaseWarningFor('bootcamp',{distanceMeters:-1}).label,/MUD/);
+  assert.match(chaseWarningFor('seasons',{distanceMeters:-1}).label,/TORNADOES/);
+  assert.match(chaseWarningFor('wasteland',{distanceMeters:-1}).label,/TOXIC SLUDGE/);
+  assert.match(chaseWarningFor('neon',{distanceMeters:-1}).label,/DISCO PARTY/);
   assert.match(chaseWarningFor('jungle',{distanceMeters:-25}).label,/FLOOD/);
   assert.equal(chaseWarningFor('arctic',{distanceMeters:50},true),null);
   assert.equal(chaseWarningFor('arctic',null),null);
@@ -80,7 +89,7 @@ function context(){
     rotate(a){calls.push(['rotate',a])}};
   return ctx;
 }
-test('all fifteen hazards render safely with the same camera and live boundary',()=>{
+test('all eighteen hazards render safely with the same camera and live boundary',()=>{
   for(const mapId of Object.keys(CHASE_HAZARD_THEMES)){
     const ctx=context();
     drawChaseHazard(ctx,{
@@ -202,6 +211,30 @@ test('batch-five aliens, tumbling pipes and mud have unique animated drawing pat
   const off=context();
   drawChaseHazard(off,{...options,mapId:'alien',snapshot:{enabled:false,positionMeters:100}});
   assert.equal(off.calls.length,0,'Chase OFF disables the alien mob');
+});
+
+test('batch six: seasons tornadoes, wasteland toxic globs and neon dancers render',()=>{
+  const opts={
+    snapshot:{enabled:true,positionMeters:100},viewLeft:500,viewRight:1700,
+    viewTop:-100,viewBottom:700,pixelsPerMeter:10,timeMs:1500,groundAt:()=>380
+  };
+  const storms=context();
+  drawChaseHazard(storms,{...opts,mapId:'seasons'});
+  assert.ok(storms.calls.filter(c=>c==='save').length>=4,'three separately animated tornado funnels');
+  assert.ok(storms.calls.filter(c=>c==='stroke').length>12,'tornado spiral bands and debris');
+  const toxin=context();
+  drawChaseHazard(toxin,{...opts,mapId:'wasteland'});
+  assert.ok(toxin.calls.filter(c=>c==='ellipse').length>40,'rolling toxic sludge globs');
+  assert.ok(toxin.calls.filter(c=>c==='arc').length>30,'toxic bubbles and highlights');
+  const party=context();
+  drawChaseHazard(party,{...opts,mapId:'neon'});
+  assert.ok(party.calls.filter(c=>Array.isArray(c)&&c[0]==='translate').length>15,
+    'disco dancers and a disco ball');
+  assert.ok(party.calls.filter(c=>Array.isArray(c)&&c[0]==='fillRect').length>30,
+    'dancers wear jackets and sunglasses');
+  const off=context();
+  drawChaseHazard(off,{...opts,mapId:'seasons',snapshot:{enabled:false,positionMeters:100}});
+  assert.equal(off.calls.length,0,'tornadoes never appear when Chase Mode is OFF');
 });
 
 test('hazards never draw outside Chase Mode or when fully off camera',()=>{
