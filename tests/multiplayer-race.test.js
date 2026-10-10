@@ -17,6 +17,13 @@ async function setup(){
   await db.exec(await readFile(new URL('../supabase/migrations/202610070002_multiplayer.sql',import.meta.url),'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/202610070004_multiplayer_races.sql',import.meta.url),'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/202610070005_multiplayer_rematches.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/202610100001_chase_live_sync.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/202610100002_chase_damage.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/202610100003_chaos_gravity.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/202610100004_chaos_pairs.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/202610100005_losers_assist.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/202610100006_stunt_assist.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/202610100007_multiplayer_points.sql',import.meta.url),'utf8'));
 
   const rawA='a'.repeat(64),rawB='b'.repeat(64),hashA=await sha(rawA),hashB=await sha(rawB);
   await db.query('select public.ridge_auth($1,$2,$3,$4)',[true,'Driver_A','Password-testing-123',hashA]);
@@ -125,9 +132,9 @@ test('multiplayer race lifecycle is authoritative from voting through results',a
 
     const ranked=results.data.room.members.filter(m=>m.raceActive).sort((a,b)=>(b.finalDistance??b.distance)-(a.finalDistance??a.distance));
     assert.deepEqual(ranked.map(m=>Math.round(m.finalDistance)),[123,101,88]);
-    assert.equal(results.data.room.members.find(m=>m.id===host.data.memberId).roomWins,1);
-    assert.equal(results.data.room.members.find(m=>m.id===second.data.memberId).roomWins,0);
-    assert.equal(results.data.room.members.find(m=>m.id===guest.data.memberId).roomWins,0);
+    assert.equal(results.data.room.members.find(m=>m.id===host.data.memberId).roomPoints,2);
+    assert.equal(results.data.room.members.find(m=>m.id===second.data.memberId).roomPoints,1);
+    assert.equal(results.data.room.members.find(m=>m.id===guest.data.memberId).roomPoints,0);
 
     const nonHostRematch=await send('rematch',{},s);
     assert.equal(nonHostRematch.status,403);
@@ -137,7 +144,7 @@ test('multiplayer race lifecycle is authoritative from voting through results',a
     assert.equal(rematch.data.room.status,'lobby');
     assert.ok(rematch.data.room.members.every(m=>m.ready===false));
     assert.ok(rematch.data.room.members.every(m=>m.raceActive===false));
-    assert.equal(rematch.data.room.members.find(m=>m.id===host.data.memberId).roomWins,1,'room wins survive a rematch');
+    assert.equal(rematch.data.room.members.find(m=>m.id===host.data.memberId).roomPoints,2,'room points survive a rematch');
 
     await send('ready',{ready:true},h);
     await send('ready',{ready:true},s);
@@ -159,9 +166,9 @@ test('multiplayer race lifecycle is authoritative from voting through results',a
     await send('finish',{distance:160,finishStatus:'dead'},s);
     const secondResults=await send('finish',{distance:90,finishStatus:'dead'},g);
     assert.equal(secondResults.data.room.status,'results');
-    assert.equal(secondResults.data.room.members.find(m=>m.id===host.data.memberId).roomWins,1);
-    assert.equal(secondResults.data.room.members.find(m=>m.id===second.data.memberId).roomWins,1);
-    assert.equal(secondResults.data.room.members.find(m=>m.id===guest.data.memberId).roomWins,0);
+    assert.equal(secondResults.data.room.members.find(m=>m.id===host.data.memberId).roomPoints,2);
+    assert.equal(secondResults.data.room.members.find(m=>m.id===second.data.memberId).roomPoints,3);
+    assert.equal(secondResults.data.room.members.find(m=>m.id===guest.data.memberId).roomPoints,1);
 
     const roomCount=(await db.query('select count(*)::int as n from ridge_private.multiplayer_rooms where code=$1',[code])).rows[0].n;
     assert.equal(roomCount,1,'results room should remain available until players leave or it expires');
@@ -204,17 +211,17 @@ test('four clients keep a room scoreboard across races and rematches',async()=>{
     assert.equal(firstResults.data.room.status,'results');
 
     const firstWinner=firstResults.data.room.members.find(m=>m.id===guests[0].data.memberId);
-    assert.equal(firstWinner.roomWins,1);
+    assert.equal(firstWinner.roomPoints,3);
     assert.deepEqual(
-      firstResults.data.room.members.map(m=>Number(m.roomWins||0)).sort((a,b)=>b-a),
-      [1,0,0,0]
+      firstResults.data.room.members.map(m=>Number(m.roomPoints||0)).sort((a,b)=>b-a),
+      [3,2,1,0]
     );
 
     const rematch=await send('rematch',{},h);
     assert.equal(rematch.status,200);
     assert.equal(rematch.data.room.status,'lobby');
     assert.equal(rematch.data.room.raceNumber,1);
-    assert.equal(rematch.data.room.members.find(m=>m.id===guests[0].data.memberId).roomWins,1);
+    assert.equal(rematch.data.room.members.find(m=>m.id===guests[0].data.memberId).roomPoints,3);
 
     for(const headers of [h,...guests.map(g=>g.headers)])await send('ready',{ready:true},headers);
     started=await send('start',{},h);
@@ -233,11 +240,11 @@ test('four clients keep a room scoreboard across races and rematches',async()=>{
 
     assert.equal(secondResults.data.room.status,'results');
     assert.equal(secondResults.data.room.raceNumber,2);
-    assert.equal(secondResults.data.room.members.find(m=>m.id===host.data.memberId).roomWins,1);
-    assert.equal(secondResults.data.room.members.find(m=>m.id===guests[0].data.memberId).roomWins,1);
+    assert.equal(secondResults.data.room.members.find(m=>m.id===host.data.memberId).roomPoints,6);
+    assert.equal(secondResults.data.room.members.find(m=>m.id===guests[0].data.memberId).roomPoints,5);
     assert.deepEqual(
-      secondResults.data.room.members.map(m=>Number(m.roomWins||0)).sort((a,b)=>b-a),
-      [1,1,0,0]
+      secondResults.data.room.members.map(m=>Number(m.roomPoints||0)).sort((a,b)=>b-a),
+      [6,5,2,2]
     );
   }finally{
     await db.close();
@@ -257,9 +264,9 @@ test('frontend multiplayer wiring includes voting, progress, countdown and resul
   assert.match(multiplayer,/progress\(distance\)/);
   assert.match(multiplayer,/async function rematch\(\)/);
   assert.match(lobby,/lobbyVoteGrid/);
-  assert.match(lobby,/roomWins/);
+  assert.match(lobby,/roomPoints/);
   assert.match(lobby,/is-room-leader/);
-  assert.match(race,/roomWins/);
+  assert.match(race,/roomPoints/);
   assert.match(race,/multiplayerResultsRematch/);
   assert.match(race,/multiplayerRematchTransition/);
   assert.match(multiplayer,/renderRoomScoreboard/);
