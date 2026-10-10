@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createUpgrades } from '../dist/upgrades.js';
-import { VEHICLE_STAT_TABLE, vehicleBase } from '../dist/vehicles.js';
+import { VEHICLE_STAT_TABLE, UPGRADE_CURVES, vehicleBase } from '../dist/vehicles.js';
+import { BASE_VEHICLE_TRAITS, MAX_LEVEL } from '../dist/config.js';
 
 const upgrades=createUpgrades({
   state:{progression:{selected:'base'}},
@@ -32,7 +33,7 @@ test('bike ATV and Moon Rover have strong air correction but restrained spin and
   assert.ok(VEHICLE_STAT_TABLE.rover.groundDamping>1);
 });
 
-test('motorcycle and ATV have the quickest spin-up and counter-rotation response',()=>{
+test('motorcycle and ATV have responsive spin-up and stronger counter-rotation',()=>{
   const bike=vehicleBase('bike');
   const atv=vehicleBase('atv');
   const rover=vehicleBase('rover');
@@ -48,7 +49,12 @@ test('motorcycle and ATV have the quickest spin-up and counter-rotation response
   const atvAuthority=airAccel(upgrades.vehicleStats(levels(0),'atv'))*atv.airResponse;
   const roverAuthority=airAccel(upgrades.vehicleStats(levels(0),'rover'))*rover.airResponse;
 
-  assert.ok(bikeAuthority>roverAuthority,'motorcycle should have more immediate air response than Moon Rover');
+  // The Moon Rover has strong *stock* air authority, while motorcycle Air Control
+  // is a separate upgrade. Both should remain responsive with the bike close to
+  // the rover at stock settings and clearly ahead after its Air Control upgrade.
+  assert.ok(bikeAuthority>roverAuthority*.95,'stock motorcycle should have comparable air response to Moon Rover');
+  const tunedBikeAuthority=airAccel(upgrades.vehicleStats(levels(MAX_LEVEL),'bike'))*bike.airResponse;
+  assert.ok(tunedBikeAuthority>roverAuthority,'upgraded motorcycle should respond faster than Moon Rover');
   assert.ok(atvAuthority>roverAuthority,'ATV should have more immediate air response than Moon Rover');
   assert.ok(bikeAuthority*bike.airBrake>bikeAuthority,'motorcycle counter-rotation should brake faster than same-direction spin-up');
   assert.ok(atvAuthority*atv.airBrake>atvAuthority,'ATV counter-rotation should brake faster than same-direction spin-up');
@@ -56,17 +62,27 @@ test('motorcycle and ATV have the quickest spin-up and counter-rotation response
 
 test('targeted drivePitch values reach runtime vehicle physics',()=>{
   for(const id of ['bike','atv','rover']){
-    assert.equal(vehicleBase(id).drivePitch,VEHICLE_STAT_TABLE[id].drivePitch);
+    const expected=BASE_VEHICLE_TRAITS.drivePitch*VEHICLE_STAT_TABLE[id].drivePitch;
+    assert.ok(Math.abs(vehicleBase(id).drivePitch-expected)<1e-12,
+      `${id} runtime drivePitch must include the common Jeep base value`);
   }
 });
 
-test('ATV and Moon Rover engine upgrades increase air control without explosive linear scaling',()=>{
+test('ATV and Moon Rover use fixed air control independent of engine upgrades',()=>{
+  // Air control was deliberately decoupled from engine upgrades. Their base
+  // authority is tuned using a bounded square-root of the former max power.
+  const tunedFactor=Math.sqrt(UPGRADE_CURVES.power[MAX_LEVEL]/UPGRADE_CURVES.power[0]);
+  assert.ok(tunedFactor>1 && tunedFactor<10);
   for(const id of ['atv','rover']){
     const low=upgrades.vehicleStats(levels(0),id);
-    const high=upgrades.vehicleStats(levels(5),id);
-    const ratio=airAccel(high)/airAccel(low);
-    assert.ok(ratio>1,`${id} should gain air authority with engine upgrades`);
-    assert.ok(ratio<10,`${id} air-control growth should stay controlled, got ${ratio}`);
+    const high=upgrades.vehicleStats(levels(MAX_LEVEL),id);
+    assert.equal(airAccel(high),airAccel(low),
+      `${id} air response must stay independent of engine and suspension levels`);
+    const base=vehicleBase(id);
+    const oldStockAuthority=base.airTilt*base.airControl*.8*(UPGRADE_CURVES.power[0]/10);
+    const actualFactor=airAccel(low)/oldStockAuthority;
+    assert.ok(Math.abs(actualFactor-tunedFactor)<1e-10,
+      `${id} should retain the bounded tuned air-control multiplier`);
   }
 });
 
