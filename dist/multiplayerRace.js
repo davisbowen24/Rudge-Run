@@ -30,6 +30,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     return Math.max(-200,Math.min(200,Number.isFinite(velocity)?velocity:0));
   }
   function clearChase(){
+    $('chaseHealthHud').hidden=true;
     chaseMode.setEnabled(false);
     chaseMode.reset();
     state.chaseModeSnapshot=null;
@@ -39,11 +40,18 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     const enabled=Boolean(active&&!finished&&room?.status==='racing'&&room.chaseModeEnabled===true);
     chaseMode.setEnabled(enabled);
     if(!enabled){
+      $('chaseHealthHud').hidden=true;
       state.chaseModeSnapshot=null;
       state.chaseModeProximity=null;
       return;
     }
     const now=performance.now(),selfId=multiplayer.session()?.memberId;
+    const self=room.members?.find(member=>member.id===selfId);
+    const health=Math.max(0,Math.min(100,Number(self?.chaseHealth??100)));
+    $('chaseHealthHud').hidden=false;
+    $('chaseHealthPercent').textContent=Math.ceil(health)+'%';
+    $('chaseHealthFill').style.width=health+'%';
+    $('chaseHealthHud').classList.toggle('is-damaged',health<35);
     const racers=participantMembers(room).map(member=>{
       // Convert server sample timestamps into this client's monotonic clock.
       // The server stamps the sample; a repeated room poll doesn't refresh it.
@@ -179,7 +187,19 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     if(room.status==='countdown')armCountdown(room);
     if(room.status==='racing'){
       const me=room.members?.find(member=>member.id===multiplayer.session()?.memberId);
-      if(me?.raceActive&&!active&&!finished)startRun(room);
+      if(me?.raceActive&&!active&&!finished&&!me.chaseCaught)startRun(room);
+      if(active&&!finished&&me?.chaseCaught){
+        // The server is authoritative for damage and elimination. Do not
+        // continue running locally once the confirmed outcome arrives.
+        finished=true;
+        state.playing=false;
+        state.multiplayerRaceActive=false;
+        clearChase();
+        $('multiplayerRaceEndReason').textContent='Caught by the chase!';
+        $('multiplayerRaceEndDistance').textContent=Math.round(Number(me.finalDistance??me.distance??0)).toLocaleString('en-US')+' m';
+        $('multiplayerRaceEnd').hidden=false;
+        $('multiplayerProgress').hidden=true;
+      }
     }
     if(room.status==='results')renderResults(room);
   }
