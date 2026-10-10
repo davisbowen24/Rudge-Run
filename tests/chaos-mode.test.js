@@ -25,14 +25,24 @@ test('six seconds ON then six OFF, with three-second next-event warning',()=>{
   assert.equal(at(24000).active,true);
   assert.equal(at(6000).effects.length,0);
   assert.equal(at(9000).effects.map(x=>x.id).join(),at(12000).effects.map(x=>x.id).join());
+  // The upcoming warning, active period, and other players must see the
+  // exact same randomly selected one- or two-effect event.
+  for(let cycle=0;cycle<60;cycle++){
+    const warning=at(cycle*CHAOS_CYCLE_MS+CHAOS_CYCLE_MS-1000);
+    const active=at((cycle+1)*CHAOS_CYCLE_MS);
+    assert.deepEqual(warning.effects,active.effects);
+    assert.ok([1,2].includes(active.effects.length));
+  }
 });
-test('two distinct compatible effects are determined by server seed for all players',()=>{
+test('one modifier normally, with a 25% chance of a second compatible modifier',()=>{
   assert.equal(CHAOS_MODIFIERS.length,10);
   const seen=new Set();
-  for(let c=0;c<300;c++){
+  let single=0,double=0;
+  for(let c=0;c<10000;c++){
     const pair=chaosPair(room.chaosSeed,room.raceNumber,c);
-    assert.equal(pair.length,2);
-    assert.notEqual(pair[0].id,pair[1].id);
+    assert.ok(pair.length===1||pair.length===2,'every round has one or two effects');
+    if(pair.length===1)single++;else double++;
+    if(pair.length===2)assert.notEqual(pair[0].id,pair[1].id);
     const ids=pair.map(x=>x.id);
     assert.ok(!(ids.includes('moon')&&ids.includes('heavy')));
     assert.ok(!(ids.includes('giant')&&ids.includes('tiny')));
@@ -40,6 +50,8 @@ test('two distinct compatible effects are determined by server seed for all play
     assert.deepEqual(pair,chaosPair(room.chaosSeed,room.raceNumber,c));
     for(const x of pair)seen.add(x.id);
   }
+  assert.ok(single>7000&&single<8000,'approximately 75% of rounds have one modifier');
+  assert.ok(double>2000&&double<3000,'approximately 25% of rounds have two modifiers');
   assert.deepEqual([...seen].sort(),CHAOS_MODIFIERS.map(x=>x.id).sort());
   assert.notDeepEqual(chaosPair(room.chaosSeed,room.raceNumber,4),chaosPair(room.chaosSeed+1,room.raceNumber,4));
 });

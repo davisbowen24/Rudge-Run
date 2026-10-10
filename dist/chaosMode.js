@@ -1,5 +1,6 @@
 /** Chaos Mode: one server-selected seed and shared race timestamp produce
- * two distinct, compatible effects on every client. No realtime physics RPCs.
+ * one effect per round, with a 25% chance of a second compatible effect.
+ * No realtime physics RPCs.
  */
 export const CHAOS_CYCLE_MS=12000;
 export const CHAOS_EFFECT_MS=6000;
@@ -19,7 +20,7 @@ export const CHAOS_MODIFIERS=Object.freeze([
 const CONFLICTS=[['moon','heavy'],['giant','tiny'],['turbo','trouble']];
 const conflict=(a,b)=>CONFLICTS.some(pair=>pair.includes(a)&&pair.includes(b));
 // Stable integer PRNG. The seed comes from the server at room creation;
-// race number and cycle make a fresh, identical pair across all clients.
+// race number and cycle make fresh, identical choices across all clients.
 export function chaosPair(seed,raceNumber,cycle){
   if(!Number.isSafeInteger(seed)||!Number.isInteger(raceNumber)||!Number.isSafeInteger(cycle)||cycle<0)return [];
   let x=(seed ^ Math.imul(raceNumber,0x9e3779b9) ^ Math.imul(cycle+1,0x85ebca6b))>>>0;
@@ -30,6 +31,9 @@ export function chaosPair(seed,raceNumber,cycle){
     return ((t^(t>>>14))>>>0)/4294967296;
   };
   const first=CHAOS_MODIFIERS[Math.floor(next()*CHAOS_MODIFIERS.length)];
+  // Exactly one extra effect per round at most. This independent draw
+  // preserves a 75% chance of one modifier and a 25% chance of two.
+  if(next()>=0.25)return [first];
   const choices=CHAOS_MODIFIERS.filter(effect=>effect.id!==first.id&&!conflict(first.id,effect.id));
   const second=choices[Math.floor(next()*choices.length)];
   return [first,second];
