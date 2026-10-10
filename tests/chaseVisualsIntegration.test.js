@@ -2,14 +2,25 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createMultiplayerRace} from '../dist/multiplayerRace.js';
 
-test('all eighteen themed maps share Chase tracking but show their own warning copy',()=>{
+test('all eighteen themed maps display compact icon-only chase warnings and distance',()=>{
   const originalDocument=globalThis.document;
   const elements=new Map();
   globalThis.document={getElementById(id){
-    if(!elements.has(id))elements.set(id,{
-      hidden:true,innerHTML:'',textContent:'',style:{width:''},
-      disabled:false,classList:{toggle(){},remove(){}}
-    });
+    if(!elements.has(id)){
+      const classes=new Set();
+      const attributes=new Map();
+      elements.set(id,{
+        hidden:true,innerHTML:'',textContent:'',style:{width:'',cssText:''},
+        disabled:false,attributes,
+        setAttribute(name,value){attributes.set(name,value);},
+        classList:{
+          toggle(name,force){if(force===undefined? !classes.has(name):force)classes.add(name);
+            else classes.delete(name);},
+          remove(name){classes.delete(name);},
+          contains(name){return classes.has(name);}
+        }
+      });
+    }
     return elements.get(id);
   }};
   try{
@@ -36,25 +47,45 @@ test('all eighteen themed maps share Chase tracking but show their own warning c
       economy:{runMeters:x=>Math.max(0,(x-140)/10)}
     });
     race.syncFromRoom(room);
-    for(const [mapId,copy] of [
-      ['arctic','Avalanche'],['desert','Sandstorm'],['jungle','Flash flood'],
-      ['volcano','Lava surge'],['haunted','Ghosts'],['underwater','Piranhas'],
-      ['countryside','cows'],['mars','Martian lava'],['rooftops','grandmothers'],
-      ['highway','semi'],['cave','spiders'],['moon','UFOs'],
-      ['alien','green aliens'],['construction','pipes'],['bootcamp','mud'],
-      ['seasons','Tornadoes'],['wasteland','Toxic sludge'],['neon','disco dance party']
-    ]){
+    const mapIds=[
+      'arctic','desert','jungle','volcano','haunted','underwater',
+      'countryside','mars','rooftops','highway','cave','moon','alien',
+      'construction','bootcamp','seasons','wasteland','neon'
+    ];
+    const icons=new Set();
+    for(const mapId of mapIds){
       room.selectedMap=mapId;state.activeMap=mapId;
       race.update(.016);race.update(.016);
-      assert.equal(elements.get('chaseWarning').hidden,false,mapId);
-      assert.match(elements.get('chaseWarningText').textContent,new RegExp(copy,'i'),mapId);
+      const warning=elements.get('chaseWarning');
+      const svg=elements.get('chaseWarningIcon').innerHTML;
+      assert.equal(warning.hidden,false,mapId);
+      assert.match(svg,/<svg[^>]+viewBox="0 0 64 64"/,mapId);
+      icons.add(svg);
+      assert.equal(elements.get('chaseWarningDistance').textContent,'50 m',mapId);
+      assert.match(warning.style.cssText,/--chase-accent:#[0-9a-f]{6}/,mapId);
+      assert.match(warning.attributes.get('aria-label'),/50 meters until caught/,mapId);
+      assert.equal(warning.classList.contains('is-disco'),mapId==='neon',mapId);
       assert.match(elements.get('multiplayerProgressMarkers').innerHTML,/chase-hazard-marker/,mapId);
       assert.equal(elements.get('chaseHealthPercent').textContent,'60%');
     }
+    // Volcano and Mars intentionally share a lava silhouette: the remaining
+    // sixteen map hazards each have their own unique illustration.
+    assert.equal(icons.size,17,'all 17 hazard types have distinct SVG icons');
+    // Caught means 0 m, a pulsing state, and accessible health notification.
+    state.car.x=11640;
+    race.update(.016);
+    assert.equal(elements.get('chaseWarningDistance').textContent,'0 m');
+    assert.equal(elements.get('chaseWarning').classList.contains('is-caught'),true);
+    assert.match(elements.get('chaseWarning').attributes.get('aria-label'),/Health draining/);
+    // Returning to safety clears the caught state and remains distance-only.
+    state.car.x=13140;
+    race.update(.016);
+    assert.equal(elements.get('chaseWarning').classList.contains('is-caught'),false);
     room.chaseModeEnabled=false;
     race.update(.016);race.update(.016);
     assert.equal(elements.get('chaseWarning').hidden,true);
     assert.equal(elements.get('chaseHealthHud').hidden,true);
+    assert.equal(elements.get('chaseWarningDistance').textContent,'50 m');
     assert.doesNotMatch(elements.get('multiplayerProgressMarkers').innerHTML,/chase-hazard-marker/);
     assert.equal(state.chaseModeSnapshot,null);
   }finally{globalThis.document=originalDocument;}
