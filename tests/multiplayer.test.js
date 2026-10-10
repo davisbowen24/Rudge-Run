@@ -18,6 +18,7 @@ test('multiplayer rooms support guests, accounts, ownership, ready state, host t
     await db.exec(await readFile(new URL('../supabase/migrations/202610100001_chase_live_sync.sql',import.meta.url),'utf8'));
     await db.exec(await readFile(new URL('../supabase/migrations/202610100002_chase_damage.sql',import.meta.url),'utf8'));
     await db.exec(await readFile(new URL('../supabase/migrations/202610100003_chaos_gravity.sql',import.meta.url),'utf8'));
+    await db.exec(await readFile(new URL('../supabase/migrations/202610100004_chaos_pairs.sql',import.meta.url),'utf8'));
     const rawA='a'.repeat(64),rawB='b'.repeat(64),hashA=await sha(rawA),hashB=await sha(rawB);
     await db.query('select public.ridge_auth($1,$2,$3,$4)',[true,'Driver_A','Password-testing-123',hashA]);
     await db.query('select public.ridge_auth($1,$2,$3,$4)',[true,'Driver_B','Password-testing-456',hashB]);
@@ -49,6 +50,9 @@ test('multiplayer rooms support guests, accounts, ownership, ready state, host t
     const modeOff=await send('chase_mode',{enabled:false},guestHeaders);
     assert.equal(modeOff.data.room.chaseModeEnabled,false);
     assert.equal(guest.data.room.chaosModeEnabled,false,'Chaos Mode defaults OFF');
+    assert.ok(Number.isInteger(guest.data.room.chaosSeed),'server assigns a deterministic Chaos seed');
+    assert.ok(Number.isInteger(a.data.room.chaosSeed));
+    assert.equal(a.data.room.chaosSeed,guest.data.room.chaosSeed);
     const chaosBad=await send('chaos_mode',{enabled:'yes'},guestHeaders);
     assert.equal(chaosBad.status,400,'Chaos Mode requires a boolean');
     const chaosDenied=await send('chaos_mode',{enabled:true},{'X-Ridge-Multiplayer':a.data.memberToken});

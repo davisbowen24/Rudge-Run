@@ -1433,7 +1433,24 @@ else {
     }
     effects.drawParticles(state.ctx);
     const v=CONFIG.vehicle;
-    paintVehicle(state.ctx,v,physics.point(0,0).x,physics.point(0,0).y,state.car.a,state.car.wheels,v.tracked?state.car.trackPhase:state.car.wheelSpin);
+    const x=state.car.x,y=state.car.y,scale=state.chaosVehicleScale||1;
+    if(scale!==1&&state.chaosBaseVehicle){
+      // Scale the entire vehicle illustration around its chassis, including
+      // decorative parts that are drawn with hardcoded sizes in paintVehicle.
+      // Physics already uses scaled wheel positions/collision geometry.
+      const rawWheels=state.car.wheels.map(w=>({...w,
+        x:x+(w.x-x)/scale,y:y+(w.y-y)/scale,r:w.r/scale}));
+      state.ctx.save();
+      state.ctx.translate(x,y);
+      state.ctx.scale(scale,scale);
+      state.ctx.translate(-x,-y);
+      paintVehicle(state.ctx,state.chaosBaseVehicle,x,y,state.car.a,rawWheels,
+        v.tracked?state.car.trackPhase/scale:state.car.wheelSpin/scale);
+      state.ctx.restore();
+    }else{
+      paintVehicle(state.ctx,v,physics.point(0,0).x,physics.point(0,0).y,state.car.a,state.car.wheels,
+        v.tracked?state.car.trackPhase:state.car.wheelSpin);
+    }
     state.ctx.restore();
 
     effects.drawSpeed(state.ctx);

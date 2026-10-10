@@ -115,7 +115,7 @@ export function createLobbyUi({multiplayer,cloudSave,state,ui,race}){
     const chaosToggle=$('lobbyChaosMode');
     chaosToggle.checked=room.chaosModeEnabled===true;
     chaosToggle.disabled=busy||!inLobby||!me?.isHost;
-    $('lobbyChaosModeStatus').textContent=chaosToggle.checked?'ON · 50% gravity every 30s':'OFF · Normal gravity';
+    $('lobbyChaosModeStatus').textContent=chaosToggle.checked?'ON · Two effects, 6s on / 6s off':'OFF · Normal gravity';
     $('lobbyLeave').disabled=busy;
     $('lobbyCopy').disabled=busy;
 

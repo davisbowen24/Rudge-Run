@@ -4,7 +4,7 @@ import { MAPS } from './maps.js';
 import { MULTIPLAYER_CONFIG } from './multiplayerConfig.js';
 import { CONFIG } from './config.js';
 import { createChaseMode } from './chaseMode.js';
-import { chaosGravityAt } from './chaosMode.js';
+import { chaosStateAt, chaosVehicleFor } from './chaosMode.js';
 import { chaseHazardForMap, chaseWarningFor } from './chaseVisuals.js';
 import { chaseWarningVisualForMap } from './chaseWarningIcons.js';
 
@@ -13,7 +13,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
   let lastPush=0,lastRefresh=0,pushInFlight=false,refreshInFlight=false;
   const targets=new Map(),displayed=new Map();
   const chaseMode=createChaseMode();
-  let lastWarningMapId=null;
+  let lastWarningMapId=null,baseChaosVehicle=null,appliedChaosKey='',appliedChaosSize=1;
 
 
   function nowServer(){return Date.now()+serverOffset;}
@@ -33,16 +33,50 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     const velocity=(state.car?.vx??0)/CONFIG.world.pixelsPerMeter;
     return Math.max(-200,Math.min(200,Number.isFinite(velocity)?velocity:0));
   }
+  function installChaosEffects(effects){
+    const key=effects.map(effect=>effect.id).join('+');
+    if(key===appliedChaosKey)return;
+    if(!baseChaosVehicle)return;
+    const tuned=chaosVehicleFor(baseChaosVehicle,effects);
+    const newSize=tuned.size;
+    if(state.car&&newSize!==appliedChaosSize){
+      const factor=newSize/appliedChaosSize;
+      state.car.wheelLengths=state.car.wheelLengths.map(length=>length*factor);
+      // Avoid instantly burying enlarged tires and chassis in the ground.
+      if(factor>1)state.car.y-=(factor-1)*Math.max(20,baseChaosVehicle.wheelRadius+baseChaosVehicle.suspensionTravel);
+    }
+    Object.assign(CONFIG.vehicle,tuned.vehicle);
+    state.chaosGravityMultiplier=tuned.gravityMultiplier;
+    state.chaosWindAcceleration=tuned.windAcceleration;
+    state.chaosVehicleScale=newSize;
+    state.chaosBaseVehicle=baseChaosVehicle;
+    appliedChaosSize=newSize;
+    appliedChaosKey=key;
+  }
   function clearChaos(){
+    if(baseChaosVehicle){
+      installChaosEffects([]);
+      baseChaosVehicle=null;
+    }
+    appliedChaosKey='';
+    appliedChaosSize=1;
     state.chaosGravityMultiplier=1;
+    state.chaosWindAcceleration=0;
+    state.chaosVehicleScale=1;
+    state.chaosBaseVehicle=null;
     $('chaosGravityHud').hidden=true;
   }
   function updateChaos(room=multiplayer.room()){
-    const phase=chaosGravityAt(room,nowServer(),active&&!finished&&state.playing);
-    state.chaosGravityMultiplier=phase.multiplier;
+    const phase=chaosStateAt(room,nowServer(),active&&!finished&&state.playing);
+    installChaosEffects(phase.active?phase.effects:[]);
     const hud=$('chaosGravityHud');
-    hud.hidden=!phase.active;
-    if(phase.active)$('chaosGravitySeconds').textContent=Math.ceil(phase.remainingMs/1000)+'s';
+    hud.hidden=!phase.active&&!phase.warning;
+    if(phase.active||phase.warning){
+      const names=phase.effects.map(effect=>effect.icon+' '+effect.name).join(' + ');
+      $('chaosEffectsNames').textContent=(phase.warning?'UP NEXT: ':'')+names;
+      $('chaosGravitySeconds').textContent=Math.ceil(phase.remainingMs/1000)+'s';
+      hud.classList.toggle('is-warning',phase.warning);
+    }
   }
   function clearChase(){
     clearChaos();
@@ -152,6 +186,10 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     $('multiplayerRaceEnd').hidden=true;
     $('multiplayerProgress').hidden=false;
     main.reset({mapId:room.selectedMap,vehicleId:me.vehicleId,multiplayer:true});
+    baseChaosVehicle=structuredClone(CONFIG.vehicle);
+    appliedChaosKey='';
+    appliedChaosSize=1;
+    updateChaos(room);
     multiplayer.renderRoomScoreboard?.();
     updateTargets(room);
   }

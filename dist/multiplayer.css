@@ -177,3 +177,8 @@ body[data-screen="multiplayerResults"] .menu-status{display:none}
 .chaos-gravity-hud span{color:#b5d2ff;font-variant-numeric:tabular-nums}
 .chaos-gravity-hud[hidden]{display:none!important}
 @media(max-width:560px){.chaos-gravity-hud{top:262px;font-size:11px;padding:6px 9px;gap:8px}}
+
+.chaos-gravity-hud{max-width:min(600px,90vw);white-space:normal;text-align:center;line-height:1.25}
+.chaos-gravity-hud.is-warning{border-color:#ffd48a;color:#fff3d8;background:#3b2c1fec}
+.chaos-gravity-hud strong{min-width:0}
+@media(max-width:560px){.chaos-gravity-hud{width:max-content;max-width:86vw;top:255px}}

@@ -232,7 +232,7 @@ export function createPhysics({ stats, moments, state, terrain, ui, save, input,
 
     const dx=x-state.car.x,dy=y-state.car.y,c=Math.cos(state.car.a),s=Math.sin(state.car.a),lx=dx*c+dy*s,ly=-dx*s+dy*c+v.comOffsetY;
 
-    if(Math.hypot(lx-v.head.x,ly-v.head.y)<=12+r)
+    if(Math.hypot(lx-v.head.x,ly-v.head.y)<=12*(state.chaosVehicleScale||1)+r)
     return true;
 
     const poly=v.pickupPolygon??(v.visualType==='bike'?[[-26,-22],[5,-22],[26,-10],[31,12],[-31,10]]:v.visualType==='tractor'?[[-57,9],[-57,-17],[-27,-20],[3,-23],[51,-16],[58,11]]:v.tracked?[[-95,-12],[-84,7],[61,-4],[86,-17],[85,-28],[49,-21]]:[[-v.halfWidth,-7],[-38,-20],[20,-20],[30,-10],[v.halfWidth,-7],[v.halfWidth,13],[-v.halfWidth,13]]);
@@ -317,7 +317,7 @@ export function createPhysics({ stats, moments, state, terrain, ui, save, input,
     if(gas||brake)
     state.started=true;
     state.time+=dt;
-    CONFIG.world.gravity=effectiveGravity(state.activeMap,state.time)*(state.chaosGravityMultiplier===0.5?0.5:1);
+    CONFIG.world.gravity=effectiveGravity(state.activeMap,state.time)*(state.chaosGravityMultiplier||1);
     state.bonusEvents=state.bonusEvents.filter(e=>(e.age+=dt)<3);
     if(!state.started)
     return;
@@ -462,6 +462,7 @@ export function createPhysics({ stats, moments, state, terrain, ui, save, input,
 
 // Quadratic air drag and rolling resistance produce a natural terminal speed, never a hard cap.
 
+    fx+=v.mass*(state.chaosWindAcceleration||0);
     fx-=v.aeroDrag*(MAPS[state.activeMap].drag??1)*state.car.vx*Math.abs(state.car.vx);
     fy-=v.aeroDrag*(MAPS[state.activeMap].drag??1)*.12*state.car.vy*Math.abs(state.car.vy);
     state.car.vx+=fx/v.mass*dt;
