@@ -2,8 +2,10 @@ import { CONFIG, MAX_LEVEL, MILESTONES } from './config.js';
 import { BASE_MAP_TRAITS, MAPS } from './maps.js';
 import { UPGRADES, UPGRADE_PRICES, VEHICLES } from './vehicles.js';
 import { $ } from './utils.js';
+import { createFlipDetector } from './flipDetection.js';
 
 export function createEconomy({ stats, moments, state, terrain, save, ui, upgrades }) {
+  const flipDetector=createFlipDetector();
 
   function runMeters(x){
     return Math.max(0,(x-140)/CONFIG.world.pixelsPerMeter);
@@ -105,22 +107,36 @@ export function createEconomy({ stats, moments, state, terrain, save, ui, upgrad
     save.saveProgress();
   }
 
+  function resetTricks(){
+    flipDetector.reset();
+    state.airRotation=0;
+    state.airTime=0;
+  }
+
   function updateTricks(delta,grounded,dt){
+    // All game modes share this detector: recover upright after inversion,
+    // or finish that recovery by landing wheel-first near upright.
+    const flips=flipDetector.step({
+      angle:state.car.a,
+      delta,
+      grounded,
+      onWheels:Boolean(grounded&&state.car.wheels?.some(w=>w.normal>0))
+    });
     if(grounded){
       state.airRotation=0;
       state.airTime=0;
-      return;
+    }else{
+      state.airTime+=dt;
+      state.airRotation+=delta;
     }
-    state.airTime+=dt;
-    state.airRotation+=delta;
-    const turn=Math.PI*2;
-    while(Math.abs(state.airRotation)>=turn){
-      const direction=Math.sign(state.airRotation);
-      state.airRotation-=direction*turn;
+    for(const flip of flips){
       const reward=Math.max(1,Math.floor(runMeters(state.car.x)));
       stats.flip();
       awardCoins(reward);
-      moments.emit('flip',{direction:direction<0?'BACKFLIP':'FRONTFLIP',reward});
+      moments.emit('flip',{
+        direction:flip.direction<0?'BACKFLIP':'FRONTFLIP',
+        reward
+      });
     }
   }
 
@@ -204,6 +220,6 @@ export function createEconomy({ stats, moments, state, terrain, save, ui, upgrad
     return true;
   }
 
-  return { runMeters, fuelGapAt, coinFrequencyAt, coinGroupSpacingAt, safeFuelX, checkpointDistance, milestoneReward, nextGoal, coinTierAt, nextFuelMeters, upgradeCost, generate, recordBest, awardCoins, updateTricks, checkpointClaimed, updateCheckpoints, buyUpgrade, unlockVehicle, selectVehicle, unlockMap, selectMap };
+  return { runMeters, fuelGapAt, coinFrequencyAt, coinGroupSpacingAt, safeFuelX, checkpointDistance, milestoneReward, nextGoal, coinTierAt, nextFuelMeters, upgradeCost, generate, recordBest, awardCoins, updateTricks, resetTricks, checkpointClaimed, updateCheckpoints, buyUpgrade, unlockVehicle, selectVehicle, unlockMap, selectMap };
 
 }
