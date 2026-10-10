@@ -237,12 +237,16 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     updateChase(dt);
     if(!active)return;
     const now=performance.now();
+    // Independent race polling is essential: progress submissions can stall,
+    // and a racer who has finished still needs the latest room/leader state.
+    // Snapshot revision checks in multiplayer.js reject out-of-order replies.
+    if(now-lastRefresh>=MULTIPLAYER_CONFIG.raceRefreshMs){
+      lastRefresh=now;
+      refreshAfterFinish();
+    }
     if(!finished&&state.playing&&now-lastPush>=MULTIPLAYER_CONFIG.raceProgressMs){
       lastPush=now;
       pushProgress();
-    }else if((finished||!state.playing)&&now-lastRefresh>=MULTIPLAYER_CONFIG.raceRefreshMs){
-      lastRefresh=now;
-      refreshAfterFinish();
     }
   }
 
