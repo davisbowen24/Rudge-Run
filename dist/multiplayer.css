@@ -93,3 +93,10 @@ body[data-screen="multiplayerResults"] .menu-status{display:none}
   .multiplayer-rematch-transition,
   .multiplayer-rematch-transition>div{transition:none}
 }
+
+/* Room-wide, host-only Chase Mode control. */
+.lobby-chase-option{grid-column:1/-1;display:flex!important;align-items:center;gap:12px;padding:12px;border:1px solid #ffffff35;border-radius:10px;background:#17313b;cursor:pointer}
+.lobby-chase-option input{width:22px;height:22px;margin:0;flex:none;accent-color:var(--text-reward)}
+.lobby-chase-option span,.lobby-chase-option small{display:block}
+.lobby-chase-option small{font-size:12px;margin-top:4px;color:var(--text-secondary)}
+.lobby-chase-option:has(input:disabled){cursor:default;opacity:.8}
