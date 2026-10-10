@@ -110,21 +110,61 @@ body[data-screen="multiplayerResults"] .menu-status{display:none}
 .chase-health-hud.is-damaged .chase-health-fill{background:#f16a64}
 @media(max-width:560px){.chase-health-hud{top:150px;left:8px;width:125px;padding:7px}.chase-health-head{font-size:10px}}
 
-/* Shared, noninteractive Chase warnings; per-map copy comes from chaseVisuals.js. */
-.chase-warning{position:fixed;z-index:24;top:154px;left:50%;transform:translateX(-50%);
-  width:max-content;max-width:min(410px,72vw);padding:9px 17px;text-align:center;
-  color:#ffefc4;background:rgba(77,47,20,.93);border:2px solid #ffc16a;
-  border-radius:12px;box-shadow:0 8px 28px #070c11aa;pointer-events:none}
+/* Compact, icon-first Chase HUD. Each hazard injects fixed, curated color
+   tokens in multiplayerRace.js. No map name or warning prose is shown. */
+.chase-warning{
+  --chase-accent:#ffda90;--chase-bg:#30271f;--chase-border:#d0a36a;
+  position:fixed;z-index:24;top:154px;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  box-sizing:border-box;min-width:116px;height:62px;padding:6px 12px 6px 8px;
+  color:var(--chase-accent);background:linear-gradient(130deg,var(--chase-bg),#0c1c29);
+  border:2px solid var(--chase-border);border-radius:15px;
+  box-shadow:0 5px 24px #0009,0 0 12px color-mix(in srgb,var(--chase-border) 42%,transparent);
+  pointer-events:none;white-space:nowrap;font-variant-numeric:tabular-nums;
+}
 .chase-warning[hidden]{display:none!important}
-.chase-warning strong,.chase-warning small{display:block;line-height:1.25}
-.chase-warning strong{font-size:13px;letter-spacing:.04em}
-.chase-warning small{font-size:11px;margin-top:3px;color:#ffe3b5}
-.chase-warning.is-caught{background:rgba(112,27,21,.96);border-color:#ff766e;
-  animation:chase-warning-pulse .65s ease-in-out infinite alternate}
-@keyframes chase-warning-pulse{from{box-shadow:0 0 12px #ff766e40}to{box-shadow:0 0 28px #ff766eaa}}
-@media(prefers-reduced-motion:reduce){.chase-warning.is-caught{animation:none}}
-@media(max-width:560px){.chase-warning{top:195px;max-width:70vw;padding:6px 10px}
-  .chase-warning strong{font-size:11px}.chase-warning small{font-size:10px}}
+.chase-warning-icon{
+  width:47px;height:47px;flex:none;display:grid;place-items:center;
+  box-sizing:border-box;border-radius:11px;
+  background:color-mix(in srgb,var(--chase-accent) 13%,transparent);
+  color:var(--chase-accent);
+}
+.chase-warning-icon svg{display:block;width:42px;height:42px;overflow:visible}
+.chase-warning-distance{
+  font-family:inherit;font-size:25px;font-weight:950;line-height:1;
+  letter-spacing:-.04em;color:#fff8e9;
+  text-shadow:0 2px 8px #0009;
+}
+.chase-warning.is-caught{
+  border-color:#ff655e;
+  background:linear-gradient(125deg,#611e21,var(--chase-bg));
+  box-shadow:0 5px 24px #0009,0 0 14px #ff5d65a9;
+  animation:chase-warning-pulse .65s ease-in-out infinite alternate;
+}
+.chase-warning.is-caught .chase-warning-distance{color:#fff6f3}
+.chase-warning.is-disco:not(.is-caught){
+  animation:chase-disco-glow 2.4s ease-in-out infinite alternate;
+}
+@keyframes chase-warning-pulse{
+  from{box-shadow:0 5px 16px #0009,0 0 8px #ff5d6555}
+  to{box-shadow:0 5px 24px #0009,0 0 28px #ff5d65da}
+}
+@keyframes chase-disco-glow{
+  from{border-color:#ff6acc;box-shadow:0 5px 18px #0009,0 0 10px #ff6ac777}
+  to{border-color:#58f5ff;box-shadow:0 5px 18px #0009,0 0 15px #55e3faaa}
+}
+@media(prefers-reduced-motion:reduce){
+  .chase-warning.is-caught,.chase-warning.is-disco:not(.is-caught){animation:none}
+}
+@media(max-width:560px){
+  .chase-warning{
+    top:195px;min-width:100px;height:51px;padding:5px 9px 5px 6px;
+    gap:7px;border-radius:12px
+  }
+  .chase-warning-icon{width:39px;height:39px;border-radius:8px}
+  .chase-warning-icon svg{width:35px;height:35px}
+  .chase-warning-distance{font-size:22px}
+}
 /* The hazard uses the same race distance scale as every racer. */
 .race-marker.chase-hazard-marker{width:5px;height:22px;border-radius:3px;
   border:1px solid #ffe5ad;background:#f1a243;z-index:3}
