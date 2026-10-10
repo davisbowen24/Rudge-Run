@@ -220,11 +220,16 @@ export function createLobbyUi({multiplayer,cloudSave,state,ui,race}){
         $('lobbyStatus').textContent='Copy unavailable · code is '+(multiplayer.room()?.code||'');
       }
     });
-    $('lobbyVehicle').addEventListener('change',e=>action(async()=>{
-      const id=e.target.value;
-      if(!state.progression.owned.includes(id))throw new Error('That vehicle is not owned.');
-      await multiplayer.updateVehicle(id);
-    }));
+    $('lobbyVehicle').addEventListener('change',e=>{
+      // action() synchronously re-renders the lobby and resets this dropdown
+      // to the previously selected server vehicle. Capture the user's choice
+      // before that redraw so the requested car actually reaches the server.
+      const id=e.currentTarget.value;
+      return action(async()=>{
+        if(!state.progression.owned.includes(id))throw new Error('That vehicle is not owned.');
+        await multiplayer.updateVehicle(id);
+      });
+    });
     $('lobbyChaseMode').addEventListener('change',e=>{
       // action() re-renders the lobby before invoking its callback, resetting
       // the checkbox to the server's OLD value. Capture the click first.
