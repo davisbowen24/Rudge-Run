@@ -7,7 +7,7 @@ test('only Chase Mode displays health and server-confirmed catches stop the run'
   const elements=new Map();
   globalThis.document={getElementById(id){
     if(!elements.has(id))elements.set(id,{hidden:true,textContent:'',innerHTML:'',
-      style:{width:''},classList:{toggle(){}},disabled:false});
+      style:{width:''},classList:{toggle(){},remove(){}},disabled:false});
     return elements.get(id);
   }};
   try{
