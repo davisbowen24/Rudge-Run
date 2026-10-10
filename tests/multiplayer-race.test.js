@@ -277,3 +277,47 @@ test('frontend multiplayer wiring includes voting, progress, countdown and resul
   assert.match(main,/options\.mapId/);
   assert.doesNotMatch(physics,/multiplayer/i,'core vehicle physics should not own multiplayer synchronization');
 });
+
+// Points are awarded strictly by distance, not by a unique first-place winner.
+test('ties earn no points over tied racers and repeat snapshots cannot rescore',async()=>{
+  const {db,send,rawA}=await setup();
+  try{
+    const host=await send('create',{vehicleId:'base'},{'X-Ridge-Session':rawA});
+    assert.equal(host.status,200);
+    const code=host.data.room.code;
+    const drivers=[{'X-Ridge-Multiplayer':host.data.memberToken}];
+    for(const name of ['Driver Two','Driver Three','Driver Four']){
+      const guest=await send('join',{roomCode:code,guestName:name,vehicleId:'base'});
+      assert.equal(guest.status,200);
+      drivers.push({'X-Ridge-Multiplayer':guest.data.memberToken});
+    }
+    for(const h of drivers)assert.equal((await send('ready',{ready:true},h)).status,200);
+    assert.equal((await send('start',{},drivers[0])).status,200);
+    for(const h of drivers)assert.equal((await send('vote',{mapId:'countryside'},h)).status,200);
+    await db.query("update ridge_private.multiplayer_rooms set vote_ends_at=now()-interval '1 second' where code=$1",[code]);
+    await send('state',{},drivers[0]);
+    await db.query("update ridge_private.multiplayer_rooms set race_start_at=now()-interval '1 second' where code=$1",[code]);
+    await send('state',{},drivers[0]);
+
+    // Three distinct finishing distances; players 2 and 3 are tied.
+    for(const [h,distance] of drivers.map((h,i)=>[h,[400,250,250,100][i]]))
+      assert.equal((await send('progress',{distance},h)).status,200);
+    for(let i=0;i<drivers.length-1;i++)
+      assert.equal((await send('finish',{distance:[400,250,250,100][i],finishStatus:'dead'},drivers[i])).status,200);
+    const finish=await send('finish',{distance:100,finishStatus:'dead'},drivers[3]);
+    assert.equal(finish.status,200);
+    assert.equal(finish.data.room.status,'results');
+    assert.deepEqual(finish.data.room.members.map(m=>m.racePoints),[3,1,1,0]);
+    assert.deepEqual(finish.data.room.members.map(m=>m.roomPoints),[3,1,1,0]);
+    const again=await send('state',{},drivers[2]);
+    assert.deepEqual(again.data.room.members.map(m=>m.roomPoints),[3,1,1,0],
+      'repeated results snapshots must never award points again');
+
+    const rematch=await send('rematch',{},drivers[0]);
+    assert.equal(rematch.data.room.status,'lobby');
+    assert.deepEqual(rematch.data.room.members.map(m=>m.roomPoints),[3,1,1,0],
+      'room scores carry over into next race');
+  }finally{
+    await db.close();
+  }
+});
