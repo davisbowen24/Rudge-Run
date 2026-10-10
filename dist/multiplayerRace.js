@@ -61,7 +61,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     const hud=$('stuntAssistHud');
     hud.hidden=stuntBonus===0;
     if(stuntBonus>0){
-      $('stuntAssistPower').textContent='+'+Math.round(stuntBonus*100)+'% POWER · '+Math.ceil(stuntSeconds)+'s';
+      $('stuntAssistPower').textContent='+'+Math.round(stuntBonus*100)+'% POWER · +'+Math.round(stuntBonus*40)+'% TORQUE/ACCEL · '+Math.ceil(stuntSeconds)+'s';
       $('stuntAssistLabel').textContent=stuntLabel;
     }
   }
@@ -72,7 +72,7 @@ export function createMultiplayerRace({multiplayer,state,main,ui,economy}){
     }
     const ranking=losersAssistTarget(room,multiplayer.session()?.memberId,distanceNow());
     const value=smoothLosersAssist(appliedAssistMultiplier,ranking.multiplier,dt);
-    // Stunt power adds to catch-up rather than multiplying with it.
+    // All three stunt bonuses add to catch-up rather than multiplying with it.
     applyAssistMultiplier(value,stuntBonus);
     $('losersAssistHud').hidden=value<1.02;
     if(value>=1.02)$('losersAssistPower').textContent='×'+value.toFixed(2)+' POWER';

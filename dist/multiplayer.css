@@ -203,3 +203,7 @@ body[data-screen="multiplayerResults"] .menu-status{display:none}
 .stunt-assist-hud span{white-space:nowrap;font-weight:900;color:#ffda7b;font-variant-numeric:tabular-nums}
 .stunt-assist-hud[hidden]{display:none!important}
 @media(max-width:560px){.stunt-assist-hud{top:314px;max-width:90vw;padding:6px 9px;font-size:10px;gap:6px}}
+
+/* Extra stunt detail wraps on narrow displays rather than clipping. */
+.stunt-assist-hud{flex-wrap:wrap;justify-content:center;text-align:center}
+.stunt-assist-hud span{white-space:normal}
