@@ -74,7 +74,11 @@ test('combined modifiers derive from base once and preserve original values',()=
   assert.equal(giant.vehicle.wheels[0].r,28.5);
   assert.equal(giant.vehicle.head.y,-45);
   assert.equal(giant.vehicle.pickupPolygon[0][0],-15);
-  assert.equal(giant.vehicle.staticGrip,.8);
+  assert.equal(giant.vehicle.staticGrip,.6);
+  assert.equal(giant.vehicle.dynamicGrip,1.3*.3);
+  assert.equal(giant.vehicle.tireGrip,1.5*.3);
+  assert.equal(base.staticGrip,2,'Ice Wheels never permanently change regular vehicle grip');
+  assert.equal(chaosVehicleFor(base,[]).vehicle.staticGrip,2,'grip recovers after the effect expires');
   assert.equal(base.wheels[0].r,19);
   const tiny=chaosVehicleFor(base,['tiny','wind']);
   assert.equal(tiny.size,.6);
