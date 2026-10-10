@@ -316,3 +316,50 @@ test("Loser's Assist toggle restores server setting when request fails",async()=
     assert.equal(dom.get('multiplayerError').textContent,'Unable to enable assist');
   }finally{globalThis.document=previous;}
 });
+
+test("Stuntman's Assist is an independent host-only lobby option",async()=>{
+  const previous=globalThis.document;
+  const dom=fakeDom();globalThis.document=dom.document;
+  try{
+    const host={id:'host',displayName:'Host',vehicleId:'base',connected:true,isHost:true,ready:false};
+    const room={code:'ABCDE',status:'lobby',members:[host],stuntAssistEnabled:false,
+      chaseModeEnabled:true,chaosModeEnabled:true,losersAssistEnabled:true};
+    const calls=[];
+    const multiplayer={room:()=>room,member:()=>host,session:()=>({memberId:'host'}),
+      status:()=> 'Connected',subscribe(){},
+      async setStuntAssist(enabled){calls.push(enabled);room.stuntAssistEnabled=enabled;}};
+    const lobby=createLobbyUi({multiplayer,cloudSave:{user:()=>null},
+      state:{progression:{selected:'base',owned:['base']}},ui:{showScreen(){}},race:{syncFromRoom(){}}});
+    lobby.bindEvents();lobby.renderLobby();
+    const toggle=dom.get('lobbyStuntAssist');
+    assert.equal(toggle.disabled,false);assert.equal(toggle.checked,false);
+    toggle.checked=true;await toggle.dispatch('change');
+    assert.deepEqual(calls,[true]);assert.equal(toggle.checked,true);
+    assert.equal(room.losersAssistEnabled,true);
+    assert.equal(room.chaseModeEnabled,true);
+    assert.equal(room.chaosModeEnabled,true);
+    toggle.checked=false;await toggle.dispatch('change');
+    assert.deepEqual(calls,[true,false]);assert.equal(toggle.checked,false);
+    host.isHost=false;lobby.renderLobby();assert.equal(toggle.disabled,true);
+    host.isHost=true;room.status='racing';lobby.renderLobby();assert.equal(toggle.disabled,true);
+  }finally{globalThis.document=previous;}
+});
+
+test("Stuntman's Assist reverts rejected lobby changes",async()=>{
+  const previous=globalThis.document;
+  const dom=fakeDom();globalThis.document=dom.document;
+  try{
+    const host={id:'host',displayName:'Host',vehicleId:'base',connected:true,isHost:true,ready:false};
+    const room={code:'ABCDE',status:'lobby',members:[host],stuntAssistEnabled:false};
+    const multiplayer={room:()=>room,member:()=>host,session:()=>({memberId:'host'}),
+      status:()=> 'Connected',subscribe(){},
+      async setStuntAssist(enabled){assert.equal(enabled,true);throw new Error('Unable to save Stunt Assist');}};
+    const lobby=createLobbyUi({multiplayer,cloudSave:{user:()=>null},
+      state:{progression:{selected:'base',owned:['base']}},ui:{showScreen(){}},race:{syncFromRoom(){}}});
+    lobby.bindEvents();lobby.renderLobby();
+    const toggle=dom.get('lobbyStuntAssist');
+    toggle.checked=true;await toggle.dispatch('change');
+    assert.equal(toggle.checked,false);
+    assert.equal(dom.get('multiplayerError').textContent,'Unable to save Stunt Assist');
+  }finally{globalThis.document=previous;}
+});
