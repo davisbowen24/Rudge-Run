@@ -5,9 +5,9 @@ import {
   chaseWarningFor,drawChaseHazard
 } from '../dist/chaseVisuals.js';
 
-test('twelve configured maps have distinct, reusable Chase hazard presets',()=>{
+test('fifteen configured maps have reusable Chase hazard presets',()=>{
   assert.deepEqual(Object.keys(CHASE_HAZARD_THEMES).sort(),
-    ['arctic','cave','countryside','desert','haunted','highway','jungle','mars','moon','rooftops','underwater','volcano']);
+    ['alien','arctic','bootcamp','cave','construction','countryside','desert','haunted','highway','jungle','mars','moon','rooftops','underwater','volcano']);
   assert.equal(chaseHazardForMap('arctic').type,'avalanche');
   assert.equal(chaseHazardForMap('desert').type,'sandstorm');
   assert.equal(chaseHazardForMap('jungle').type,'flood');
@@ -20,7 +20,10 @@ test('twelve configured maps have distinct, reusable Chase hazard presets',()=>{
   assert.equal(chaseHazardForMap('highway').type,'semi');
   assert.equal(chaseHazardForMap('cave').type,'spiders');
   assert.equal(chaseHazardForMap('moon').type,'ufos');
-  assert.equal(chaseHazardForMap('bootcamp'),DEFAULT_CHASE_HAZARD);
+  assert.equal(chaseHazardForMap('alien').type,'aliens');
+  assert.equal(chaseHazardForMap('construction').type,'pipes');
+  assert.equal(chaseHazardForMap('bootcamp').type,'mud');
+  assert.equal(chaseHazardForMap('seasons'),DEFAULT_CHASE_HAZARD);
   for(const id of Object.keys(CHASE_HAZARD_THEMES)){
     assert.notEqual(chaseHazardForMap(id).approaching,DEFAULT_CHASE_HAZARD.approaching);
     assert.ok(chaseHazardForMap(id).caught.length>10);
@@ -43,6 +46,9 @@ test('warnings appear within 200 meters, intensify when caught and clear when sa
   assert.match(chaseWarningFor('highway',{distanceMeters:199}).label,/semi/i);
   assert.match(chaseWarningFor('cave',{distanceMeters:199}).label,/spiders/i);
   assert.match(chaseWarningFor('moon',{distanceMeters:199}).label,/UFOs/i);
+  assert.match(chaseWarningFor('alien',{distanceMeters:199}).label,/green aliens/i);
+  assert.match(chaseWarningFor('construction',{distanceMeters:199}).label,/pipes/i);
+  assert.match(chaseWarningFor('bootcamp',{distanceMeters:199}).label,/mud/i);
   assert.match(chaseWarningFor('volcano',{distanceMeters:-1}).label,/LAVA/);
   assert.match(chaseWarningFor('haunted',{distanceMeters:-1}).label,/GHOSTS/);
   assert.match(chaseWarningFor('underwater',{distanceMeters:-1}).label,/PIRANHAS/);
@@ -52,6 +58,9 @@ test('warnings appear within 200 meters, intensify when caught and clear when sa
   assert.match(chaseWarningFor('highway',{distanceMeters:-1}).label,/SEMI/);
   assert.match(chaseWarningFor('cave',{distanceMeters:-1}).label,/SPIDERS/);
   assert.match(chaseWarningFor('moon',{distanceMeters:-1}).label,/UFO/);
+  assert.match(chaseWarningFor('alien',{distanceMeters:-1}).label,/ALIENS/);
+  assert.match(chaseWarningFor('construction',{distanceMeters:-1}).label,/PIPES/);
+  assert.match(chaseWarningFor('bootcamp',{distanceMeters:-1}).label,/MUD/);
   assert.match(chaseWarningFor('jungle',{distanceMeters:-25}).label,/FLOOD/);
   assert.equal(chaseWarningFor('arctic',{distanceMeters:50},true),null);
   assert.equal(chaseWarningFor('arctic',null),null);
@@ -67,10 +76,11 @@ function context(){
     arc(){calls.push('arc')},ellipse(){calls.push('ellipse')},
     translate(x,y){calls.push(['translate',x,y])},scale(){calls.push('scale')},
     quadraticCurveTo(){calls.push('quad')},
-    fillRect(x,y,w,h){calls.push(['fillRect',x,y,w,h])}};
+    fillRect(x,y,w,h){calls.push(['fillRect',x,y,w,h])},
+    rotate(a){calls.push(['rotate',a])}};
   return ctx;
 }
-test('all twelve hazards render safely with the same camera and live boundary',()=>{
+test('all fifteen hazards render safely with the same camera and live boundary',()=>{
   for(const mapId of Object.keys(CHASE_HAZARD_THEMES)){
     const ctx=context();
     drawChaseHazard(ctx,{
@@ -157,6 +167,41 @@ test('batch-four semi rides the road, spiders crawl on cave floor, and UFOs scan
   const off=context();
   drawChaseHazard(off,{...opts,mapId:'highway',snapshot:{enabled:false,positionMeters:100}});
   assert.equal(off.calls.length,0,'classic multiplayer does not render a semi');
+});
+
+test('batch-five aliens, tumbling pipes and mud have unique animated drawing paths',()=>{
+  const options={
+    snapshot:{enabled:true,positionMeters:100},viewLeft:500,viewRight:1700,
+    viewTop:-100,viewBottom:700,pixelsPerMeter:10,timeMs:1500,groundAt:()=>350
+  };
+  const alien=context();
+  drawChaseHazard(alien,{...options,mapId:'alien'});
+  assert.ok(alien.calls.filter(c=>Array.isArray(c)&&c[0]==='translate').length>15,
+    'alien mob is composed of many grounded creatures');
+  assert.ok(alien.calls.filter(c=>c==='quad').length>15,'aliens have wobbly antennae');
+  assert.ok(alien.calls.filter(c=>c==='arc').length>50,'aliens have large cartoon eyes');
+
+  const pipes=context();
+  drawChaseHazard(pipes,{...options,mapId:'construction'});
+  assert.ok(pipes.calls.filter(c=>Array.isArray(c)&&c[0]==='rotate').length>10,
+    'large pipes tumble independently');
+  assert.ok(pipes.calls.filter(c=>Array.isArray(c)&&c[0]==='fillRect').length>40,
+    'pipes have long steel cylinder bodies');
+  assert.ok(pipes.calls.filter(c=>c==='ellipse').length>20,'pipes have visible hollow openings');
+
+  const mud=context();
+  drawChaseHazard(mud,{...options,mapId:'bootcamp'});
+  assert.ok(mud.calls.filter(c=>c==='ellipse').length>30,'the mud surge has chunky globs');
+  assert.ok(mud.calls.filter(c=>c==='arc').length>20,'mud droplets and blisters render');
+
+  const gaps=context();
+  drawChaseHazard(gaps,{...options,mapId:'construction',groundAt:()=>3500});
+  assert.equal(gaps.calls.filter(c=>Array.isArray(c)&&c[0]==='rotate').length,0,
+    'pipes do not float over construction gaps');
+
+  const off=context();
+  drawChaseHazard(off,{...options,mapId:'alien',snapshot:{enabled:false,positionMeters:100}});
+  assert.equal(off.calls.length,0,'Chase OFF disables the alien mob');
 });
 
 test('hazards never draw outside Chase Mode or when fully off camera',()=>{
