@@ -240,6 +240,39 @@ export function createEffects({state, terrain}) {
     g.restore();
   }
 
+  /**
+   * Chaos Mode Windstorm: screen-space airborne grit and fast diagonal streaks.
+   * Uses the existing frame clock and deterministic hashes: no new particle
+   * allocations or animation timers, and does not interfere with terrain dust.
+   * A rear layer establishes the storm; a foreground layer sweeps past the car.
+   */
+  function drawWindstorm(g,layer='front'){
+    if(state.screen!=='run'||!state.playing||!state.W||!state.H
+      ||!(state.chaosWindAcceleration<0))return;
+    const front=layer==='front';
+    const count=Math.max(8,Math.floor((front?54:38)*quality));
+    const width=state.W+260,height=state.H+140;
+    const speed=front?400:255;
+    g.save();
+    for(let i=0;i<count;i++){
+      const hx=hash(i*17+23),hy=hash(i*29+71),hz=hash(i*43+11);
+      const drift=clock*speed*(.6+hz*.85);
+      // Modulus normalized for left-moving particles, including when paused.
+      const x=((hx*width-drift)%width+width)%width-130;
+      const y=((hy*height+clock*(15+hz*18)+Math.sin(clock*5+i*2)*10)%height+height)%height-70;
+      const length=(front?18:11)+(front?58:36)*hz;
+      const color=i%4===0?'#e8e5dc':i%3===0?'#bca080':'#e8c59f';
+      g.globalAlpha=(front?.17:.10)+hz*(front?.30:.18);
+      line(g,[[x+length,y-length*.14],[x,y]],color,front?1+hz*1.8:.7+hz);
+      if(i%3===0){
+        g.globalAlpha*=.72;
+        circle(g,x-5,y+3,front?1.8+hz*2.9:1.2+hz*1.8,color);
+        circle(g,x+8,y-4,front?1+hz*1.6:.8+hz,color);
+      }
+    }
+    g.restore();
+  }
+
   function drawWorld(g,left,right) {
     g.save();surface(g,left,right);
     const p=profile(),spacing=state.activeMap==='highway'?125:260;
@@ -285,5 +318,5 @@ export function createEffects({state, terrain}) {
     for(let i=0;i<count;i++){const y=(i%2? .80+hash(i)*.13:.13+hash(i)*.13)*state.H,x=((hash(i+30)*state.W-clock*speed*.6*direction)%state.W+state.W)%state.W;g.moveTo(x,y);g.lineTo(x+direction*(18+strength*80),y);}
     g.stroke();g.restore();
   }
-  return {burst,update,drawWorld,drawParticles,drawSpeed,drawAtmosphere,reset,materialAt,diagnostics:()=>({particles:particles.length,pooled:pool.length,quality,atmosphere:atmosphereSpec().kind})};
+  return {burst,update,drawWorld,drawParticles,drawSpeed,drawAtmosphere,drawWindstorm,reset,materialAt,diagnostics:()=>({particles:particles.length,pooled:pool.length,quality,atmosphere:atmosphereSpec().kind})};
 }
