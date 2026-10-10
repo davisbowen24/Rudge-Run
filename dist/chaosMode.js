@@ -97,7 +97,12 @@ export function chaosVehicleFor(base,effects){
   if(size!==1){
     v.halfWidth*=size;v.wheelRadius*=size;v.wheelBase*=size;v.driveLever*=size;
     v.suspensionTravel*=size;v.suspensionMin*=size;v.comOffsetY*=size;
-    v.wheels=base.wheels.map(w=>({...w,x:w.x*size,y:w.y*size,r:w.r*size}));
+    // Give enlarged tires a little more clearance below the chassis rather
+    // than only enlarging the wheel and body at their previous proportions.
+    // This extra gap scales from each vehicle's original wheel radius, so
+    // monster trucks get appropriately longer visible suspension clearance.
+    const wheelClearance=size>1?(size-1)*base.wheelRadius:0;
+    v.wheels=base.wheels.map(w=>({...w,x:w.x*size,y:w.y*size+wheelClearance,r:w.r*size}));
     v.head={...base.head,x:base.head.x*size,y:base.head.y*size};
     if(base.pickupPolygon)v.pickupPolygon=base.pickupPolygon.map(pair=>pair.map(n=>n*size));
     v.mass*=size*size;
