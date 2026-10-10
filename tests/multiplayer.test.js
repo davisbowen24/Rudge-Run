@@ -21,6 +21,7 @@ test('multiplayer rooms support guests, accounts, ownership, ready state, host t
     await db.exec(await readFile(new URL('../supabase/migrations/202610100004_chaos_pairs.sql',import.meta.url),'utf8'));
     await db.exec(await readFile(new URL('../supabase/migrations/202610100005_losers_assist.sql',import.meta.url),'utf8'));
     await db.exec(await readFile(new URL('../supabase/migrations/202610100006_stunt_assist.sql',import.meta.url),'utf8'));
+    await db.exec(await readFile(new URL('../supabase/migrations/202610100007_multiplayer_points.sql',import.meta.url),'utf8'));
     const rawA='a'.repeat(64),rawB='b'.repeat(64),hashA=await sha(rawA),hashB=await sha(rawB);
     await db.query('select public.ridge_auth($1,$2,$3,$4)',[true,'Driver_A','Password-testing-123',hashA]);
     await db.query('select public.ridge_auth($1,$2,$3,$4)',[true,'Driver_B','Password-testing-456',hashB]);
