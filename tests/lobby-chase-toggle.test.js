@@ -124,3 +124,114 @@ test('Chase Mode toggle rolls back visibly and displays request errors',async()=
     globalThis.document=previous;
   }
 });
+
+
+test('every waiting-room player can change owned cars and must ready up again',async()=>{
+  const previous=globalThis.document;
+  const dom=fakeDom();
+  globalThis.document=dom.document;
+  try{
+    const player={
+      id:'player',displayName:'Guest',vehicleId:'base',
+      connected:true,isHost:false,ready:true,roomWins:0
+    };
+    const host={
+      id:'host',displayName:'Host',vehicleId:'base',
+      connected:true,isHost:true,ready:true,roomWins:0
+    };
+    const room={
+      code:'ABCDE',status:'lobby',raceNumber:0,
+      members:[host,player],chaseModeEnabled:false
+    };
+    const updates=[];
+    const multiplayer={
+      room:()=>room,member:()=>player,session:()=>({memberId:'player'}),
+      status:()=> 'Connected',subscribe(){},
+      async updateVehicle(id){
+        updates.push(id);
+        player.vehicleId=id;
+        player.ready=false;
+        return room;
+      }
+    };
+    const lobby=createLobbyUi({
+      multiplayer,cloudSave:{user:()=>null},
+      state:{progression:{selected:'base',owned:['base','bike','buggy']}},
+      ui:{showScreen(){}},race:{syncFromRoom(){}}
+    });
+    lobby.bindEvents();
+    lobby.renderLobby();
+
+    const picker=dom.get('lobbyVehicle');
+    assert.equal(dom.get('lobbyChaseMode').disabled,true,'non-host cannot change Chase Mode');
+    assert.equal(picker.disabled,false,'non-host can still change their car');
+    assert.match(picker.innerHTML,/value="bike"/);
+    assert.match(picker.innerHTML,/value="buggy"/);
+    assert.doesNotMatch(picker.innerHTML,/value="supercar"/,'only owned cars are listed');
+
+    // Re-render before request previously reverted the dropdown and sent base.
+    picker.value='bike';
+    await picker.dispatch('change');
+    assert.deepEqual(updates,['bike']);
+    assert.equal(player.vehicleId,'bike');
+    assert.equal(player.ready,false,'changing cars cancels ready state');
+    assert.equal(host.ready,true,'another driver stays ready');
+    assert.equal(host.vehicleId,'base','another driver keeps their vehicle');
+    assert.equal(picker.value,'bike');
+    assert.match(dom.get('lobbyReady').textContent,/Ready Up/);
+
+    picker.value='buggy';
+    await picker.dispatch('change');
+    assert.deepEqual(updates,['bike','buggy']);
+    assert.equal(player.vehicleId,'buggy');
+    assert.equal(picker.value,'buggy');
+
+    room.status='voting';
+    lobby.renderLobby();
+    assert.equal(picker.disabled,true,'cannot change cars after lobby closes');
+  }finally{
+    globalThis.document=previous;
+  }
+});
+
+test('failed waiting-room car changes restore previous selection and show an error',async()=>{
+  const previous=globalThis.document;
+  const dom=fakeDom();
+  globalThis.document=dom.document;
+  try{
+    const player={id:'self',displayName:'Host',vehicleId:'base',ready:false,isHost:true,connected:true};
+    const room={code:'ABCDE',status:'lobby',raceNumber:0,members:[player]};
+    const requests=[];
+    const multiplayer={
+      room:()=>room,member:()=>player,session:()=>({memberId:'self'}),
+      status:()=> 'Connected',subscribe(){},
+      async updateVehicle(id){
+        requests.push(id);
+        throw new Error('Unable to change vehicle');
+      }
+    };
+    const lobby=createLobbyUi({
+      multiplayer,cloudSave:{user:()=>null},
+      state:{progression:{selected:'base',owned:['base','bike']}},
+      ui:{showScreen(){}},race:{syncFromRoom(){}}
+    });
+    lobby.bindEvents();
+    lobby.renderLobby();
+    const picker=dom.get('lobbyVehicle');
+    picker.value='bike';
+    await picker.dispatch('change');
+    assert.deepEqual(requests,['bike'],'new car is sent even if request fails');
+    assert.equal(picker.value,'base','failed update rolls back to saved vehicle');
+    assert.equal(player.vehicleId,'base');
+    assert.equal(dom.get('multiplayerError').textContent,'Unable to change vehicle');
+    assert.equal(picker.disabled,false,'can retry');
+
+    picker.value='supercar';
+    await picker.dispatch('change');
+    assert.deepEqual(requests,['bike'],'cannot request an unowned car');
+    assert.equal(picker.value,'base');
+    assert.equal(dom.get('multiplayerError').textContent,'That vehicle is not owned.');
+  }finally{
+    globalThis.document=previous;
+  }
+});
