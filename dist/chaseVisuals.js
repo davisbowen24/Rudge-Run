@@ -1,7 +1,7 @@
 /**
  * Chase Mode presentation presets. Add future maps to CHASE_HAZARD_THEMES;
  * physics, network prediction, damage and scoring never depend on these values.
- * The three launch themes deliberately share a single canvas renderer.
+ * Every themed map shares this single canvas renderer and warning logic.
  */
 export const CHASE_HAZARD_THEMES = Object.freeze({
   arctic: Object.freeze({
@@ -24,6 +24,27 @@ export const CHASE_HAZARD_THEMES = Object.freeze({
     caught:'CAUGHT IN THE FLOOD · HEALTH DRAINING',
     tint:'rgba(39,134,155,0.22)', front:'#b0fff3', accent:'#2e8caa', particle:'#e0fff9',
     pace:1.15
+  }),
+  volcano: Object.freeze({
+    type:'lava', name:'LAVA SURGE',
+    approaching:'Lava surge approaching!',
+    caught:'SWALLOWED BY LAVA · HEALTH DRAINING',
+    tint:'rgba(170,39,10,0.27)', front:'#ffb432', accent:'#f04414', particle:'#ffe074',
+    pace:0.92
+  }),
+  haunted: Object.freeze({
+    type:'ghosts', name:'GHOST SWARM',
+    approaching:'Ghosts are closing in!',
+    caught:'SURROUNDED BY GHOSTS · HEALTH DRAINING',
+    tint:'rgba(82,65,133,0.16)', front:'#beb0ff', accent:'#6d54b9', particle:'#e1d5ff',
+    pace:0.96
+  }),
+  underwater: Object.freeze({
+    type:'piranhas', name:'PIRANHA SCHOOL',
+    approaching:'Piranhas are closing in!',
+    caught:'CAUGHT BY PIRANHAS · HEALTH DRAINING',
+    tint:'rgba(15,85,107,0.18)', front:'#7bd0d4', accent:'#296b83', particle:'#d5f5f5',
+    pace:1.24
   })
 });
 
@@ -49,6 +70,81 @@ export function chaseWarningFor(mapId, proximity, stale=false){
 }
 
 /**
+ * Small world-space sprites used only by the visual renderer.
+ * Everything is drawn using the existing canvas context: no image assets,
+ * collision shapes, networking, or new effects system required.
+ */
+function drawLavaGlob(ctx,x,y,r,time,i){
+  const wobble=Math.sin(time*3+i*2.7)*r*.2;
+  ctx.globalAlpha=.85;
+  ctx.fillStyle='#a62a0c';
+  ctx.beginPath();ctx.arc(x,y,r*1.45,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#ff6a12';
+  ctx.beginPath();ctx.arc(x+2,y-2+wobble,r*1.1,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#ffdc55';
+  ctx.beginPath();ctx.arc(x+r*.2,y-r*.2+wobble,r*.48,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=.6;
+  ctx.fillStyle='#ffef96';
+  ctx.beginPath();ctx.arc(x-r*.4,y-r*.45,r*.17,0,Math.PI*2);ctx.fill();
+}
+function drawGhost(ctx,x,y,r,time,i){
+  const drift=Math.sin(time*2.2+i*1.7)*r*.38;
+  y+=drift;
+  const w=r*1.15,h=r*1.7;
+  ctx.globalAlpha=.57+Math.sin(time*2.8+i)*.2;
+  ctx.fillStyle='#c5b8f7';
+  ctx.beginPath();
+  ctx.arc(x,y,r*1.08,Math.PI,0);
+  ctx.lineTo(x+w,y+h);
+  // An uneven, fluttering lower edge makes the silhouettes look like spirits.
+  for(let k=3;k>=0;k--){
+    const px=x-w+2*w*k/3;
+    const py=y+h+Math.sin(time*3+i+k)*r*.36;
+    ctx.lineTo(px,py);
+  }
+  ctx.closePath();ctx.fill();
+  ctx.globalAlpha=.85;
+  ctx.fillStyle='#291d56';
+  ctx.beginPath();ctx.ellipse(x-r*.36,y-r*.07,r*.17,r*.3,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(x+r*.3,y-r*.07,r*.17,r*.3,0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(x,y+r*.56,r*.2,r*.34,0,0,Math.PI*2);ctx.fill();
+}
+function drawPiranha(ctx,x,y,r,time,i){
+  const tail=Math.sin(time*11+i*1.8)*r*.46;
+  ctx.globalAlpha=.9;
+  // The school swims toward +X; the forked tail trails on the left.
+  ctx.fillStyle='#b7dad6';
+  ctx.beginPath();
+  ctx.moveTo(x-r*.75,y);
+  ctx.lineTo(x-r*2.1,y-r*.8+tail);
+  ctx.lineTo(x-r*1.75,y);
+  ctx.lineTo(x-r*2.1,y+r*.8+tail);
+  ctx.closePath();ctx.fill();
+  ctx.fillStyle='#637b87';
+  ctx.beginPath();
+  ctx.moveTo(x-r*.55,y-r*.5);
+  ctx.lineTo(x-r*.2,y-r*1.42);
+  ctx.lineTo(x+r*.45,y-r*.46);
+  ctx.closePath();ctx.fill();
+  ctx.fillStyle='#c8dfe0';
+  ctx.beginPath();ctx.ellipse(x,y,r*1.15,r*.64,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#d94c43';
+  ctx.beginPath();ctx.ellipse(x+r*.5,y+r*.26,r*.56,r*.29,0,0,Math.PI*2);ctx.fill();
+  // Jagged white mouth, dark eye, and distinct red belly read as piranhas.
+  ctx.strokeStyle='#f8f4e7';ctx.lineWidth=Math.max(1,r*.13);
+  ctx.beginPath();
+  ctx.moveTo(x+r*.68,y+r*.23);
+  ctx.lineTo(x+r*.84,y+r*.39);
+  ctx.lineTo(x+r*.94,y+r*.19);
+  ctx.lineTo(x+r*1.12,y+r*.32);
+  ctx.stroke();
+  ctx.fillStyle='#102b39';
+  ctx.beginPath();ctx.arc(x+r*.57,y-r*.15,r*.18,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#ffffff';
+  ctx.beginPath();ctx.arc(x+r*.63,y-r*.22,r*.065,0,Math.PI*2);ctx.fill();
+}
+
+/**
  * World-space hazard, rendered under the vehicle after terrain; never collides.
  * The camera transform has already been applied by render.js.
  *
@@ -69,7 +165,8 @@ export function drawChaseHazard(ctx,{
   // Nothing to paint if the entire rushing front is well behind the camera.
   if(boundaryX<viewLeft-160)return;
   const left=viewLeft-30,top=viewTop-30,bottom=viewBottom+30;
-  const amplitude=theme.type==='flood'?25:theme.type==='avalanche'?36:50;
+  const amplitude=theme.type==='flood'?25:theme.type==='avalanche'?36:
+    theme.type==='lava'?35:theme.type==='ghosts'?45:theme.type==='piranhas'?31:50;
   const edge=y=>boundaryX+
     Math.sin(y*0.022+time*theme.pace*2.4)*amplitude+
     Math.sin(y*0.051-time*theme.pace*1.2)*amplitude*.32;
@@ -94,13 +191,15 @@ export function drawChaseHazard(ctx,{
   }
   ctx.lineTo(edge(bottom),bottom);
   ctx.strokeStyle=theme.front;
-  ctx.lineWidth=theme.type==='flood'?16:theme.type==='avalanche'?26:28;
+  ctx.lineWidth=theme.type==='flood'?16:theme.type==='avalanche'?26:
+    theme.type==='ghosts'?12:theme.type==='piranhas'?9:theme.type==='lava'?29:28;
   ctx.globalAlpha=.8;
   ctx.stroke();
   ctx.globalAlpha=1;
 
-  // Three render variations, all driven by the same positions and animation.
-  const particleCount=48;
+  // One shared animation loop with map-specific silhouettes. Sprite size and
+  // density are bounded for mobile performance, irrespective of map distance.
+  const particleCount=theme.type==='ghosts'?32:theme.type==='piranhas'?38:48;
   for(let i=0;i<particleCount;i++){
     const seed=i*73.37;
     const y=top+((seed*3.23+time*(theme.type==='flood'?-90:65)*theme.pace)%height+height)%height;
@@ -111,7 +210,18 @@ export function drawChaseHazard(ctx,{
     ctx.globalAlpha=.24+(i%5)*.11;
     ctx.strokeStyle=theme.particle;
     ctx.fillStyle=theme.particle;
-    if(theme.type==='sandstorm'){
+    if(theme.type==='lava'){
+      if(i%3===0)drawLavaGlob(ctx,x,y,9+(i%4)*4,time,i);
+      else{
+        // Glowing embers blow up from the molten front.
+        ctx.fillStyle=theme.particle;ctx.beginPath();
+        ctx.arc(x,y,r*.75,0,Math.PI*2);ctx.fill();
+      }
+    }else if(theme.type==='ghosts'){
+      drawGhost(ctx,x,y,9+(i%4)*2.4,time,i);
+    }else if(theme.type==='piranhas'){
+      drawPiranha(ctx,x,y,7+(i%4)*2.3,time,i);
+    }else if(theme.type==='sandstorm'){
       ctx.lineWidth=1.5+i%3;
       ctx.beginPath();ctx.moveTo(x-15,y+7);ctx.lineTo(x+12,y-4);ctx.stroke();
     }else if(theme.type==='flood'){
