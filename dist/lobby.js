@@ -108,6 +108,10 @@ export function createLobbyUi({multiplayer,cloudSave,state,ui,race}){
     $('lobbyReady').classList.toggle('is-ready',Boolean(me?.ready));
     $('lobbyReady').disabled=busy||!inLobby;
     $('lobbyVehicle').disabled=busy||!inLobby;
+    const chaseToggle=$('lobbyChaseMode');
+    chaseToggle.checked=room.chaseModeEnabled===true;
+    chaseToggle.disabled=busy||!inLobby||!me?.isHost;
+    $('lobbyChaseModeStatus').textContent=chaseToggle.checked?'ON · Hazard follows 750 m behind the leader':'OFF · Classic race';
     $('lobbyLeave').disabled=busy;
     $('lobbyCopy').disabled=busy;
 
@@ -221,6 +225,7 @@ export function createLobbyUi({multiplayer,cloudSave,state,ui,race}){
       if(!state.progression.owned.includes(id))throw new Error('That vehicle is not owned.');
       await multiplayer.updateVehicle(id);
     }));
+    $('lobbyChaseMode').addEventListener('change',e=>action(()=>multiplayer.setChaseMode(e.target.checked)));
     $('lobbyReady').addEventListener('click',()=>action(()=>multiplayer.setReady(!multiplayer.member()?.ready)));
     $('lobbyStart').addEventListener('click',()=>action(()=>multiplayer.startRace()));
     $('lobbyVoteGrid').addEventListener('click',e=>{
