@@ -4,6 +4,27 @@
  * Every themed map shares this single canvas renderer and warning logic.
  */
 export const CHASE_HAZARD_THEMES = Object.freeze({
+  highway: Object.freeze({
+    type:'semi', name:'RUNAWAY SEMI',
+    approaching:'Runaway semi closing in!',
+    caught:'RUN OVER BY THE SEMI · HEALTH DRAINING',
+    tint:'rgba(67,72,79,0.17)', front:'#e59d54', accent:'#bd342d', particle:'#d0c4b3',
+    pace:1.2
+  }),
+  cave: Object.freeze({
+    type:'spiders', name:'CAVE SPIDERS',
+    approaching:'Cave spiders are getting closer!',
+    caught:'SWARMED BY CAVE SPIDERS · HEALTH DRAINING',
+    tint:'rgba(57,64,73,0.22)', front:'#b1d1ac', accent:'#61aa75', particle:'#a4e8a2',
+    pace:1.08
+  }),
+  moon: Object.freeze({
+    type:'ufos', name:'UFO FORMATION',
+    approaching:'UFOs are closing in!',
+    caught:'TRAPPED BY UFO BEAMS · HEALTH DRAINING',
+    tint:'rgba(58,82,116,0.18)', front:'#83d9e6', accent:'#a1a6ec', particle:'#d1f8ff',
+    pace:0.94
+  }),
   countryside: Object.freeze({
     type:'cows', name:'ANGRY COW HERD',
     approaching:'Angry cows stampeding toward you!',
@@ -266,6 +287,106 @@ function drawAngryGrandma(ctx,x,y,scale,time,i){
 }
 
 /**
+ * One dominant, road-level runaway semi; headlights and spinning wheels give
+ * it character without requiring physics bodies or sprite assets.
+ */
+function drawRunawaySemi(ctx,x,groundY,time){
+  ctx.save();ctx.translate(x,groundY);ctx.scale(.93,.93);
+  // Diesel smoke trails behind the vehicle.
+  for(let i=0;i<5;i++){
+    const cloudX=-150-i*21-(time*22%18);
+    const cloudY=-67-i*12+Math.sin(time*2+i)*6;
+    ctx.globalAlpha=Math.max(.1,.42-i*.075);
+    ctx.fillStyle='#66707a';
+    ctx.beginPath();ctx.arc(cloudX,cloudY,9+i*2,0,Math.PI*2);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+  // Long articulated dark trailer with distinct reflective stripes.
+  ctx.fillStyle='#4b5d6a';ctx.fillRect(-151,-77,140,59);
+  ctx.fillStyle='#82929d';ctx.fillRect(-151,-77,140,7);
+  ctx.fillStyle='#bfc3b0';ctx.fillRect(-142,-24,126,5);
+  ctx.fillStyle='#d8453a';for(let j=0;j<4;j++)ctx.fillRect(-145+j*34,-19,19,3);
+  // Aggressive crimson cab and cab roof.
+  ctx.fillStyle='#a92d2c';ctx.fillRect(-14,-92,60,74);
+  ctx.fillStyle='#da4940';
+  ctx.beginPath();ctx.moveTo(43,-92);ctx.lineTo(65,-70);ctx.lineTo(65,-18);
+  ctx.lineTo(-6,-18);ctx.lineTo(-6,-92);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#94bfcb';
+  ctx.beginPath();ctx.moveTo(15,-83);ctx.lineTo(40,-83);
+  ctx.lineTo(53,-68);ctx.lineTo(15,-68);ctx.closePath();ctx.fill();
+  // Fury: slanted brow, grill teeth, and hot headlights.
+  ctx.strokeStyle='#1e2936';ctx.lineWidth=5;
+  ctx.beginPath();ctx.moveTo(13,-85);ctx.lineTo(52,-72);ctx.stroke();
+  ctx.fillStyle='#263544';ctx.fillRect(53,-57,13,30);
+  ctx.strokeStyle='#c1ccd1';ctx.lineWidth=2;
+  for(let j=0;j<4;j++){ctx.beginPath();ctx.moveTo(55,-52+j*6);ctx.lineTo(65,-52+j*6);ctx.stroke();}
+  ctx.fillStyle='#ffe78d';ctx.fillRect(55,-63,10,7);
+  ctx.fillStyle='#f36548';ctx.fillRect(57,-25,9,6);
+  // Tire rolling is indicated by a spinning spoke on each axle.
+  for(const wheelX of [-119,-61,27,51]){
+    ctx.fillStyle='#1c232a';ctx.beginPath();ctx.arc(wheelX,-10,15,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#919ba3';ctx.beginPath();ctx.arc(wheelX,-10,7,0,Math.PI*2);ctx.fill();
+    const a=time*10;
+    ctx.strokeStyle='#333c47';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(wheelX-5*Math.cos(a),-10-5*Math.sin(a));
+    ctx.lineTo(wheelX+5*Math.cos(a),-10+5*Math.sin(a));ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/** Angular eight-legged silhouettes with luminous green pairs of eyes. */
+function drawCaveSpider(ctx,x,groundY,scale,time,i){
+  const step=Math.sin(time*10+i*1.4);
+  ctx.save();ctx.translate(x,groundY);ctx.scale(scale,scale);
+  ctx.globalAlpha=.97;
+  ctx.strokeStyle='#272b30';ctx.lineWidth=4;ctx.lineCap='square';
+  for(const side of [-1,1])for(let j=0;j<4;j++){
+    const phase=step*(j%2===0?1:-1),attachX=side*(6+j*4);
+    ctx.beginPath();ctx.moveTo(attachX,-13);
+    ctx.lineTo(side*(21+j*5),-30+(j%2)*9+phase*4);
+    ctx.lineTo(side*(30+j*6)+phase*5,-1-Math.abs(phase)*4);
+    ctx.stroke();
+  }
+  // Blocky abdomen and head, distinct from soft circular animal sprites.
+  ctx.fillStyle='#33373c';ctx.fillRect(-18,-32,32,24);
+  ctx.fillStyle='#4d5357';ctx.fillRect(-27,-29,17,15);
+  ctx.fillStyle='#1e2529';ctx.fillRect(7,-26,21,18);
+  ctx.fillStyle='#687778';ctx.fillRect(-14,-28,15,4);
+  // Toxic eye glow is deliberately exaggerated for cave visibility.
+  ctx.globalAlpha=.26+.1*Math.sin(time*4+i);
+  ctx.fillStyle='#a8ff61';ctx.beginPath();
+  ctx.ellipse(23,-18,15,9,0,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=1;
+  ctx.fillStyle='#b5ff70';
+  for(const eyeX of [15,24]){ctx.beginPath();ctx.arc(eyeX,-19,4,0,Math.PI*2);ctx.fill();}
+  ctx.fillStyle='#151d18';for(const eyeX of [16,25]){ctx.beginPath();ctx.arc(eyeX,-19,1.8,0,Math.PI*2);ctx.fill();}
+  ctx.restore();
+}
+
+/** Animated UFO with a scanning beam and flickering circular running lights. */
+function drawMoonUfo(ctx,x,y,scale,time,i,beamDepth=120){
+  const float=Math.sin(time*1.8+i*1.8)*8;
+  ctx.save();ctx.translate(x,y+float);ctx.scale(scale,scale);
+  const reach=Math.max(40,beamDepth/scale);
+  const beamAlpha=.17+.07*Math.sin(time*3+i);
+  ctx.globalAlpha=beamAlpha;
+  ctx.fillStyle='#8cfcff';
+  ctx.beginPath();ctx.moveTo(-12,8);ctx.lineTo(12,8);
+  ctx.lineTo(38,reach);ctx.lineTo(-38,reach);ctx.closePath();ctx.fill();
+  ctx.globalAlpha=.96;
+  ctx.fillStyle='#4f6076';ctx.beginPath();ctx.ellipse(0,0,38,13,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#b7c3de';ctx.beginPath();ctx.ellipse(0,-5,33,9,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#83bfd0';ctx.beginPath();ctx.ellipse(0,-12,17,15,0,Math.PI,2*Math.PI);ctx.fill();
+  ctx.strokeStyle='#e7effe';ctx.lineWidth=2;
+  ctx.beginPath();ctx.ellipse(0,-5,33,9,0,0,Math.PI);ctx.stroke();
+  for(let j=-2;j<=2;j++){
+    ctx.fillStyle=(j+i)%2===0?'#a4ffcf':'#ffbd78';
+    ctx.beginPath();ctx.arc(j*12,3+Math.cos(j)*2,3+Math.sin(time*5+j+i)*.6,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+}
+
+/**
  * World-space hazard, rendered under the vehicle after terrain; never collides.
  * The camera transform has already been applied by render.js.
  *
@@ -288,7 +409,8 @@ export function drawChaseHazard(ctx,{
   const left=viewLeft-30,top=viewTop-30,bottom=viewBottom+30;
   const amplitude=theme.type==='flood'?25:theme.type==='avalanche'?36:
     theme.type==='lava'?35:theme.type==='ghosts'?45:theme.type==='piranhas'?31:
-    theme.type==='cows'?34:theme.type==='grandmas'?29:50;
+    theme.type==='cows'?34:theme.type==='grandmas'?29:
+    theme.type==='semi'?20:theme.type==='spiders'?29:theme.type==='ufos'?37:50;
   const edge=y=>boundaryX+
     Math.sin(y*0.022+time*theme.pace*2.4)*amplitude+
     Math.sin(y*0.051-time*theme.pace*1.2)*amplitude*.32;
@@ -315,7 +437,8 @@ export function drawChaseHazard(ctx,{
   ctx.strokeStyle=theme.front;
   ctx.lineWidth=theme.type==='flood'?16:theme.type==='avalanche'?26:
     theme.type==='ghosts'?12:theme.type==='piranhas'?9:theme.type==='lava'?29:
-    theme.type==='cows'?8:theme.type==='grandmas'?8:28;
+    theme.type==='cows'?8:theme.type==='grandmas'?8:
+    theme.type==='semi'?8:theme.type==='spiders'?12:theme.type==='ufos'?10:28;
   ctx.globalAlpha=.8;
   ctx.stroke();
   ctx.globalAlpha=1;
@@ -323,7 +446,8 @@ export function drawChaseHazard(ctx,{
   // One shared animation loop with map-specific silhouettes. Sprite size and
   // density are bounded for mobile performance, irrespective of map distance.
   const particleCount=theme.type==='ghosts'?32:theme.type==='piranhas'?38:
-    theme.type==='cows'?30:theme.type==='grandmas'?30:48;
+    theme.type==='cows'?30:theme.type==='grandmas'?30:
+    theme.type==='semi'?12:theme.type==='spiders'?26:theme.type==='ufos'?12:48;
   for(let i=0;i<particleCount;i++){
     const seed=i*73.37;
     const y=top+((seed*3.23+time*(theme.type==='flood'?-90:65)*theme.pace)%height+height)%height;
@@ -334,7 +458,27 @@ export function drawChaseHazard(ctx,{
     ctx.globalAlpha=.24+(i%5)*.11;
     ctx.strokeStyle=theme.particle;
     ctx.fillStyle=theme.particle;
-    if(theme.type==='cows' || theme.type==='grandmas'){
+    if(theme.type==='spiders'){
+      const surface=typeof groundAt==='function'?groundAt(x):bottom-28;
+      if(Number.isFinite(surface)&&surface>=viewTop-60&&surface<=viewBottom+30)
+        drawCaveSpider(ctx,x,surface,.62+(i%4)*.07,time,i);
+    }else if(theme.type==='ufos'){
+      // UFOs remain airborne, loosely grouped around the hazard front.
+      const airY=top+80+(i%4)*Math.min(80,height*.13);
+      const shipX=edge(airY)-35-(i%3)*78+Math.sin(time*.7+i)*16;
+      if(shipX>viewLeft-70&&shipX<viewRight+70){
+        const surface=typeof groundAt==='function'?groundAt(shipX):bottom;
+        const depth=Number.isFinite(surface)?Math.max(55,Math.min(230,surface-airY)):170;
+        drawMoonUfo(ctx,shipX,airY,.68+(i%3)*.12,time,i,depth);
+      }
+    }else if(theme.type==='semi'){
+      // Exhaust and road grit, with a single truck drawn at the front below.
+      const surface=typeof groundAt==='function'?groundAt(x):bottom-28;
+      if(Number.isFinite(surface)&&surface>=viewTop&&surface<=viewBottom+30){
+        ctx.globalAlpha=.28;ctx.fillStyle=theme.particle;
+        ctx.beginPath();ctx.arc(x,surface-4-(i%5)*2,2+(i%3),0,Math.PI*2);ctx.fill();
+      }
+    }else if(theme.type==='cows' || theme.type==='grandmas'){
       // Anchor cartoon characters to terrain/roofs rather than floating through
       // the background. Skip rooftop gaps and offscreen heights altogether.
       const surface=typeof groundAt==='function'?groundAt(x):bottom-28;
@@ -376,5 +520,12 @@ export function drawChaseHazard(ctx,{
   ctx.strokeStyle=theme.accent;
   ctx.lineWidth=3;
   ctx.stroke();
+  if(theme.type==='semi'){
+    // Keep the semi's bumper close to the predicted hazard front.
+    const truckX=boundaryX-34;
+    const surface=typeof groundAt==='function'?groundAt(truckX):bottom-18;
+    if(Number.isFinite(surface)&&surface>=viewTop+12&&surface<=viewBottom+28)
+      drawRunawaySemi(ctx,truckX,surface,time);
+  }
   ctx.restore();
 }
