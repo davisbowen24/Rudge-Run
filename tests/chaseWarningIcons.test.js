@@ -20,13 +20,13 @@ test('all 18 maps have trusted vector icon badges with appropriate color themes'
     assert.ok(/<(?:path|ellipse|circle|rect)\b/.test(svg),mapId);
     designs.add(svg);colors.add(color);
   }
-  // Volcano and Mars intentionally share the lava silhouette, each with
-  // its own map title. Every other hazard has a unique silhouette.
+  // Volcano and Mars intentionally share the lava silhouette and colors;
+  // every other hazard has its own icon and palette.
   assert.equal(designs.size,17);
   assert.equal(colors.size,17);
   assert.equal(chaseWarningVisualForMap('mars').svg,
     chaseWarningVisualForMap('volcano').svg);
-  assert.notEqual(chaseWarningVisualForMap('mars').color,
+  assert.equal(chaseWarningVisualForMap('mars').color,
     chaseWarningVisualForMap('volcano').color);
 });
 
