@@ -11,11 +11,18 @@ export function createUpgrades({ state, save }) {
     return UPGRADES[key];
   }
 
-  function vehicleStats(levels=save.levelsFor(),id=state.progression.selected){
+  function vehicleStats(levels=save.activeLevelsFor?.()??save.levelsFor(),id=state.progression.selected){
 
     const base=vehicleBase(id),u=UPGRADE_CURVES;
 
-    const gain=(key,level)=>u[key][level]*upgradeScale(id,key,level);
+    // Fractional tuning levels interpolate the existing purchased upgrade curves.
+    // Integer settings produce exactly the same balance as before.
+    const curve=(key,level)=>{
+      const n=Math.max(0,Math.min(MAX_LEVEL,level));
+      const lo=Math.floor(n),hi=Math.ceil(n);
+      return u[key][lo]+(u[key][hi]-u[key][lo])*(n-lo);
+    };
+    const gain=(key,level)=>curve(key,level)*upgradeScale(id,key,level);
 
     const tireLevel=base.tiresUpgrade==='downforce'?0:levels.tires;
 
@@ -41,13 +48,13 @@ export function createUpgrades({ state, save }) {
         :maxEnginePower/10;
 
     return {...base,
- downforce:base.tiresUpgrade==='downforce'?u.downforce[levels.tires]*OFFROAD_DOWNFORCE_REFERENCE*base.downforceScale:0,
+ downforce:base.tiresUpgrade==='downforce'?curve('downforce',levels.tires)*OFFROAD_DOWNFORCE_REFERENCE*base.downforceScale:0,
  downforceGrip:base.tiresUpgrade==='downforce'?2.5*levels.tires/MAX_LEVEL*upgradeScale(id,'trackGrip',levels.tires):0,
  airTilt:base.airTilt*.8*fixedAirFactor*airGain,
  acceleration:base.acceleration*gain('torque',levels.engine),wheelSpeedLimit:base.wheelSpeedLimit*Math.cbrt(power/UPGRADE_CURVES.power[0]),enginePower:base.enginePower*power,engineTorque:base.engineTorque*gain('torque',levels.engine),
  suspension:base.suspension*gain('spring',suspensionLevel),suspensionDamping:base.suspensionDamping*gain('damping',suspensionLevel),
  inertia:base.inertia,comOffsetY:base.comOffsetY+(base.tracked?Math.min(8,2*suspensionLevel):3.8*suspensionLevel),
- tireGrip:mu,staticGrip:mu,dynamicGrip:mu*u.dynamic[tireLevel],
+ tireGrip:mu,staticGrip:mu,dynamicGrip:mu*curve('dynamic',tireLevel),
  fuelCapacity:base.fuelCapacity*gain('tank',levels.fuel)*fuelUpgradeScale,fuelBurn:base.fuelBurn*gain('burn',levels.fuel)};
 
   }

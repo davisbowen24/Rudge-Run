@@ -281,6 +281,24 @@ export function createUi({ stats, workshop, moments, state, economy, terrain, sa
       }
     });
 
+    $('upgradeCards').addEventListener('input',e=>{
+      const slider=e.target.closest('input[data-tune-upgrade]');
+      if(!slider)return;
+      const output=slider.closest('.upgrade-tune')?.querySelector('output');
+      if(output)output.textContent=slider.value+' / '+slider.max;
+    });
+
+    $('upgradeCards').addEventListener('change',e=>{
+      const slider=e.target.closest('input[data-tune-upgrade]');
+      if(!slider||state.screen!=='garage')return;
+      const key=slider.dataset.tuneUpgrade;
+      const tuned=save.setActiveLevel(key,Number(slider.value));
+      if(tuned===false)return;
+      renderGarage();
+      $('upgradeCards').querySelector('[data-tune-upgrade="'+key+'"]')?.focus({preventScroll:true});
+      $('garageMessage').textContent=upgrades.upgradeEntry(key).name+' set to '+tuned+' of '+save.levelsFor()[key]+' purchased levels.';
+    });
+
     $('garageVehicle').addEventListener('change',e=>{
       const id=e.target.value;
       if(state.screen!=='garage'||!state.progression.owned.includes(id))

@@ -22,7 +22,7 @@ export function createSave({ economy, state, cloudSave }) {
   }
 
   function freshProgress(){
-    return {stats:freshStats(),version:4,checkpointSpacingRevision:1,best:Object.fromEntries(Object.keys(MAPS).map(id=>[id,0])),checkpoints:Object.fromEntries(Object.keys(MAPS).map(id=>[id,[]])),balance:0,levelsByVehicle:Object.fromEntries(Object.keys(VEHICLES).map(id=>[id,freshLevels()])),upgradeSpent:Object.fromEntries(Object.keys(VEHICLES).map(id=>[id,0])),owned:['base'],selected:'base',ownedMaps:['countryside'],selectedMap:'countryside'};
+    return {stats:freshStats(),version:4,checkpointSpacingRevision:1,best:Object.fromEntries(Object.keys(MAPS).map(id=>[id,0])),checkpoints:Object.fromEntries(Object.keys(MAPS).map(id=>[id,[]])),balance:0,levelsByVehicle:Object.fromEntries(Object.keys(VEHICLES).map(id=>[id,freshLevels()])),activeLevelsByVehicle:Object.fromEntries(Object.keys(VEHICLES).map(id=>[id,freshLevels()])),upgradeSpent:Object.fromEntries(Object.keys(VEHICLES).map(id=>[id,0])),owned:['base'],selected:'base',ownedMaps:['countryside'],selectedMap:'countryside'};
   }
 
   function validatedLevels(source){
@@ -31,6 +31,16 @@ export function createSave({ economy, state, cloudSave }) {
       const n=source?.[key];
       if(Number.isInteger(n)&&n>=0&&n<=MAX_LEVEL)
       out[key]=n;
+    }
+    return out;
+  }
+
+  function validatedActiveLevels(source,installed){
+    const out={...installed};
+    for(const key of Object.keys(UPGRADES)){
+      const value=source?.[key];
+      if(Number.isFinite(value))
+      out[key]=Math.max(0,Math.min(installed[key],Math.round(value*4)/4));
     }
     return out;
   }
@@ -52,6 +62,23 @@ export function createSave({ economy, state, cloudSave }) {
 
   function levelsFor(id=state.progression.selected){
     return state.progression.levelsByVehicle[id];
+  }
+
+  function activeLevelsFor(id=state.progression.selected){
+    return state.progression.activeLevelsByVehicle?.[id]??levelsFor(id);
+  }
+
+  function setActiveLevel(key,level,id=state.progression.selected){
+    if(!state.progression.owned.includes(id)||!Object.hasOwn(UPGRADES,key)||!Number.isFinite(level))
+    return false;
+    const installed=levelsFor(id)?.[key];
+    if(!Number.isFinite(installed))return false;
+    state.progression.activeLevelsByVehicle??={};
+    state.progression.activeLevelsByVehicle[id]??=validatedActiveLevels(null,levelsFor(id));
+    const tuned=Math.max(0,Math.min(installed,Math.round(level*4)/4));
+    state.progression.activeLevelsByVehicle[id][key]=tuned;
+    saveProgress();
+    return tuned;
   }
 
   function saveProgress(){
@@ -99,6 +126,7 @@ state.progression.stats=normalizeStats(saved.stats,state.progression.best);
 
         for(const id of Object.keys(VEHICLES)){
           state.progression.levelsByVehicle[id]=validatedLevels(saved.levelsByVehicle?.[id]??(state.progression.owned.includes(id)?saved.levels:null));
+          state.progression.activeLevelsByVehicle[id]=validatedActiveLevels(saved.activeLevelsByVehicle?.[id],state.progression.levelsByVehicle[id]);
           const spent=saved.upgradeSpent?.[id];
           if(Number.isSafeInteger(spent)&&spent>=0)
           state.progression.upgradeSpent[id]=spent;
@@ -110,6 +138,6 @@ state.progression.stats=normalizeStats(saved.stats,state.progression.best);
 
   }
 
-  return { migrateCheckpointDistance, freshProgress, validatedLevels, readSavedProgress, levelsFor, saveProgress, loadProgress };
+  return { migrateCheckpointDistance, freshProgress, validatedLevels, validatedActiveLevels, readSavedProgress, levelsFor, activeLevelsFor, setActiveLevel, saveProgress, loadProgress };
 
 }

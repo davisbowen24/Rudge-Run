@@ -58,7 +58,7 @@ export function createPhysics({ stats, moments, state, terrain, ui, save, input,
     return false;
 
     state.car.hydraulicReady=state.time+.9;
-    const tuning=save.levelsFor('lowrider').suspension/MAX_LEVEL;
+    const tuning=save.activeLevelsFor('lowrider').suspension/MAX_LEVEL;
 
     state.car.vy=Math.min(state.car.vy,-Math.min(260+100*tuning,incoming*(.24+.12*tuning)));
     return true;

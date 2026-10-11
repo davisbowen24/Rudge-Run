@@ -28,7 +28,7 @@ export function createMain({ stats, workshop, effects, moments, state, upgrades,
     state.bonusEvents=[];
     $('bonusPopups').innerHTML='';
     const vehicleId=options.vehicleId||state.progression.selected;
-    Object.assign(CONFIG.vehicle,upgrades.vehicleStats(save.levelsFor(vehicleId),vehicleId));
+    Object.assign(CONFIG.vehicle,upgrades.vehicleStats(save.activeLevelsFor(vehicleId),vehicleId));
     ui.showScreen('run');
     state.car={x:140,y:terrain.ground(140)-physics.rideHeight(CONFIG.vehicle),vx:0,vy:0,a:0,av:0,wheelSpin:0,trackPhase:0,wheelLengths:CONFIG.vehicle.wheels.map(w=>clamp(physics.rideHeight(CONFIG.vehicle)+CONFIG.vehicle.comOffsetY-w.y-w.r,CONFIG.vehicle.suspensionMin,CONFIG.vehicle.suspensionTravel)),wheelPhases:CONFIG.vehicle.wheels.map(()=>0),wheelSlip:CONFIG.vehicle.wheels.map(()=>false),wheelSpeeds:CONFIG.vehicle.wheels.map(()=>0),wheels:[],grounded:false};
     state.camera={x:state.car.x-230,y:state.car.y-120};

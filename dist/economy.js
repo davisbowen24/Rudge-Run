@@ -164,6 +164,10 @@ export function createEconomy({ stats, moments, state, terrain, save, ui, upgrad
     if(state.progression.balance<cost)
     return false;
     state.progression.balance-=cost;
+    const previousLevel=save.levelsFor()[key];
+    // Keep upgrades fully active after a purchase unless the player deliberately tuned them down.
+    if(save.activeLevelsFor()[key]>=previousLevel)
+    save.activeLevelsFor()[key]=previousLevel+1;
     save.levelsFor()[key]++;
     state.progression.upgradeSpent[state.progression.selected]+=cost;
     save.saveProgress();
