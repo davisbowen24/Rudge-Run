@@ -1,0 +1,137 @@
+/* Fixed-screen menus: the action row never competes with descriptive copy. */
+#startScreen,#garageScreen,#storeScreen{padding:64px 16px 12px;overflow:hidden;align-items:stretch;box-sizing:border-box}
+#startScreen{padding-top:18px}
+#startScreen .home-shell,#garageScreen .workshop-panel,#storeScreen .showroom-panel{height:100%;min-height:0;max-height:100%;margin:0 auto!important;box-sizing:border-box}
+#garageScreen .workshop-panel,#storeScreen .showroom-panel{display:flex;flex-direction:column;padding:14px 18px;gap:8px}
+#garageScreen .garage-top,#storeScreen .garage-top{margin:0;padding:0 0 6px;flex-shrink:0}
+#garageScreen .garage-top h1,#storeScreen .garage-top h1{font-size:clamp(22px,3vw,30px);margin:0}
+#garageScreen .eyebrow,#storeScreen .eyebrow,.stage-caption{display:none}
+#garageScreen .route-strip,#storeScreen .route-strip{margin:0;padding:6px 10px;flex-direction:row;align-items:center;font-size:12px;flex-shrink:0}
+#garageScreen label[for=garageVehicle]{display:none!important}
+#garageScreen #garageVehicle{width:100%;max-width:none;padding:6px 10px!important;margin:0!important;min-height:34px;flex-shrink:0}
+#garageScreen .garage-workspace{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:14px;padding:0;border:0}
+#garagePresentation{min-height:0;display:flex;flex-direction:column;justify-content:center}
+#garagePresentation .vehicle-stage{min-height:0}
+#garageScreen .vehicle-stage canvas{height:clamp(90px,30dvh,280px);min-height:0;object-fit:contain}
+#garageScreen .garage-identity{display:block;padding:6px;text-align:center}
+#garageScreen .garage-identity h2{margin:2px 0;font-size:22px}
+#garageScreen .garage-identity .character-bars,#garageScreen .garage-identity .ownership{display:none}
+#garageScreen .upgrades{min-height:0;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));align-content:stretch;gap:8px}
+#garageScreen .workshop-upgrade{padding:9px;display:flex;flex-direction:column;justify-content:space-between;gap:4px}
+.workshop-upgrade .upgrade-tune{margin:4px 0}
+.workshop-upgrade .upgrade-tune label{display:flex;justify-content:space-between;gap:5px;font-size:11px;margin:0}
+.workshop-upgrade .upgrade-tune input{width:100%;margin:3px 0;accent-color:var(--text-ready)}
+#garageScreen .upgrade-heading{gap:7px}
+#garageScreen .upgrade-heading h2{font-size:14px;margin:0}
+#garageScreen .upgrade-icon{width:25px;height:26px;font-size:19px}
+#garageScreen .level-bars{margin:4px 0}
+#garageScreen .upgrade-benefit{font-size:11px;line-height:1.25;min-height:0;margin:0}
+#garageScreen .workshop-upgrade .buy{padding:7px 4px;font-size:12px;box-shadow:none}
+#garageScreen .upgrade-detail{margin:0;font-size:11px}
+#garageScreen .upgrade-detail summary{padding:0}
+#garageScreen .shortfall{margin:0!important;font-size:10px!important}
+#garageScreen .garage-message,#storeScreen .store-message{margin:0;font-size:12px;flex-shrink:0}
+#garageScreen .garage-message:empty,#storeScreen .store-message:empty{display:none}
+#garageScreen .garage-actions,#storeScreen .showroom-footer{flex-shrink:0;position:static!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;margin:0!important;padding-top:8px!important;gap:8px!important}
+#garageScreen .garage-actions button,#storeScreen .showroom-footer button{width:100%;padding:10px 5px!important;font-size:13px;min-height:40px;grid-row:auto;grid-column:auto;margin:0}
+#storeScreen .showroom-footer{grid-template-columns:1fr 1fr!important}
+#storeScreen .showcase{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px}
+#storeScreen .showcase-layout{flex:1;min-height:0;grid-template-columns:minmax(0,1.5fr) minmax(230px,1fr);gap:14px;align-items:center}
+#storeScreen .showcase-layout>div{min-height:0}
+#storeScreen .vehicle-stage canvas{height:clamp(100px,40dvh,350px);min-height:0;object-fit:contain}
+#storeScreen .vehicle-dossier{padding:10px;display:block}
+#storeScreen .vehicle-dossier h2{font-size:clamp(21px,3vw,30px);margin:7px 0}
+#storeScreen .ownership{margin:3px 0;font-size:10px;padding:3px 6px}
+#storeScreen .character-bars{margin:8px 0;gap:6px 12px}
+#storeScreen .investment{margin:8px 0}
+#storeScreen .purchase-price{font-size:18px;margin:6px 0}
+#storeScreen .showcase-buy,#storeScreen .tune-vehicle{padding:8px!important;font-size:13px!important}
+#storeScreen .vehicle-details{margin-top:4px}
+.vehicle-picker{display:flex;align-items:center;gap:12px;flex-shrink:0;color:var(--text-secondary);font-size:12px}
+.vehicle-picker select{flex:1;min-width:0;padding:8px;border:1px solid #597580;border-radius:8px;background:#102632;color:var(--text-primary);font:inherit}
+#storeScreen .reset-tools{margin:0;padding:0;border:0;text-align:right;flex-shrink:0}
+#resetProgress{padding:3px 8px!important;font-size:10px!important}
+/* Expanded specs and destructive confirmation are overlays, not extra page height. */
+.vehicle-details[open],.upgrade-detail[open],#resetConfirm:not([hidden]){position:fixed;z-index:100;inset:50% auto auto 50%;transform:translate(-50%,-50%);width:min(440px,88vw);max-height:70dvh;overflow:auto;box-sizing:border-box;background:#102632;border:1px solid #7596a0;border-radius:14px;padding:18px!important;box-shadow:0 0 0 100vmax #041018bb}
+.vehicle-details[open] summary,.upgrade-detail[open] summary{font-size:16px!important;padding:0 0 12px!important}
+.vehicle-details[open] summary::after,.upgrade-detail[open] summary::after{content:' × Close';float:right;font-size:12px}
+#startScreen .home-shell{display:flex;flex-direction:column;gap:14px;justify-content:center}
+#startScreen .home-topline{margin:0;align-items:center;flex-shrink:0}
+#startScreen .home-topline h1{font-size:clamp(38px,7vw,72px);margin:0}
+#startScreen .home-topline .eyebrow{display:none}
+#startScreen .home-main{min-height:0;grid-template-columns:minmax(0,1.35fr) minmax(260px,.85fr);gap:20px}
+#startScreen .home-stage-copy{display:block}
+#startScreen .home-vehicle-stage canvas{height:clamp(130px,43dvh,360px);min-height:0;object-fit:contain}
+#startScreen .home-vehicle-identity{display:block;text-align:center;padding:6px}
+#startScreen .home-vehicle-identity h2{font-size:24px;margin:3px 0}
+#startScreen .home-vehicle-identity .character-bars,#startScreen .home-vehicle-identity .ownership{display:none}
+#startScreen .home-actions{gap:8px}
+#startScreen .home-actions button{padding:10px;font-size:14px;min-height:38px}
+#startScreen .home-start{font-size:19px!important;min-height:48px!important}
+#startScreen .home-vehicle-actions{grid-template-columns:1fr 1fr}
+#startScreen .run-plan{padding:8px 12px}
+#startScreen .run-plan strong{font-size:17px}
+#startScreen .run-plan small{font-size:11px}
+#startScreen .home-controls-note{font-size:10px;text-align:center}
+@media(max-width:700px){
+ #startScreen,#garageScreen,#storeScreen{padding:60px 8px 8px}
+ #startScreen{padding-top:10px}
+ #garageScreen .workshop-panel,#storeScreen .showroom-panel{padding:10px;gap:6px}
+ #garageScreen .garage-workspace{display:flex;flex-direction:column;gap:6px}
+ #garagePresentation{flex:0 1 auto}
+ #garageScreen .vehicle-stage canvas{height:clamp(55px,15dvh,130px)}
+ #garageScreen .garage-identity{display:none}
+ #garageScreen .upgrades{flex:1;min-height:0}
+ #garageScreen .upgrade-benefit{display:none}
+ .stage-nav{padding:4px;gap:18px}
+ .stage-nav button{height:28px;font-size:21px}
+ #storeScreen .showcase-layout{display:flex;flex-direction:column;justify-content:center;gap:6px}
+ #storeScreen .showcase-layout>div{width:100%}
+ #storeScreen .vehicle-stage canvas{height:clamp(65px,22dvh,180px)}
+ #storeScreen .vehicle-dossier{width:100%;box-sizing:border-box;display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;padding:7px}
+ #storeScreen .vehicle-dossier h2{grid-column:1/-1;margin:0;font-size:22px}
+ #storeScreen .vehicle-tag,#storeScreen .investment{display:none}
+ #storeScreen .vehicle-dossier .character-bars{grid-column:1/-1;margin:3px 0;grid-template-columns:repeat(4,1fr);gap:8px}
+ #storeScreen .showcase-buy,#storeScreen .tune-vehicle{grid-column:auto;margin:0!important}
+ #storeScreen .vehicle-details{grid-column:1/-1;margin:0}
+ #storeScreen .purchase-price{margin:0;text-align:right;font-size:15px}
+ #storeScreen .vehicle-picker{display:block;font-size:11px}
+ #storeScreen .vehicle-picker select{width:100%;margin-top:3px}
+ #startScreen .home-shell{gap:10px}
+ #startScreen .home-topline h1{font-size:42px}
+ #startScreen .home-main{display:flex;flex-direction:column;gap:10px}
+ #startScreen .home-presentation{order:0;width:100%}
+ #startScreen .home-vehicle-stage canvas{height:clamp(70px,22dvh,190px)}
+ #startScreen .home-vehicle-identity{display:none}
+ #startScreen .home-actions{width:100%;order:1}
+}
+@media(max-height:650px){
+ #garageScreen .upgrade-benefit,#garageScreen .shortfall{display:none}
+ #storeScreen .investment,#storeScreen .vehicle-tag{display:none}
+ #garageScreen .route-strip,#storeScreen .route-strip{display:none}
+ #startScreen .home-shell{gap:8px}
+ #startScreen .home-topline h1{font-size:40px}
+}
+@media(max-height:520px) and (min-width:701px){
+ #garageScreen .garage-workspace{grid-template-columns:1fr}
+ #garagePresentation{display:none}
+ #garageScreen .upgrades{grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:1fr}
+ #storeScreen .character-bars,#storeScreen .ownership{display:none}
+ #storeScreen .vehicle-stage canvas{height:120px}
+ #storeScreen .vehicle-dossier h2{font-size:20px}
+ #startScreen .home-main{grid-template-columns:1fr 1fr}
+ #startScreen .home-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+ #startScreen .run-plan,#startScreen .home-vehicle-actions,#startScreen .home-controls-note{grid-column:1/-1}
+ #startScreen .home-utility-row{justify-content:start}
+}
+@media(max-width:700px) and (max-height:700px){
+ #garageScreen .vehicle-stage canvas{height:60px}
+ #garageScreen .workshop-upgrade{padding:7px;gap:2px}
+}
+@media(max-width:700px) and (max-height:600px){
+ #garagePresentation,#startScreen .home-presentation{display:none}
+ #storeScreen .vehicle-stage canvas{height:60px}
+ #storeScreen .character-bars{display:none}
+ #startScreen .home-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+ #startScreen .run-plan,#startScreen .home-vehicle-actions,#startScreen .home-controls-note{grid-column:1/-1}
+}
