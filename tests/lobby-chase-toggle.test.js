@@ -126,7 +126,7 @@ test('Chase Mode toggle rolls back visibly and displays request errors',async()=
 });
 
 
-test('every waiting-room player can change owned cars and must ready up again',async()=>{
+test('every waiting-room player can change owned cars without changing readiness',async()=>{
   const previous=globalThis.document;
   const dom=fakeDom();
   globalThis.document=dom.document;
@@ -150,7 +150,7 @@ test('every waiting-room player can change owned cars and must ready up again',a
       async updateVehicle(id){
         updates.push(id);
         player.vehicleId=id;
-        player.ready=false;
+
         return room;
       }
     };
@@ -174,11 +174,11 @@ test('every waiting-room player can change owned cars and must ready up again',a
     await picker.dispatch('change');
     assert.deepEqual(updates,['bike']);
     assert.equal(player.vehicleId,'bike');
-    assert.equal(player.ready,false,'changing cars cancels ready state');
+    assert.equal(player.ready,true,'changing cars preserves ready state');
     assert.equal(host.ready,true,'another driver stays ready');
     assert.equal(host.vehicleId,'base','another driver keeps their vehicle');
     assert.equal(picker.value,'bike');
-    assert.match(dom.get('lobbyReady').textContent,/Ready Up/);
+    assert.match(dom.get('lobbyReady').textContent,/Not Ready/);
 
     picker.value='buggy';
     await picker.dispatch('change');
@@ -361,5 +361,23 @@ test("Stuntman's Assist reverts rejected lobby changes",async()=>{
     toggle.checked=true;await toggle.dispatch('change');
     assert.equal(toggle.checked,false);
     assert.equal(dom.get('multiplayerError').textContent,'Unable to save Stunt Assist');
+  }finally{globalThis.document=previous;}
+});
+
+test('lobby service bay previews the room car, preserves tuning controls across polls, and hides after lobby',()=>{
+  const previous=globalThis.document,dom=fakeDom();globalThis.document=dom.document;
+  try{
+    const me={id:'a',vehicleId:'bike',ready:true,connected:true,isHost:true};
+    const room={code:'ABCDE',status:'lobby',members:[me]};
+    const draws=[],cards=[];
+    const state={screen:'lobby',progression:{selected:'base',owned:['base','bike'],balance:1000}};
+    const lobby=createLobbyUi({state,multiplayer:{room:()=>room,member:()=>me,session:()=>({memberId:'a'}),status:()=> 'Connected'},cloudSave:{user:()=>null},race:{syncFromRoom(){}},ui:{},save:{levelsFor:()=>({engine:2}),activeLevelsFor:()=>({engine:1.25})},workshop:{upgradeCards(id,prefix){cards.push([id,prefix]);return 'tuning';},drawStage(...args){draws.push(args);}}});
+    lobby.renderLobby();
+    assert.deepEqual(draws,[['lobby','bike']]);
+    assert.deepEqual(cards,[['bike','lobby']]);
+    assert.equal(dom.get('lobbyWorkshop').hidden,false);
+    lobby.renderLobby();assert.equal(cards.length,1,'polls must not replace focused sliders');
+    room.status='racing';lobby.renderLobby();assert.equal(dom.get('lobbyWorkshop').hidden,true);
+    assert.equal(me.ready,true);assert.equal(state.progression.selected,'base');
   }finally{globalThis.document=previous;}
 });

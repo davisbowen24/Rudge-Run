@@ -142,20 +142,20 @@ export function createUi({ stats, workshop, moments, state, economy, terrain, sa
     $('startGarage').focus();
   }
 
-  function statSummary(key,stats){
-    const BASE_VEHICLE=vehicleBase(state.progression.selected);
+  function statSummary(key,stats,id=state.progression.selected){
+    const BASE_VEHICLE=vehicleBase(id);
     switch(key){case 'engine':
-    return `Power ${Math.round(stats.enginePower/BASE_VEHICLE.enginePower*100)}% · Axle torque ${Math.round(stats.engineTorque/BASE_VEHICLE.engineTorque*100)}%${VEHICLES[state.progression.selected].suspensionUpgrade==='airControl'?'':` · Air acceleration ${(stats.airTilt*stats.airControl).toFixed(2)} rad/s²`}`;case 'suspension':
-    if(VEHICLES[state.progression.selected].suspensionUpgrade==='airControl')
+    return `Power ${Math.round(stats.enginePower/BASE_VEHICLE.enginePower*100)}% · Axle torque ${Math.round(stats.engineTorque/BASE_VEHICLE.engineTorque*100)}%${VEHICLES[id].suspensionUpgrade==='airControl'?'':` · Air acceleration ${(stats.airTilt*stats.airControl).toFixed(2)} rad/s²`}`;case 'suspension':
+    if(VEHICLES[id].suspensionUpgrade==='airControl')
     return `Air acceleration ${(stats.airTilt*stats.airControl).toFixed(2)} rad/s² · Spin cap ${stats.maxRotation.toFixed(1)} rad/s`;
     return `Springs ${Math.round(stats.suspension/BASE_VEHICLE.suspension*100)}% · Damping ${Math.round(stats.suspensionDamping/BASE_VEHICLE.suspensionDamping*100)}%`;case 'tires':
-    if(VEHICLES[state.progression.selected].tiresUpgrade==='downforce')
+    if(VEHICLES[id].tiresUpgrade==='downforce')
     return `Track load +${Math.round(stats.downforce*100)}% local weight · Compressed grip ×${(1+stats.downforceGrip).toFixed(1)}`;
     return `Static grip ${stats.staticGrip.toFixed(2)} · Sliding grip ${stats.dynamicGrip.toFixed(2)}`;case 'fuel':
     return `Capacity ${Math.round(stats.fuelCapacity)} · ${Math.round(stats.fuelCapacity/(stats.fuelBurn*1.12))}s at full throttle`;}
   }
 
-  function upgradeBenefit(key,current,next){
+  function upgradeBenefit(key,current,next,id=state.progression.selected){
 
     const increase=(a,b)=>Math.round((b/a-1)*100);
 
@@ -163,9 +163,9 @@ export function createUi({ stats, workshop, moments, state, economy, terrain, sa
  case 'engine':
     return `+${increase(current.enginePower,next.enginePower)}% power · +${increase(current.engineTorque,next.engineTorque)}% climbing torque`;
  case 'suspension':
-    return VEHICLES[state.progression.selected].suspensionUpgrade==='airControl'?`+${increase(current.airTilt,next.airTilt)}% air acceleration; same spin cap`:`+${increase(current.suspensionDamping,next.suspensionDamping)}% landing damping · +${increase(current.suspension,next.suspension)}% spring support`;
+    return VEHICLES[id].suspensionUpgrade==='airControl'?`+${increase(current.airTilt,next.airTilt)}% air acceleration; same spin cap`:`+${increase(current.suspensionDamping,next.suspensionDamping)}% landing damping · +${increase(current.suspension,next.suspension)}% spring support`;
  case 'tires':
-    return VEHICLES[state.progression.selected].tiresUpgrade==='downforce'?`+${increase(1+current.downforceGrip,1+next.downforceGrip)}% fully compressed track grip`:`+${increase(current.staticGrip,next.staticGrip)}% hill traction · +${increase(current.dynamicGrip,next.dynamicGrip)}% sliding grip`;
+    return VEHICLES[id].tiresUpgrade==='downforce'?`+${increase(1+current.downforceGrip,1+next.downforceGrip)}% fully compressed track grip`:`+${increase(current.staticGrip,next.staticGrip)}% hill traction · +${increase(current.dynamicGrip,next.dynamicGrip)}% sliding grip`;
  case 'fuel':
     return `+${increase(current.fuelCapacity/current.fuelBurn,next.fuelCapacity/next.fuelBurn)}% driving time per full tank`;
  }

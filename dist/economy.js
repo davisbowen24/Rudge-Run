@@ -65,8 +65,8 @@ export function createEconomy({ stats, moments, state, terrain, save, ui, upgrad
     return Math.max(0,Math.ceil((Math.min(state.nextFuel,...ahead)-state.car.x)/CONFIG.world.pixelsPerMeter));
   }
 
-  function upgradeCost(key){
-    return UPGRADE_PRICES[state.progression.selected][save.levelsFor()[key]]??0;
+  function upgradeCost(key,id=state.progression.selected){
+    return UPGRADE_PRICES[id][save.levelsFor(id)[key]]??0;
   }
 
   function generate(){
@@ -157,23 +157,23 @@ export function createEconomy({ stats, moments, state, terrain, save, ui, upgrad
     }
   }
 
-  function buyUpgrade(key){
-    if(state.screen!=='garage'||!state.progression.owned.includes(state.progression.selected)||!Object.hasOwn(UPGRADES,key)||save.levelsFor()[key]>=MAX_LEVEL)
+  function buyUpgrade(key,id=state.progression.selected){
+    if(!['garage','lobby'].includes(state.screen)||!state.progression.owned.includes(id)||!Object.hasOwn(UPGRADES,key)||save.levelsFor(id)[key]>=MAX_LEVEL)
     return false;
-    const cost=upgradeCost(key);
+    const cost=upgradeCost(key,id);
     if(state.progression.balance<cost)
     return false;
     state.progression.balance-=cost;
-    const previousLevel=save.levelsFor()[key];
+    const previousLevel=save.levelsFor(id)[key];
     // Keep upgrades fully active after a purchase unless the player deliberately tuned them down.
-    if(save.activeLevelsFor()[key]>=previousLevel)
-    save.activeLevelsFor()[key]=previousLevel+1;
-    save.levelsFor()[key]++;
-    state.progression.upgradeSpent[state.progression.selected]+=cost;
+    if(save.activeLevelsFor(id)[key]>=previousLevel)
+    save.activeLevelsFor(id)[key]=previousLevel+1;
+    save.levelsFor(id)[key]++;
+    state.progression.upgradeSpent[id]+=cost;
     save.saveProgress();
-    ui.renderGarage();
-    moments.emit('upgrade',{major:save.levelsFor()[key]>=3,title:upgrades.upgradeEntry(key).name,detail:`${VEHICLES[state.progression.selected].name} · Level ${save.levelsFor()[key]+1}${save.levelsFor()[key]===MAX_LEVEL?' · MAXED OUT':''}`,target:'[data-upgrade="'+key+'"]'});
-    $('garageMessage').textContent=`${VEHICLES[state.progression.selected].name}: ${upgrades.upgradeEntry(key).name} upgraded to level ${save.levelsFor()[key]+1}. Ready for your next run.`;
+    if(state.screen==='garage')ui.renderGarage();
+    moments.emit('upgrade',{major:save.levelsFor(id)[key]>=3,title:upgrades.upgradeEntry(key,id).name,detail:`${VEHICLES[id].name} · Level ${save.levelsFor(id)[key]+1}${save.levelsFor(id)[key]===MAX_LEVEL?' · MAXED OUT':''}`,target:'[data-upgrade="'+key+'"]'});
+    if(state.screen==='garage')$('garageMessage').textContent=`${VEHICLES[id].name}: ${upgrades.upgradeEntry(key,id).name} upgraded to level ${save.levelsFor(id)[key]+1}. Ready for your next run.`;
     return true;
   }
 

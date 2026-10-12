@@ -2,8 +2,8 @@ import { $ } from './utils.js';
 import { VEHICLES, VEHICLE_ORDER } from './vehicles.js';
 import { MAPS, MAP_CATALOG } from './maps.js';
 
-export function createLobbyUi({multiplayer,cloudSave,state,ui,race}){
-  let busy=false;
+export function createLobbyUi({multiplayer,cloudSave,state,ui,race,workshop,save,economy}){
+  let busy=false,workshopSignature='';
 
   function setError(message=''){$('multiplayerError').textContent=message;}
   function signedUser(){return cloudSave.user();}
@@ -88,6 +88,21 @@ export function createLobbyUi({multiplayer,cloudSave,state,ui,race}){
     }
   }
 
+  function renderWorkshop(me,inLobby){
+    if(!workshop||!save)return;
+    const panel=$('lobbyWorkshop'),id=me?.vehicleId;
+    panel.hidden=!inLobby||!state.progression.owned.includes(id);
+    if(panel.hidden)return;
+    const signature=JSON.stringify([id,save.levelsFor(id),save.activeLevelsFor(id),state.progression.balance,busy]);
+    if(signature===workshopSignature)return;
+    workshopSignature=signature;
+    $('lobbyVehicleName').textContent=VEHICLES[id].name;
+    $('lobbyBalance').textContent=state.progression.balance.toLocaleString('en-US')+' coins';
+    $('lobbyUpgrades').innerHTML=workshop.upgradeCards(id,'lobby');
+    $('lobbyUpgrades').disabled=busy;
+    workshop.drawStage('lobby',id);
+  }
+
   function renderLobby(){
     const room=multiplayer.room(),me=multiplayer.member();
     if(!room)return;
@@ -134,6 +149,7 @@ export function createLobbyUi({multiplayer,cloudSave,state,ui,race}){
     $('lobbyStart').disabled=busy||!host||!everyoneReady;
     $('lobbyStart').textContent=host?(everyoneReady?'Start Race':'Waiting for Ready Players'):'Host Starts Race';
 
+    renderWorkshop(me,inLobby);
     renderVoting(room,me);
     race.syncFromRoom(room);
   }
@@ -242,6 +258,33 @@ export function createLobbyUi({multiplayer,cloudSave,state,ui,race}){
         await multiplayer.updateVehicle(id);
       });
     });
+    if(workshop&&save){
+      const editable=()=>!busy&&multiplayer.room()?.status==='lobby'&&state.progression.owned.includes(multiplayer.member()?.vehicleId);
+      $('lobbyUpgrades').addEventListener('click',e=>{
+        const button=e.target.closest('[data-upgrade]');
+        if(!button||!editable())return;
+        const id=multiplayer.member().vehicleId;
+        if(economy.buyUpgrade(button.dataset.upgrade,id)){
+          workshop.celebrate();
+          $('lobbyWorkshopMessage').textContent='Upgrade installed on '+VEHICLES[id].name+'.';
+          renderLobby();
+        }
+      });
+      $('lobbyUpgrades').addEventListener('input',e=>{
+        const slider=e.target.closest('[data-tune-upgrade]');
+        if(!slider||!editable())return;
+        slider.closest('.upgrade-tune').querySelector('output').textContent=slider.value+' / '+slider.max;
+      });
+      $('lobbyUpgrades').addEventListener('change',e=>{
+        const slider=e.target.closest('[data-tune-upgrade]');
+        if(!slider||!editable())return;
+        const id=multiplayer.member().vehicleId,key=slider.dataset.tuneUpgrade;
+        save.setActiveLevel(key,Number(slider.value),id);
+        renderLobby();
+        $('lobbyUpgrades').querySelector('[data-tune-upgrade="'+key+'"]')?.focus({preventScroll:true});
+        $('lobbyWorkshopMessage').textContent='Tuning saved for '+VEHICLES[id].name+'.';
+      });
+    }
     $('lobbyChaseMode').addEventListener('change',e=>{
       // action() re-renders the lobby before invoking its callback, resetting
       // the checkbox to the server's OLD value. Capture the click first.

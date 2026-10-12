@@ -31,13 +31,16 @@ export function createWorkshop({state,save,upgrades,economy,render,physics,ui}) 
   function garage(){
     const id=state.progression.selected;
     $('garagePresentation').innerHTML=stage(id,'garage')+`<div class="garage-identity"><span class="ownership is-owned">● EQUIPPED</span><h2>${esc(VEHICLES[id].name)}</h2><p>${esc(VEHICLES[id].description)}</p>${bars(id)}</div>`;
-    const current=upgrades.vehicleStats(save.levelsFor());
-    const tunedStats=upgrades.vehicleStats(save.activeLevelsFor());
-    $('upgradeCards').innerHTML=Object.keys(UPGRADES).map(key=>{
-      const entry=upgrades.upgradeEntry(key),level=save.levelsFor()[key],active=save.activeLevelsFor()[key],max=level===MAX_LEVEL,cost=economy.upgradeCost(key),next=upgrades.vehicleStats({...save.levelsFor(),[key]:Math.min(MAX_LEVEL,level+1)}),affordable=state.progression.balance>=cost;
-      return `<article class="upgrade workshop-upgrade" data-status="${max?'max':affordable?'ready':'locked'}"><div class="upgrade-heading"><span class="upgrade-icon">${icons[key]}</span><div><h2>${entry.name}</h2><span class="upgrade-level">${max?'MAXED OUT':`Level ${level+1} → ${level+2}`}</span></div></div><div class="level-bars" aria-label="Level ${level+1} of ${MAX_LEVEL+1}">${Array.from({length:MAX_LEVEL+1},(_,i)=>`<span class="${i<=level?'filled':''}"></span>`).join('')}</div><p class="upgrade-benefit">${max?'Built to its full potential.':ui.upgradeBenefit(key,current,next)}</p><div class="upgrade-tune"><label for="tune-${key}">Applied levels <output for="tune-${key}">${active} / ${level}</output></label><input id="tune-${key}" type="range" min="0" max="${level}" step="0.25" value="${active}" data-tune-upgrade="${key}" aria-label="${entry.name} applied levels" ${level===0?'disabled':''}><small>${level===0?'Install an upgrade to enable tuning.':'0 = stock · Drag to use some or all purchased levels.'}</small></div><button class="buy" data-upgrade="${key}" ${max||!affordable?'disabled':''}>${max?'Fully upgraded':`Install · ${fmt(cost)} ◈`}</button>${!max&&!affordable?`<small class="shortfall">Need ${fmt(cost-state.progression.balance)} more coins</small>`:''}<details class="upgrade-detail"><summary>What changes?</summary><p>${entry.description}</p><p>Applied now: ${ui.statSummary(key,tunedStats)}</p>${max?'':'<p>Next installed level: '+ui.statSummary(key,next)+'</p>'}</details></article>`;
-    }).join('');
+    $('upgradeCards').innerHTML=upgradeCards(id,'garage');
     drawStage('garage',id);
+  }
+  function upgradeCards(id,prefix='garage'){
+    const current=upgrades.vehicleStats(save.levelsFor(id),id);
+    const tunedStats=upgrades.vehicleStats(save.activeLevelsFor(id),id);
+    return Object.keys(UPGRADES).map(key=>{
+      const entry=upgrades.upgradeEntry(key,id),level=save.levelsFor(id)[key],active=save.activeLevelsFor(id)[key],max=level===MAX_LEVEL,cost=economy.upgradeCost(key,id),next=upgrades.vehicleStats({...save.levelsFor(id),[key]:Math.min(MAX_LEVEL,level+1)},id),affordable=state.progression.balance>=cost;
+      return `<article class="upgrade workshop-upgrade" data-status="${max?'max':affordable?'ready':'locked'}"><div class="upgrade-heading"><span class="upgrade-icon">${icons[key]}</span><div><h2>${entry.name}</h2><span class="upgrade-level">${max?'MAXED OUT':`Level ${level+1} → ${level+2}`}</span></div></div><div class="level-bars" aria-label="Level ${level+1} of ${MAX_LEVEL+1}">${Array.from({length:MAX_LEVEL+1},(_,i)=>`<span class="${i<=level?'filled':''}"></span>`).join('')}</div><p class="upgrade-benefit">${max?'Built to its full potential.':ui.upgradeBenefit(key,current,next,id)}</p><div class="upgrade-tune"><label for="${prefix}-tune-${key}">Applied levels <output for="${prefix}-tune-${key}">${active} / ${level}</output></label><input id="${prefix}-tune-${key}" type="range" min="0" max="${level}" step="0.25" value="${active}" data-tune-upgrade="${key}" aria-label="${entry.name} applied levels" ${level===0?'disabled':''}><small>${level===0?'Install an upgrade to enable tuning.':'0 = stock · Drag to use some or all purchased levels.'}</small></div><button class="buy" data-upgrade="${key}" ${max||!affordable?'disabled':''}>${max?'Fully upgraded':`Install · ${fmt(cost)} ◈`}</button>${!max&&!affordable?`<small class="shortfall">Need ${fmt(cost-state.progression.balance)} more coins</small>`:''}<details class="upgrade-detail"><summary>What changes?</summary><p>${entry.description}</p><p>Applied now: ${ui.statSummary(key,tunedStats,id)}</p>${max?'':'<p>Next installed level: '+ui.statSummary(key,next,id)+'</p>'}</details></article>`;
+    }).join('');
   }
   function enter(){browsing=state.progression.selected;lastVehicle=null;transition=1;}
   function move(id,dir=1){
@@ -88,5 +91,5 @@ export function createWorkshop({state,save,upgrades,economy,render,physics,ui}) 
     // Arrow navigation only when focus belongs to the showroom; form controls keep native keys.
     $('storeScreen').addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight'].includes(e.key)&&!['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)){e.preventDefault();const i=VEHICLE_ORDER.indexOf(browsing),dir=e.key==='ArrowRight'?1:-1;move(VEHICLE_ORDER[(i+dir+20)%20],dir);}});
   }
-  return {home,store,garage,enter,update,bindEvents,celebrate,move,drawStage,current:()=>browsing};
+  return {home,store,garage,upgradeCards,enter,update,bindEvents,celebrate,move,drawStage,current:()=>browsing};
 }

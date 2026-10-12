@@ -24,6 +24,7 @@ async function setup(){
   await db.exec(await readFile(new URL('../supabase/migrations/202610100005_losers_assist.sql',import.meta.url),'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/202610100006_stunt_assist.sql',import.meta.url),'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/202610100007_multiplayer_points.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/20261012150643_lobby_preserve_ready.sql',import.meta.url),'utf8'));
 
   const rawA='a'.repeat(64),rawB='b'.repeat(64),hashA=await sha(rawA),hashB=await sha(rawB);
   await db.query('select public.ridge_auth($1,$2,$3,$4)',[true,'Driver_A','Password-testing-123',hashA]);
@@ -68,9 +69,13 @@ test('multiplayer race lifecycle is authoritative from voting through results',a
     await send('ready',{ready:true},s);
     await send('ready',{ready:true},g);
 
+    await send('ready',{ready:false},s);
+    const unreadyVehicle=await send('vehicle',{vehicleId:'base'},s);
+    assert.equal(unreadyVehicle.data.room.members.find(m=>m.id===second.data.memberId).ready,false);
+    await send('ready',{ready:true},s);
     const vehicle=await send('vehicle',{vehicleId:'bike'},h);
     assert.equal(vehicle.status,200);
-    assert.equal(vehicle.data.room.members.find(m=>m.id===host.data.memberId).ready,false);
+    assert.equal(vehicle.data.room.members.find(m=>m.id===host.data.memberId).ready,true);
     await send('ready',{ready:true},h);
 
     const nonHostStart=await send('start',{},s);
